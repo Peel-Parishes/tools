@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peel Parishes — Post Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16211F; --limewash:#EFF1EF; --paper:#F7F8F6; --stone:#D5D8D3; --muted:#5C6660;
+  /* Heritage register — brand guide v1 */
+  --db:#8A6A2F; --fz:#1F5F6B; --mo:#A4462E; --cw:#573984; --all:#16211F;
+  /* Bright register — colour on dark backgrounds only */
+  --db-b:#D4A24C; --fz-b:#0E8C9E; --mo-b:#D9392B; --cw-b:#9457C4;
+  --display:"Marcellus",Georgia,serif;
+  --body:"Source Sans 3",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--limewash);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;min-height:100vh}
+header{flex:none}
+h1,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.2}
+.eyebrow{font-family:var(--body);font-weight:600;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+:focus-visible{outline:3px solid var(--fz);outline-offset:2px}
+
+header{background:var(--ink);color:var(--paper);padding:18px 28px;display:flex;align-items:center;gap:22px}
+header svg{width:46px;height:46px;flex:none}
+header .eyebrow{color:#8A918D;margin-bottom:3px}
+header h1{color:var(--paper);font-size:1.45rem}
+header p{color:#B9C0BC;margin:4px 0 0;font-size:.9rem;max-width:74ch}
+
+.shell{display:grid;grid-template-columns:minmax(330px,400px) 1fr;flex:1}
+.pane{padding:24px 26px}
+.left{background:var(--paper);border-right:1px solid var(--stone)}
+.right{background:var(--limewash);display:flex;flex-direction:column;align-items:flex-start}
+
+label{display:block;font-size:.8rem;font-weight:600;margin:15px 0 5px}
+label span.opt{font-weight:400;color:var(--muted)}
+input[type=text],textarea,select{width:100%;padding:9px 11px;border:1px solid var(--stone);background:#fff;
+  font-family:var(--body);font-size:.94rem;color:var(--ink);border-radius:0}
+textarea{resize:vertical;min-height:70px}
+input[type=file]{font-size:.82rem;width:100%}
+.hint{font-size:.75rem;color:var(--muted);margin-top:4px}
+.hint.warn{color:var(--mo);font-weight:600}
+
+.pick{display:grid;gap:5px;margin-top:5px}
+.pick.two{grid-template-columns:1fr 1fr}
+.pick button{font-family:var(--body);font-size:.83rem;text-align:left;padding:8px 10px;cursor:pointer;
+  border:1px solid var(--stone);background:#fff;color:var(--ink);display:flex;align-items:center;gap:8px}
+.pick button .key{width:11px;height:11px;border-radius:50%;flex:none;background:var(--c)}
+.pick button[aria-pressed="true"]{background:var(--c,var(--ink));color:#fff;border-color:var(--c,var(--ink))}
+.pick button[aria-pressed="true"] .key{background:#fff}
+.pick button.wide{grid-column:1/-1}
+
+.btn{display:inline-block;background:var(--ink);color:var(--paper);padding:10px 18px;border:1px solid var(--ink);
+  font-family:var(--body);font-weight:600;font-size:.92rem;cursor:pointer}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:var(--paper)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;align-items:center}
+
+.stage{background:var(--stone);padding:18px;display:flex;justify-content:center;
+  align-items:flex-start;max-width:100%;box-sizing:border-box}
+canvas{display:block;max-width:100%;height:auto;box-shadow:0 2px 14px rgba(0,0,0,.14)}
+
+.cap{background:#fff;border:1px solid var(--stone);padding:15px 17px;margin-top:18px;max-width:560px;width:100%}
+.cap h3{font-size:1rem;margin-bottom:8px}
+.cap textarea{min-height:130px;font-size:.9rem;line-height:1.5}
+.cap .hint{margin-top:6px}
+/* The writing advice sits beside the copy button, not under it, and keeps its
+   own column so it wraps against the button rather than the whole card. */
+.cap-row{flex-wrap:nowrap;align-items:flex-start;gap:14px}
+.cap-row .btn{flex:none}
+.cap-row .hint{flex:1 1 0;min-width:0;margin-top:0;line-height:1.45}
+@media (max-width:520px){ .cap-row{flex-wrap:wrap} .cap-row .hint{flex:1 1 100%} }
+
+.note{border-left:3px solid var(--ink);background:rgba(22,33,31,.05);padding:12px 15px;margin-top:18px;font-size:.83rem;color:var(--muted);max-width:560px}
+.note.warn{border-left-color:var(--mo);background:rgba(164,70,46,.08)}
+.note b{display:block;color:var(--ink);font-family:var(--body);font-weight:600;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);
+  padding:11px 22px;font-size:.88rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
+.routes{display:flex;flex-direction:column;gap:7px;margin:2px 0 4px}
+.routes .btn{width:100%;text-align:left}
+.toast.on{opacity:1}
+.svcs{display:grid;gap:6px;margin-top:6px}
+.svc{display:grid;grid-template-columns:1fr 1fr 88px 28px;gap:5px;align-items:center;
+  border-left:4px solid var(--c,var(--ink));padding-left:8px}
+.svc .svc-n{grid-column:1/4}
+.svc select,.svc input{padding:6px 8px;font-size:.85rem;border:1px solid var(--stone);background:#fff;
+  font-family:var(--body);color:var(--ink);width:100%}
+.svc .svc-x{grid-row:1;grid-column:4;border:1px solid var(--stone);background:#fff;color:var(--muted);
+  font-size:1.05rem;line-height:1;padding:5px 0;cursor:pointer}
+.svc .svc-x:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.svcadd{margin-top:8px;font-size:.85rem;padding:7px 13px}
+.eyebrow.sub{display:block;margin:22px 0 2px;color:var(--muted)}
+.colrow{display:flex;gap:8px;align-items:center}
+.colrow input[type=color]{width:46px;height:38px;padding:2px;border:1px solid var(--stone);background:#fff;cursor:pointer;flex:none}
+.colrow input[type=text]{flex:1;font-family:var(--body);padding:8px 10px;border:1px solid var(--stone)}
+.imports{display:grid;gap:6px;margin-top:8px}
+.imp{text-align:left;border:1px solid var(--stone);border-left:4px solid var(--c,var(--ink));
+  background:#fff;padding:8px 10px;cursor:pointer;font-family:var(--body);color:var(--ink)}
+.imp:hover{background:var(--limewash)}
+.imp b{display:block;font-size:.9rem}
+.imp span{display:block;font-size:.78rem;color:var(--muted)}
+.chk{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:400;margin:14px 0 0}
+.chk input{width:16px;height:16px;flex:none;margin:0}
+input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;padding:8px 10px;
+  border:1px solid var(--stone);background:#fff;color:var(--ink);width:100%}
+.f{display:none}
+@media (max-width:940px){ .shell{grid-template-columns:1fr} .left{border-right:0;border-bottom:1px solid var(--stone)} }
+
+/* Wide view only: the two columns fill the window and scroll inside themselves,
+   so the form can run as long as it likes while the picture stays on screen at
+   whatever shape it is. Below 941px the columns stack and the page scrolls
+   normally -- none of this applies. */
+@media (min-width:941px){
+  html,body{height:100%;overflow:hidden}
+  .shell{flex:1 1 0;min-height:0;overflow:hidden}
+  .pane{min-height:0}
+  .left{overflow-y:auto}
+  .right{display:flex;flex-direction:column;overflow-y:auto;min-width:0}
+  /* Floor the stage so a short window scrolls the column rather than
+     squeezing the picture away or clipping the consent notice. */
+  .stage{flex:1 1 0;min-height:240px;align-self:stretch;overflow:hidden}
+  .stage canvas{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+  .cap,.note{flex:none}
+  .cap textarea{min-height:0}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-label="Peel Parishes woven mark">
+    <rect x="0" y="20" width="90" height="20" fill="#D9392B"/><rect x="0" y="50" width="90" height="20" fill="#9457C4"/>
+    <rect x="20" y="0" width="20" height="50" fill="#D4A24C"/><rect x="20" y="70" width="20" height="20" fill="#D4A24C"/>
+    <rect x="50" y="0" width="20" height="20" fill="#0E8C9E"/><rect x="50" y="40" width="20" height="50" fill="#0E8C9E"/>
+  </svg>
+  <div>
+    <span class="eyebrow">Peel Parishes · Social media</span>
+    <h1>Post Studio</h1>
+    <p>Makes a finished square post in about a minute.<br>Four of the five templates need no photograph at all.</p>
+  </div>
+</header>
+
+<div class="shell">
+
+  <section class="pane left">
+    <span class="eyebrow">1 · What kind of post?</span>
+    <div class="pick" id="tpl">
+      <button type="button" data-t="sunday"  aria-pressed="true">This Sunday service times</button>
+      <button type="button" data-t="event"   aria-pressed="false">Event</button>
+      <button type="button" data-t="words"   aria-pressed="false">Words / Photo</button>
+    </div>
+
+    <span class="eyebrow" style="margin-top:22px">2 · Which church?</span>
+    <div class="pick two" id="ch">
+      <button type="button" data-k="db" style="--c:var(--db)" aria-pressed="false"><span class="key"></span>Drayton Bassett</button>
+      <button type="button" data-k="fz" style="--c:var(--fz)" aria-pressed="false"><span class="key"></span>Fazeley</button>
+      <button type="button" data-k="mo" style="--c:var(--mo)" aria-pressed="false"><span class="key"></span>Mile Oak</button>
+      <button type="button" data-k="cw" style="--c:var(--cw)" aria-pressed="false"><span class="key"></span>Canwell &mdash; St Mary, St Giles &amp; All Saints</button>
+      <button type="button" class="wide" data-k="all" style="--c:var(--all)" aria-pressed="true"><span class="key"></span>All four churches</button>
+    </div>
+    <div id="chopts"></div>
+
+    <span class="eyebrow" style="margin-top:22px">3 · Fill it in</span>
+
+    <label for="size">Shape</label>
+    <select id="size">
+      <option value="1080x1080">Square &mdash; feed post (1080 × 1080)</option>
+      <option value="1080x1350">Tall &mdash; takes up more screen (1080 × 1350)</option>
+      <option value="1080x1920">Story (1080 × 1920)</option>
+    </select>
+
+    <div id="fields"></div>
+
+    <div class="note" id="consent" style="display:none">
+      <b>Before you post a photograph</b>
+      Written consent first, every time, for everyone recognisable. For anyone under 18 that means a parent or guardian has signed the form, and it must be on file before the photo is taken &mdash; not chased afterwards. Never put a child's name in the same post as their face. If you can't remember whether someone has consented, don't post it.
+    </div>
+
+    <div class="note" id="capnote">
+      <b>Words to go with it</b>
+      Write like you'd say it to someone at the door. No exclamation marks stacked up, no "Don't miss out!!". Put the important thing in the first line &mdash; the rest gets hidden behind "more".
+    </div>
+
+    <div class="row">
+      <button class="btn" id="dl">Download the picture</button>
+      <button class="btn ghost" id="reset">Start again</button>
+    </div>
+  </section>
+
+  <section class="pane right">
+    <span class="eyebrow">Preview</span>
+    <div class="stage"><canvas id="cv" width="1080" height="1080"></canvas></div>
+
+    <div class="note warn" id="warn" style="display:none"></div>
+
+  </section>
+</div>
+
+<input type="file" id="fileIn" accept="image/*" class="f">
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CH = {
+    db:{n:"St Peter's",  s:"Drayton Bassett", p:"Drayton Bassett", f:"St Peter's, Drayton Bassett", c:"#8A6A2F", b:"#D4A24C"},
+    fz:{n:"St Paul's",   s:"Fazeley",         p:"Fazeley",         f:"St Paul's, Fazeley",          c:"#1F5F6B", b:"#0E8C9E"},
+    mo:{n:"St Barnabas", s:"Mile Oak",        p:"Mile Oak",        f:"St Barnabas, Mile Oak",       c:"#A4462E", b:"#D9392B"},
+    cw:{n:"Canwell",     s:"",                p:"Canwell",         f:"Canwell",                     c:"#573984", b:"#9457C4"},
+    all:{n:"Peel Parishes", s:"South-west Tamworth", p:"Peel Parishes Together",
+         f:"Peel Parishes Together", pick:"Multiple Churches (combined)", c:"#16211F", b:"#F7F8F6"}
+  };
+  var CW_FULL = "St Mary, St Giles & All Saints, Canwell";
+  /* The name that goes on the card for a given service row. */
+  function churchName(k){
+    if (k === "cw" && cwFull) return CW_FULL;
+    return (CH[k] || CH.all).f;
+  }
+  var ORDER = ["db","fz","mo","cw"];
+
+  /* The published Sunday pattern. This is the same table the newsletter builder
+     fills from — if the pattern changes, ROTA has to be updated in BOTH files.
+     "ink" means the whole parish together, not one church. */
+  var ROTA = {
+   1:[{c:"db",t:"09:30",s:"Morning Worship"},
+      {c:"fz",t:"11:00",s:"Holy Communion",n:"with Kingdom Kids"},
+      {c:"mo",t:"18:00",s:"Evening Praise Together"},
+      {c:"cw",t:"11:00",s:"All Age Worship"}],
+   2:[{c:"db",t:"09:30",s:"Warden Led Service"},
+      {c:"fz",t:"11:00",s:"Morning Worship",n:"with Kingdom Kids"},
+      {c:"mo",t:"09:00",s:"Morning Worship"},
+      {c:"cw",t:"11:00",s:"Holy Communion",n:"Common Worship"}],
+   3:[{c:"db",t:"09:30",s:"Holy Communion"},
+      {c:"fz",t:"11:00",s:"Caf\u00e9 Church",n:"all age"},
+      {c:"fz",t:"18:00",s:"Evening Holy Communion"},
+      {c:"cw",t:"11:00",s:"Warden Led Service"}],
+   4:[{c:"db",t:"09:30",s:"Warden Led Service"},
+      {c:"fz",t:"11:00",s:"Morning Worship",n:"with Kingdom Kids"},
+      {c:"mo",t:"09:00",s:"Holy Communion"},
+      {c:"cw",t:"11:00",s:"Book of Common Prayer Communion"}],
+   5:[{c:"ink",t:"",s:"All Together Communion",n:"location rotates \u2014 check the notices"}]
+  };
+  var ORD = ["","first","second","third","fourth","fifth"];
+
+  function D(v){ if(!v) return null; var d = new Date(v+"T12:00:00"); return isNaN(d)?null:d; }
+  function ordinal(d){ return Math.floor((d.getDate()-1)/7)+1; }
+  function longDate(d){ return d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"}); }
+  function tidyTime(t){
+    if(!t) return "";
+    var q = t.split(":"), h = parseInt(q[0],10), m = q[1];
+    if(isNaN(h)) return t;
+    var ap = h>=12?"pm":"am", hh = h%12; if(hh===0) hh = 12;
+    return hh + (m==="00"?"":"."+m) + ap;
+  }
+  var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  function medDate(d){ return d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); }
+  function timeRange(t, e){
+    var a = tidyTime(t), b = tidyTime(e);
+    return a ? (b ? a + "\u2013" + b : a) : "";
+  }
+  /* Same shapes the newsletter builds its "when" line from. */
+  function whenText(n){
+    /* A notice can carry no date at all -- a standing appeal or a request for
+       prayer. The newsletter calls that mode "none" and prints no when-line. */
+    if (n.mode === "none") return "";
+    if (n.mode === "series"){
+      var st = D(n.start); if (!st) return "";
+      var t2 = timeRange(n.time, n.endTime);
+      return DAYS[st.getDay()] + "s" + (t2 ? ", " + t2 : "") + " \u2014 " +
+             (n.weeks ? n.weeks + " weeks from " + medDate(st) : "from " + medDate(st));
+    }
+    if (n.mode === "ongoing"){
+      var t3 = timeRange(n.time, n.endTime);
+      var head = (n.day !== "" && n.day != null) ? DAYS[parseInt(n.day,10)] + "s" : "";
+      var o = [head, t3].filter(Boolean).join(", ");
+      if (n.qualifier) o += (o ? ", " : "") + n.qualifier;
+      return o;
+    }
+    var d = D(n.date), t = timeRange(n.time, n.endTime);
+    return d ? longDate(d) + (t ? ", " + t : "") : t;
+  }
+  function nextSunday(){
+    var d = new Date(); d.setDate(d.getDate() + ((7 - d.getDay()) % 7));
+    return d.toISOString().slice(0,10);
+  }
+  function svcKey(k){ return (k==="ink") ? "all" : k; }
+  var INK="#16211F", PAPER="#F7F8F6", LIME="#EFF1EF", MUTED="#5C6660";
+  var LABEL = "'Source Sans 3', Arial, sans-serif";  /* labels, place lines, times */
+
+  var $ = function(id){ return document.getElementById(id); };
+  var tpl = "sunday", church = "all", photo = null;
+  /* One bag per template. Switching templates swaps the bag rather than
+     emptying it, so a half-built event survives a look at another card. */
+  var STATE = { sunday: {}, event: {}, words: {} };
+  var data = STATE.sunday;
+  var EVENT_KEY = "peel:poststudio:event:v1";
+  function saveEvent(){
+    try { localStorage.setItem(EVENT_KEY, JSON.stringify(STATE.event)); } catch (e){}
+  }
+  function loadEvent(){
+    try {
+      var raw = localStorage.getItem(EVENT_KEY);
+      if (raw){ var o = JSON.parse(raw); if (o && typeof o === "object") STATE.event = o; }
+    } catch (e){}
+  }
+  var services = [];
+  var overflow = 0;
+  var dark = false;
+  var cwFull = false;
+
+  var FIELDS = {
+    sunday: [],
+    event: [],
+    words: [
+      {k:"quote", t:"The words", ph:"Do not be anxious about anything, but in every situation, by prayer and petition, present your requests to God.", area:true, big:true},
+      {k:"src",   t:"Where they're from", ph:"Philippians 4.6"},
+      {k:"foot",  t:"Anything to add", ph:"Praying together this week", area:true}
+    ],
+  };
+
+  /* ---------- fields ---------- */
+  function rotaFill(){
+    var d = D(data.date);
+    if (!d){ toast("Set the Sunday date first"); return; }
+    var n = ordinal(d), list = ROTA[n] || [];
+    services = list.map(function(x){
+      return {ch: svcKey(x.c), title: x.s, time: x.t, note: x.n || ""};
+    });
+    buildFields(); draw();
+    if (n === 5) toast("Fifth Sunday \u2014 no times are published; fill them in yourself");
+    else toast("Filled from the published pattern \u2014 the " + ORD[n] + " Sunday");
+  }
+
+  function serviceEditor(wrap){
+    var hl = document.createElement("label");
+    hl.setAttribute("for","fld-head");
+    hl.textContent = "Heading";
+    wrap.appendChild(hl);
+    var hi = document.createElement("input");
+    hi.type = "text"; hi.id = "fld-head";
+    hi.placeholder = "Join Us This Sunday";
+    if (data.head === undefined) data.head = "Join Us This Sunday";
+    hi.value = data.head;
+    hi.addEventListener("input", function(){ data.head = hi.value; draw(); });
+    wrap.appendChild(hi);
+    var hh = document.createElement("p");
+    hh.className = "hint";
+    hh.textContent = "Change it to split a Sunday across two posts \u2014 \u201cMorning Services\u201d and \u201cEvening Services\u201d, posted together.";
+    wrap.appendChild(hh);
+
+    var lab = document.createElement("label");
+    lab.setAttribute("for","fld-date");
+    lab.textContent = "Which Sunday";
+    wrap.appendChild(lab);
+    var dt = document.createElement("input");
+    dt.type = "date"; dt.id = "fld-date";
+    dt.value = data.date || (data.date = nextSunday());
+    dt.addEventListener("change", function(){ data.date = dt.value; draw(); });
+    wrap.appendChild(dt);
+
+    var rowb = document.createElement("div");
+    rowb.className = "row"; rowb.style.marginTop = "10px";
+    var fill = document.createElement("button");
+    fill.type = "button"; fill.className = "btn ghost"; fill.textContent = "Fill from the published pattern";
+    fill.onclick = rotaFill;
+    rowb.appendChild(fill);
+    wrap.appendChild(rowb);
+
+    var h = document.createElement("p");
+    h.className = "hint";
+    h.textContent = "The same pattern the newsletter builder uses. Always check it against the notices \u2014 it is a published pattern, not a live feed.";
+    wrap.appendChild(h);
+
+    var head = document.createElement("label");
+    head.textContent = "Services";
+    wrap.appendChild(head);
+
+    var list = document.createElement("div");
+    list.className = "svcs";
+    services.forEach(function(sv, i){
+      var r = document.createElement("div");
+      r.className = "svc";
+      r.style.setProperty("--c", CH[sv.ch] ? CH[sv.ch].c : "#16211F");
+
+      var sel = document.createElement("select");
+      sel.className = "svc-ch";
+      ORDER.concat(["all"]).forEach(function(k){
+        var o = document.createElement("option");
+        o.value = k; o.textContent = CH[k].pick || churchName(k);
+        if (k === sv.ch) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.onchange = function(){ sv.ch = sel.value; buildFields(); draw(); };
+
+      var ti = document.createElement("input");
+      ti.type = "text"; ti.className = "svc-t"; ti.placeholder = "Holy Communion";
+      ti.value = sv.title;
+      ti.oninput = function(){ sv.title = ti.value; draw(); };
+
+      var tm = document.createElement("input");
+      tm.type = "time"; tm.className = "svc-tm";
+      tm.value = sv.time;
+      tm.onchange = function(){ sv.time = tm.value; draw(); };
+
+      var nt = document.createElement("input");
+      nt.type = "text"; nt.className = "svc-n"; nt.placeholder = "with Kingdom Kids (optional)";
+      nt.value = sv.note;
+      nt.oninput = function(){ sv.note = nt.value; draw(); };
+
+      var x = document.createElement("button");
+      x.type = "button"; x.className = "svc-x"; x.title = "Remove this service";
+      x.setAttribute("aria-label","Remove " + (sv.title || "this service"));
+      x.textContent = "\u00d7";
+      x.onclick = function(){ services.splice(i,1); buildFields(); draw(); };
+
+      r.appendChild(sel); r.appendChild(ti); r.appendChild(tm); r.appendChild(nt); r.appendChild(x);
+      list.appendChild(r);
+    });
+    wrap.appendChild(list);
+
+    var add = document.createElement("button");
+    add.type = "button"; add.className = "btn ghost svcadd";
+    add.textContent = "+ Add a service";
+    add.onclick = function(){
+      services.push({ch:"fz", title:"", time:"", note:""});
+      buildFields(); draw();
+    };
+    wrap.appendChild(add);
+    var h2 = document.createElement("p");
+    h2.className = "hint";
+    h2.textContent = "A church can appear more than once \u2014 a morning and an evening service at Fazeley are two rows.";
+    wrap.appendChild(h2);
+
+    function check(labelText, key, hint){
+      var l = document.createElement("label");
+      l.className = "chk";
+      var b = document.createElement("input");
+      b.type = "checkbox";
+      b.checked = !!data[key];
+      b.addEventListener("change", function(){ data[key] = b.checked; draw(); });
+      l.appendChild(b);
+      l.appendChild(document.createTextNode(" " + labelText));
+      wrap.appendChild(l);
+      if (hint){
+        var p2 = document.createElement("p");
+        p2.className = "hint"; p2.textContent = hint;
+        wrap.appendChild(p2);
+      }
+    }
+    canwellOpt(wrap);
+    check("Dark version", "darkCard",
+      "Ink background with the Bright colours, for posting alongside the light one.");
+  }
+
+  /* Checkbox bound to a key on the card's data. defaultOn seeds it the first
+     time the option is shown rather than leaving it undefined. */
+  /* Called after anything on the event form changes. */
+  function touched(){ if (tpl === "event") saveEvent(); }
+
+  function opt(wrap, labelText, key, hint, defaultOn){
+    if (data[key] === undefined && defaultOn) data[key] = true;
+    if (key === "cwFull") cwFull = !!data[key];
+    var l = document.createElement("label");
+    l.className = "chk";
+    var b = document.createElement("input");
+    b.type = "checkbox";
+    b.id = "opt-" + key;
+    b.checked = !!data[key];
+    b.addEventListener("change", function(){
+      data[key] = b.checked;
+      if (key === "cwFull") cwFull = b.checked;
+      touched(); buildFields(); draw();
+    });
+    l.appendChild(b);
+    l.appendChild(document.createTextNode(" " + labelText));
+    wrap.appendChild(l);
+    if (hint){
+      var p2 = document.createElement("p");
+      p2.className = "hint"; p2.textContent = hint;
+      wrap.appendChild(p2);
+    }
+  }
+
+  /* Dropdown bound to a key on the card's data. */
+  function sel(wrap, labelText, key, options, hint){
+    var l = document.createElement("label");
+    l.setAttribute("for", "opt-" + key);
+    l.textContent = labelText;
+    wrap.appendChild(l);
+    var e = document.createElement("select");
+    e.id = "opt-" + key;
+    var known = options.some(function(o){ return o[0] === data[key]; });
+    /* An unrecognised stored value used to leave nothing selected while the
+       browser showed the first option -- the control lied about the state.
+       Fall back explicitly and write the fallback back onto the data. */
+    if (!known) data[key] = options[0][0];
+    options.forEach(function(o){
+      var op = document.createElement("option");
+      op.value = o[0]; op.textContent = o[1];
+      e.appendChild(op);
+    });
+    e.value = data[key];
+    e.addEventListener("change", function(){
+      data[key] = e.value;
+      touched();
+      /* Rebuild, the way a checkbox does: a dropdown can decide which other
+         fields belong on the form, and it never used to redraw them. */
+      buildFields(); draw();
+    });
+    wrap.appendChild(e);
+    if (hint){
+      var p2 = document.createElement("p");
+      p2.className = "hint"; p2.textContent = hint;
+      wrap.appendChild(p2);
+    }
+  }
+
+  /* The notice form from the newsletter builder, minus the fields that only
+     mean something in an email or on the website (link, link text, section). */
+  /* The newsletter builder keeps its working state under this key. If both
+     tools are opened from the same place in the same browser, the post studio
+     can read the notices the volunteer has already typed rather than making
+     them type everything twice. */
+  var NEWSLETTER_KEY = "peel:newsletter:v2";
+  function loadNotices(){
+    try {
+      var raw = localStorage.getItem(NEWSLETTER_KEY);
+      if (!raw) return null;
+      var st = JSON.parse(raw);
+      return (st && st.notices && st.notices.length) ? st.notices : null;
+    } catch (e){ return null; }
+  }
+  /* Native colour well plus a hex box, kept in step with each other. The well
+     opens whatever picker the operating system provides. */
+  function colourField(wrap, key, labelText){
+    /* The wash colour and the ground colour each keep their own hex, so
+       setting one no longer quietly moves the other. */
+    key = key || "bgHex";
+    if (!data[key]) data[key] = "#16211F";
+    var l = document.createElement("label");
+    l.setAttribute("for", "bg-hex-" + key);
+    l.textContent = labelText || "Pick a colour";
+    wrap.appendChild(l);
+
+    var row = document.createElement("div");
+    row.className = "colrow";
+    var well = document.createElement("input");
+    well.type = "color";
+    well.value = data[key];
+    var hex = document.createElement("input");
+    hex.type = "text";
+    hex.id = "bg-hex-" + key;
+    hex.value = data[key];
+    hex.spellcheck = false;
+    hex.placeholder = "#16211F";
+
+    function apply(v, from){
+      if (!/^#?[0-9a-fA-F]{6}$/.test(v.trim())) return;
+      data[key] = "#" + v.trim().replace("#","").toUpperCase();
+      if (from !== "well") well.value = data[key];
+      if (from !== "hex") hex.value = data[key];
+      draw();
+    }
+    well.addEventListener("input", function(){ apply(well.value, "well"); });
+    hex.addEventListener("input", function(){ apply(hex.value, "hex"); });
+
+    row.appendChild(well); row.appendChild(hex);
+    wrap.appendChild(row);
+    var h = document.createElement("p");
+    h.className = "hint";
+    h.textContent = "Off-brand colours are for one-offs. Anything that gets reused should go in the brand guide first.";
+    wrap.appendChild(h);
+  }
+
+  function head(wrap, text){
+    var e = document.createElement("span");
+    e.className = "eyebrow sub";
+    e.textContent = text;
+    wrap.appendChild(e);
+  }
+  /* ---------- the event form ----------
+     One schema drives the whole thing. Each field says what it is, what to
+     call it, and -- where it only applies to some kinds of event -- when it
+     should be on screen at all. buildFields() renders whatever the schema
+     allows for the current answers, so choosing "Weekly" swaps the date box
+     for a day picker instead of leaving a date field that means nothing. */
+
+  var MODES = [
+    ["once",    "A one-off \u2014 a single date"],
+    ["ongoing", "Weekly \u2014 same day, no end date"],
+    ["series",  "A course \u2014 so many weeks from a date"],
+    ["none",    "No date \u2014 an appeal or a standing request"]
+  ];
+  function dated(d){ return d.mode !== "none"; }
+
+  var EVENT_SCHEMA = [
+    {sec: "The event"},
+    {k:"title",    t:"What is it?",              type:"text", ph:"Saturday Breakfast"},
+
+    {sec: "When"},
+    {k:"mode",     t:"How often",                type:"select", opts: MODES},
+    {k:"date",     t:"Date",                     type:"date",   when: function(d){ return d.mode === "once"; }},
+    {k:"start",    t:"Starting on",              type:"date",   when: function(d){ return d.mode === "series"; },
+     hint:"The day of the week comes from this date."},
+    {k:"weeks",    t:"How many weeks",           type:"number", ph:"10",
+     when: function(d){ return d.mode === "series"; }},
+    {k:"day",      t:"Day of the week",          type:"day",    when: function(d){ return d.mode === "ongoing"; }},
+    {k:"qualifier",t:"Anything to qualify it",   type:"text", ph:"term time only",
+     when: function(d){ return d.mode === "ongoing"; }},
+    {k:"time",     t:"Start time",               type:"time", when: dated},
+    {k:"endTime",  t:"End time",                 type:"time", when: dated},
+
+    {sec: "The details"},
+    {k:"place",    t:"Where",                    type:"text", ph:"St Paul's Church Hall, Fazeley"},
+    {k:"body",     t:"Say a bit more",           type:"area", ph:"Cooked breakfast, \u00a35 on the door.", count:220},
+    {k:"signUpBy", t:"Sign up by",               type:"date",
+     hint:"Leave it empty if there is nothing to book."}
+  ];
+
+  var EVENT_KEYS = ["title","mode","date","start","weeks","day","qualifier","time","endTime",
+                    "place","body","signUpBy","cancelled"];
+
+  /* Whether the newsletter list is open under the route buttons. */
+  var panel = null;
+
+  function blankEvent(keepLook){
+    var look = {};
+    if (keepLook){
+      ["usePhoto","washOn","washSize","wash","washHex","markStyle","textStyle","darkCard","cwFull"].forEach(function(k){
+        if (data[k] !== undefined) look[k] = data[k];
+      });
+    }
+    STATE.event = look;
+    data = STATE.event;
+    data.mode = "once";
+  }
+
+  function eventEditor(wrap){
+    if (data.mode === undefined) data.mode = "once";
+
+    routes(wrap);
+
+    EVENT_SCHEMA.forEach(function(f){
+      if (f.sec){ head(wrap, f.sec); return; }
+      if (f.when && !f.when(data)) return;
+      field(wrap, f);
+    });
+
+    head(wrap, "How it looks");
+    opt(wrap, "Cancelled", "cancelled",
+        "Marks it the way the newsletter does \u2014 a label, the title struck through, and the colour band goes grey.");
+    opt(wrap, "Put it over a photograph", "usePhoto",
+        "The words sit over the picture, with a wash behind them so they stay readable.");
+    if (data.usePhoto){
+      var b = document.createElement("button");
+      b.className = "btn ghost"; b.type = "button";
+      b.style.marginTop = "8px";
+      b.textContent = photo ? "Choose a different photo" : "Choose a photo";
+      b.onclick = function(){ $("fileIn").click(); };
+      wrap.appendChild(b);
+      opt(wrap, "Wash over the photo", "washOn",
+          "Darkens the picture so the words can be read over it.", true);
+      if (data.washOn){
+        sel(wrap, "How much of it", "washSize", [["lower","Lower half"],["full","Whole picture"]]);
+        toneField(wrap, "wash", "washHex", "Wash colour",
+          "An ink layer sits under whichever you pick, so the words stay readable on a busy photograph.");
+      }
+    }
+    canwellOpt(wrap);
+    if (church === "all"){
+      sel(wrap, "Logo version", "markStyle", [
+        ["auto",    "Choose for me"],
+        ["heritage","Colour \u2014 Heritage"],
+        ["bright",  "Colour \u2014 Bright"],
+        ["monopos", "Mono \u2014 ink"],
+        ["monorev", "Mono \u2014 paper"]
+      ], "Heritage on a light card, Bright on ink or a photograph, mono where colour would clash.");
+    }
+    sel(wrap, "Text colour", "textStyle", [
+      ["auto",  "Choose for me"],
+      ["light", "Light text"],
+      ["dark",  "Dark text"]
+    ]);
+    opt(wrap, "Dark version", "darkCard",
+        "Ink background with the Bright colours, for posting alongside the light one.");
+  }
+
+  /* ---------- one field ---------- */
+  function field(wrap, f){
+    if (f.type === "day") return dayField(wrap, f);
+    if (f.type === "select") return sel(wrap, f.t, f.k, f.opts, f.hint);
+
+    var l = document.createElement("label");
+    l.setAttribute("for", "ev-" + f.k);
+    l.textContent = f.t;
+    wrap.appendChild(l);
+
+    var e = document.createElement(f.type === "area" ? "textarea" : "input");
+    e.id = "ev-" + f.k;
+    if (f.type === "area") e.rows = 3; else e.type = f.type || "text";
+    /* The placeholder shows the kind of thing that goes here. It is never the
+       value -- an event that has not been filled in must come out empty, not
+       come out as somebody else's breakfast with the office phone number. */
+    if (f.ph) e.placeholder = f.ph;
+    e.value = (data[f.k] === undefined || data[f.k] === null) ? "" : data[f.k];
+    wrap.appendChild(e);
+
+    var cnt = null;
+    if (f.count){
+      cnt = document.createElement("p");
+      cnt.className = "hint";
+      wrap.appendChild(cnt);
+    }
+    function tally(){
+      if (!cnt) return;
+      var n = (e.value || "").length;
+      cnt.textContent = n + " of about " + f.count + " characters.";
+      cnt.className = "hint" + (n > f.count ? " warn" : "");
+    }
+    function on(){ data[f.k] = e.value; tally(); touched(); draw(); }
+    e.addEventListener("input", on);
+    e.addEventListener("change", on);
+    tally();
+
+    if (f.hint){
+      var h = document.createElement("p");
+      h.className = "hint"; h.textContent = f.hint;
+      wrap.appendChild(h);
+    }
+  }
+
+  function dayField(wrap, f){
+    var l = document.createElement("label");
+    l.setAttribute("for", "ev-day");
+    l.textContent = f.t;
+    wrap.appendChild(l);
+    var d = document.createElement("select");
+    d.id = "ev-day";
+    if (data.day === undefined || data.day === "") data.day = "6";
+    DAYS.forEach(function(nm, i){
+      var o = document.createElement("option");
+      o.value = String(i); o.textContent = nm + "s";
+      d.appendChild(o);
+    });
+    d.value = String(data.day);
+    d.addEventListener("change", function(){ data.day = d.value; touched(); draw(); });
+    wrap.appendChild(d);
+  }
+
+  /* ---------- the three ways in ---------- */
+  function routes(wrap){
+    head(wrap, "Where to start");
+
+    var row = document.createElement("div");
+    row.className = "routes";
+
+    function route(label, fn){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "btn ghost";
+      b.textContent = label;
+      b.onclick = fn;
+      row.appendChild(b);
+    }
+    route("Bring one over from the newsletter", function(){
+      panel = (panel === "import") ? null : "import"; buildFields();
+    });
+    route("Start blank", function(){
+      panel = null;
+      blankEvent(true); touched(); buildFields(); draw(); toast("Cleared \u2014 nothing filled in");
+    });
+    wrap.appendChild(row);
+
+    var host = document.createElement("div");
+    host.id = "importwrap";
+    wrap.appendChild(host);
+
+    if (panel === "import") renderImport(host);
+  }
+
+  /* Map a newsletter notice onto the fields this card draws. The link, the
+     link text and the section it sits in are deliberately left behind -- an
+     image cannot carry them. */
+  function adoptNotice(n){
+    blankEvent(false);
+    EVENT_KEYS.forEach(function(k){
+      if (k === "cancelled") data.cancelled = !!n.cancelled;
+      else data[k] = (n[k] === undefined || n[k] === null) ? "" : n[k];
+    });
+    if (!MODES.some(function(m){ return m[0] === data.mode; })) data.mode = "once";
+    /* A parish-wide notice can carry a label saying who it is for. Nothing on
+       the card shows it yet, so fold it into the first line of the body rather
+       than dropping it silently. */
+    if (n.church === "ink" && n.inkLabel){
+      data.body = (n.inkLabel + (data.body ? "\n" + data.body : "")).trim();
+    }
+    if (n.church && CH[svcKey(n.church)]) church = svcKey(n.church);
+    if (n.cwFull !== undefined){ data.cwFull = !!n.cwFull; cwFull = !!n.cwFull; }
+    panel = null;
+    setPressed("ch", "k", church);
+    touched();
+    buildChurchOpts(); buildFields(); draw();
+    toast("Brought over from the newsletter");
+  }
+
+  function noticeButton(n, box){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "imp";
+    b.style.setProperty("--c", (CH[svcKey(n.church)] || CH.all).c);
+    var t = document.createElement("b");
+    t.textContent = (n.cancelled ? "Cancelled \u2014 " : "") + (n.title || "Untitled");
+    var w = document.createElement("span");
+    w.textContent = [whenText(n), n.place].filter(Boolean).join("  \u00b7  ") || "No date";
+    b.appendChild(t); b.appendChild(w);
+    b.onclick = function(){ adoptNotice(n); };
+    box.appendChild(b);
+  }
+
+  function renderImport(host){
+    var list = loadNotices();
+    if (list){
+      var box = document.createElement("div");
+      box.className = "imports";
+      list.forEach(function(n){ noticeButton(n, box); });
+      host.appendChild(box);
+      var h = document.createElement("p");
+      h.className = "hint";
+      h.textContent = "The wording comes across exactly as it went out by email. The list stays open so you can make more than one card.";
+      host.appendChild(h);
+    } else {
+      var p0 = document.createElement("p");
+      p0.className = "hint warn";
+      p0.textContent = "Nothing found. The newsletter builder has to have been used in this browser, " +
+        "opened from the same place as this page, for its notices to be readable here.";
+      host.appendChild(p0);
+    }
+  }
+
+  function buildFields(){
+    var wrap = $("fields");
+    wrap.innerHTML = "";
+    if (tpl === "sunday") serviceEditor(wrap);
+    if (tpl === "event") eventEditor(wrap);
+    FIELDS[tpl].forEach(function(f){
+      var lab = document.createElement("label");
+      lab.setAttribute("for","fld-"+f.k);
+      lab.textContent = f.t;
+      wrap.appendChild(lab);
+
+      var el = document.createElement(f.area ? "textarea" : "input");
+      if (!f.area) el.type = "text";
+      el.id = "fld-"+f.k;
+      el.placeholder = f.ph;
+      el.value = (data[f.k] !== undefined) ? data[f.k] : f.ph;
+      if (f.area) el.rows = f.big ? 4 : 3;
+      el.addEventListener("input", function(){ data[f.k] = el.value; draw(); });
+      data[f.k] = el.value;
+      wrap.appendChild(el);
+    });
+
+    if (tpl === "words"){
+      opt(wrap, "Put it over a photograph", "usePhoto",
+          "The words sit over the picture, with a dark wash behind them so they stay readable.");
+      if (data.usePhoto){
+        var b = document.createElement("button");
+        b.className = "btn ghost";
+        b.type = "button";
+        b.style.marginTop = "8px";
+        b.textContent = photo ? "Choose a different photo" : "Choose a photo";
+        b.onclick = function(){ $("fileIn").click(); };
+        wrap.appendChild(b);
+        var h = document.createElement("p");
+        h.className = "hint";
+        h.textContent = "Landscape or square works best. It stays on this device \u2014 nothing is uploaded anywhere.";
+        wrap.appendChild(h);
+        opt(wrap, "Wash over the photo", "washOn",
+            "Darkens the picture so the words can be read over it.", true);
+        if (data.washOn){
+          sel(wrap, "How much of it", "washSize", [
+            ["lower", "Lower half"],
+            ["full",  "Whole picture"]
+          ]);
+          toneField(wrap, "wash", "washHex", "Wash colour",
+            "An ink layer sits under whichever you pick, so the words stay readable on a busy photograph.");
+        }
+      }
+      if (tpl === "words"){
+        opt(wrap, "Show quotation marks", "quotes", null, true);
+      }
+      canwellOpt(wrap);
+      if (!data.usePhoto){
+        /* A church card used to be locked to its own Heritage colour. It can
+           now take the Bright register, ink, limewash or a colour of its own,
+           the same way a wash can -- still one church colour per card. */
+        var grounds = (church === "all")
+          ? [["ink","Ink"], ["lime","Limewash"],
+             ["db","Sandstone \u2014 Drayton Bassett"], ["fz","Teal \u2014 Fazeley"],
+             ["mo","Brick \u2014 Mile Oak"],  ["cw","Heather \u2014 Canwell"],
+             ["custom","Something else\u2026"]]
+          : [["church","Heritage"], ["bright","Bright"], ["ink","Ink"],
+             ["lime","Limewash"], ["custom","Something else\u2026"]];
+        if (church !== "all" && !data.bg) data.bg = "church";
+        sel(wrap, "Background", "bg", grounds,
+            church === "all"
+              ? "A parish post has no church colour of its own, so pick the ground here."
+              : "Heritage is this church's own colour. Bright is the same colour in the brighter register.");
+        if (data.bg === "custom") colourField(wrap, "bgHex", "Pick a colour");
+      }
+      sel(wrap, "Text colour", "textStyle", [
+        ["auto",  "Choose for me"],
+        ["light", "Light text"],
+        ["dark",  "Dark text"]
+      ]);
+      opt(wrap, "Show the logo, bottom right", "showMark",
+          "The woven mark for a parish post, or the church's name when one church is selected.");
+      if (data.showMark && church === "all"){
+        sel(wrap, "Logo version", "markStyle", [
+          ["auto",    "Choose for me"],
+          ["heritage","Colour \u2014 Heritage"],
+          ["bright",  "Colour \u2014 Bright"],
+          ["monopos", "Mono \u2014 ink"],
+          ["monorev", "Mono \u2014 paper"]
+        ], "Heritage on a light card, Bright on ink or a photograph, mono where colour would clash.");
+      }
+    }
+    $("consent").style.display = data.usePhoto ? "" : "none";
+  }
+
+  $("fileIn").addEventListener("change", function(e){
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function(ev){
+      var im = new Image();
+      im.onload = function(){ photo = im; draw(); toast("Photo added"); };
+      im.src = ev.target.result;
+    };
+    r.readAsDataURL(f);
+  });
+
+  /* ---------- canvas helpers ---------- */
+  var cv = $("cv"), ctx = cv.getContext("2d");
+
+  /* Wraps each typed line separately so a deliberate line break survives
+     instead of being swallowed into the flow. */
+  function wrapML(t, font, maxW){
+    var out = [];
+    String(t == null ? "" : t).split(/\r?\n/).forEach(function(para){
+      if (!para.trim()){ out.push(""); return; }
+      out = out.concat(wrap(para, font, maxW));
+    });
+    while (out.length && out[out.length-1] === "") out.pop();
+    return out;
+  }
+  function wrap(text, font, maxW){
+    ctx.font = font;
+    var words = String(text||"").split(/\s+/).filter(Boolean), lines = [], cur = "";
+    words.forEach(function(w){
+      var test = cur ? cur+" "+w : w;
+      if (ctx.measureText(test).width > maxW && cur){ lines.push(cur); cur = w; }
+      else cur = test;
+    });
+    if (cur) lines.push(cur);
+    return lines;
+  }
+  function drawLines(lines, x, y, font, lh, colour, align){
+    ctx.font = font; ctx.fillStyle = colour; ctx.textAlign = align || "left";
+    lines.forEach(function(l,i){ ctx.fillText(l, x, y + i*lh); });
+    return y + lines.length*lh;
+  }
+  function fitFont(text, family, maxSize, minSize, maxW, maxLines){
+    for (var s = maxSize; s >= minSize; s -= 2){
+      var f = "400 "+s+"px "+family;
+      if (wrap(text, f, maxW).length <= maxLines) return s;
+    }
+    return minSize;
+  }
+
+  /* ---------- the woven mark ---------- */
+  /* Geometry is lifted straight from the brand guide's 90x90 viewBox. Two
+     horizontal threads (Mile Oak over Canwell) crossed by two vertical
+     threads (Drayton Bassett, Fazeley). The tails are part of the mark. */
+  function drawMark(x, y, size, f){
+    var k = size / 90;
+    function r(a,b,w,h,col){ ctx.fillStyle = col; ctx.fillRect(x+a*k, y+b*k, w*k, h*k); }
+    r( 0,20,90,20, f.mo);
+    r( 0,50,90,20, f.cw);
+    r(20, 0,20,50, f.db);
+    r(20,70,20,20, f.db);
+    r(50, 0,20,20, f.fz);
+    r(50,40,20,50, f.fz);
+  }
+  var HERITAGE = {db:"#8A6A2F", fz:"#1F5F6B", mo:"#A4462E", cw:"#573984"};
+
+  var BRIGHT = {db:"#D4A24C", fz:"#0E8C9E", mo:"#D9392B", cw:"#9457C4"};
+  /* Mono reverse: paper and paper-at-55%. Used on a card whose ground is
+     already a church colour, where either colour register would clash. */
+  var MONO_REV = {db:"#F7F8F6", fz:"#F7F8F6", mo:"#929593", cw:"#929593"};
+  /* Mono positive: ink and ink-at-55%. */
+  var MONO_POS = {db:"#16211F", fz:"#16211F", mo:"#7B7F7E", cw:"#7B7F7E"};
+  function luminance(hex){
+    var h = String(hex).replace("#","");
+    if (h.length !== 6) return 0;
+    var v = [0,2,4].map(function(i){
+      var x = parseInt(h.substr(i,2),16) / 255;
+      return (x <= 0.03928) ? x/12.92 : Math.pow((x+0.055)/1.055, 2.4);
+    });
+    return 0.2126*v[0] + 0.7152*v[1] + 0.0722*v[2];
+  }
+  function hexRgba(hex, a){
+    var h = hex.replace("#","");
+    return "rgba(" + parseInt(h.slice(0,2),16) + "," + parseInt(h.slice(2,4),16) + "," +
+           parseInt(h.slice(4,6),16) + "," + a + ")";
+  }
+
+  /* On a single-church card the margin band runs the full height and the name
+     sits in the bottom right, where the woven mark sits on a parish card. The
+     guide allows the bar to stand alone once the artefact names the church in
+     words, which is exactly what the corner does. */
+  function cornerName(){
+    var c = CH[church] || CH.all;
+    if (church === "cw"){
+      /* The guide sets the full dedication on two fixed lines, broken after
+         "St Giles" \u2014 never wrapped wherever it happens to land. */
+      return cwFull
+        ? {ded: ["St Mary, St Giles", "& All Saints"], pl: "Canwell", two: true}
+        : {ded: ["Canwell"], pl: "Canwell Church"};
+    }
+    return {ded: [c.n], pl: c.p || ""};
+  }
+  /* measure only, so the footer knows how much room the corner needs */
+  function cornerNameSize(W){
+    var nm = cornerName();
+    var dedSize = Math.round(W * (nm.two ? 0.034 : 0.046));
+    var plSize = Math.round(W * 0.021);
+    var w = 0;
+    ctx.font = "400 " + dedSize + "px Marcellus, Georgia, serif";
+    nm.ded.forEach(function(l){ w = Math.max(w, ctx.measureText(l).width); });
+    if (nm.pl){
+      ctx.font = "600 " + plSize + "px " + LABEL;
+      w = Math.max(w, ctx.measureText(nm.pl.toUpperCase()).width + nm.pl.length * plSize * 0.16);
+    }
+    return {w: Math.round(w),
+            h: Math.round(nm.ded.length * dedSize * 1.14 + (nm.pl ? plSize * 1.75 : 0))};
+  }
+  function drawCornerName(W, H, pad, fgCol, mutedCol){
+    var nm = cornerName();
+    var dedSize = Math.round(W * (nm.two ? 0.034 : 0.046));
+    var plSize = Math.round(W * 0.021);
+    var dedFont = "400 " + dedSize + "px Marcellus, Georgia, serif";
+    var lines = nm.ded;
+    var bottom = H - pad;
+    var lastDed = bottom - (nm.pl ? plSize * 1.75 : 0);
+
+    ctx.textAlign = "right";
+    ctx.font = dedFont;
+    ctx.fillStyle = fgCol;
+    lines.forEach(function(l, i){
+      ctx.fillText(l, W - pad, lastDed - (lines.length - 1 - i) * dedSize * 1.14);
+    });
+    if (nm.pl){
+      ctx.font = "600 " + plSize + "px " + LABEL;
+      ctx.fillStyle = mutedCol;
+      ctx.save();
+      ctx.letterSpacing = Math.round(plSize * 0.16) + "px";
+      ctx.fillText(nm.pl.toUpperCase(), W - pad, bottom);
+      ctx.restore();
+    }
+    ctx.textAlign = "left";
+    return Math.round(lines.length * dedSize * 1.14 + (nm.pl ? plSize * 1.75 : 0));
+  }
+
+  /* ---------- the event card ----------
+     Same furniture as the Sunday card: the colour band down the left on a
+     single-church post, the mark or the church's name in the bottom corner. */
+  /* Single lines that must not wrap -- shrink until they sit in the column. */
+  function fitLine(text, weight, size, family, maxW){
+    var sz = size;
+    while (sz > size * 0.62){
+      ctx.font = weight + " " + Math.round(sz) + "px " + family;
+      if (ctx.measureText(text).width <= maxW) break;
+      sz -= 1;
+    }
+    return Math.round(sz);
+  }
+  function drawEvent(W, H, c){
+    var pad = Math.round(W * 0.085);
+    var story = (H / W) > 1.7;
+    var tallish = (H / W) > 1.15;
+    /* Taller cards get bigger type rather than more empty space. */
+    var k = story ? 1.45 : (tallish ? 1.14 : 1);
+    var u = W * k;
+    var topPad = pad + (story ? Math.round(W * 0.135) : 0);
+    dark = !!data.darkCard;
+    var onPhoto = !!(data.usePhoto && photo);
+    var lightAuto = dark || onPhoto;
+    var light = (data.textStyle === "light") ? true
+              : (data.textStyle === "dark") ? false : lightAuto;
+    var fg = light ? PAPER : INK;
+    /* Over a photograph the quiet grey has nothing steady behind it to sit
+       against, so it reads as dirt rather than as a lower voice. On a picture,
+       washed or not, the body and the footer come up to the same colour and
+       strength as the headline. */
+    var mutedCol = onPhoto ? fg
+                 : light ? "rgba(247,248,246,0.72)" : MUTED;
+    /* Over a photograph a colour accent gets lost in the picture, so the date
+       and the rule take the same colour as everything else. */
+    var accent = onPhoto ? fg : (dark ? c.b : c.c);
+
+    if (onPhoto){
+      var scl = Math.max(W/photo.width, H/photo.height);
+      ctx.drawImage(photo, (W - photo.width*scl)/2, (H - photo.height*scl)/2,
+                    photo.width*scl, photo.height*scl);
+      if (data.washOn !== false){
+        var full = (data.washSize === "full");
+        if (full){ ctx.fillStyle = "rgba(22,33,31,0.62)"; }
+        else {
+          var gi = ctx.createLinearGradient(0, H*0.30, 0, H);
+          gi.addColorStop(0, "rgba(22,33,31,0)");
+          gi.addColorStop(0.55, "rgba(22,33,31,0.55)");
+          gi.addColorStop(1, "rgba(22,33,31,0.80)");
+          ctx.fillStyle = gi;
+        }
+        ctx.fillRect(0,0,W,H);
+        var wh = toneHex(data.wash, c, "washHex");
+        if (data.wash !== "ink"){
+          if (full){ ctx.fillStyle = hexRgba(wh, 0.45); }
+          else {
+            var gc = ctx.createLinearGradient(0, H*0.30, 0, H);
+            gc.addColorStop(0, hexRgba(wh, 0));
+            gc.addColorStop(0.55, hexRgba(wh, 0.42));
+            gc.addColorStop(1, hexRgba(wh, 0.62));
+            ctx.fillStyle = gc;
+          }
+          ctx.fillRect(0,0,W,H);
+        }
+      }
+    } else {
+      ctx.fillStyle = dark ? INK : LIME;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    var single = (church !== "all");
+    var band = single ? Math.round(W * 0.024) : 0;
+    if (single){
+      /* Cancelled drains the colour out of the band, as it does in the
+         newsletter -- the church is still named, but not celebrated. */
+      ctx.fillStyle = data.cancelled ? (dark ? "#7B7F7E" : "#9AA09C")
+                    : (dark ? c.b : c.c);
+      ctx.fillRect(0, 0, band, H);
+    }
+    /* The band is inside the margin rather than pushing the text across, so a
+       parish card and a church card break the headline in the same place. */
+    var left = pad;
+    var innerW = W - left - pad;
+
+    /* Bottom corner, then the footer sized around it. */
+    var markSize = Math.round(W * 0.070);
+    var corner = single ? cornerNameSize(W) : {w: markSize, h: markSize};
+    var fSize = Math.round(W * 0.030), fLh = Math.round(W * 0.043);
+    var footBits = [];
+    var su = D(data.signUpBy);
+    if (su) footBits.push("Sign up by " + longDate(su) + ".");
+    var footW = innerW - corner.w - Math.round(W * 0.055);
+    var fl = footBits.length ? wrapML(footBits.join("\n"), "400 " + fSize + "px " + LABEL, footW).slice(0,3) : [];
+    var bottomH = Math.max(fl.length ? (fl.length-1)*fLh + fSize : 0, corner.h);
+    var contentBottom = H - pad - bottomH - Math.round(W * 0.055);
+
+    /* Title, then when, where, and the body. */
+    var title = (data.title || "").trim();
+    var tsize = fitFont(title, "Marcellus, Georgia, serif", Math.round(u*0.100), Math.round(u*0.050), innerW, 3);
+    var tf = "400 " + tsize + "px Marcellus, Georgia, serif";
+    var tl = wrap(title, tf, innerW);
+
+    /* Measure the whole block first so a tall card can centre it rather than
+       hanging everything off the top edge. */
+    var cSize = Math.round(u * 0.026);
+    var wtPre = whenText(data);
+    var bfPre = "400 " + Math.round(u*0.036) + "px " + LABEL;
+    var blPre = (data.body || "").trim() ? wrapML(data.body, bfPre, innerW) : [];
+    /* On a card with a title and nothing else, a rule underneath separates the
+       headline from a blank half-card. It only earns its place when there is
+       something below it. */
+    var hasDetails = !!wtPre || !!(data.place || "").trim() || blPre.length > 0;
+    var blockH = (data.cancelled ? Math.round(cSize * 1.8) : 0)
+               + tl.length * tsize * 1.14
+               + (hasDetails ? Math.round(u * 0.034) + Math.round(u * 0.052) : 0)
+               + (wtPre ? Math.round(u * 0.058) : 0)
+               + ((data.place || "").trim() ? Math.round(u * 0.056) : 0)
+               + (blPre.length ? Math.round(u * 0.012) + blPre.length * Math.round(u * 0.052) : 0);
+
+    var y = topPad;
+    if (story){
+      y += Math.max(0, Math.round((contentBottom - topPad - blockH) * 0.5));
+    }
+    y += Math.round(tsize * 0.86);
+
+    if (data.cancelled){
+      var cSize = Math.round(u * 0.026);
+      ctx.font = "600 " + cSize + "px " + LABEL;
+      ctx.fillStyle = light ? BRIGHT.mo : HERITAGE.mo;
+      ctx.textAlign = "left";
+      ctx.save();
+      ctx.letterSpacing = Math.round(cSize * 0.16) + "px";
+      ctx.fillText("CANCELLED", left, y - Math.round(tsize * 0.86) + cSize);
+      ctx.restore();
+      y += Math.round(cSize * 1.8);
+    }
+
+    var titleTop = y;
+    y = drawLines(tl, left, y, tf, tsize * 1.14, fg, "left");
+
+    if (data.cancelled && tl.length){
+      /* Every line struck through, the way the newsletter marks a cancellation. */
+      ctx.strokeStyle = fg;
+      ctx.lineWidth = Math.max(2, Math.round(W * 0.004));
+      ctx.font = tf;
+      tl.forEach(function(l, i){
+        var yy = titleTop + i * tsize * 1.14 - tsize * 0.28;
+        ctx.beginPath();
+        ctx.moveTo(left, yy);
+        ctx.lineTo(left + ctx.measureText(l).width, yy);
+        ctx.stroke();
+      });
+    }
+
+    /* The rule separates the name of the thing from the practical details
+       underneath it, so it is drawn only when there are any. */
+    if (hasDetails){
+      y += Math.round(u * 0.034);
+      ctx.strokeStyle = data.cancelled ? mutedCol : accent;
+      ctx.lineWidth = Math.max(2, Math.round(W * 0.004));
+      ctx.beginPath();
+      ctx.moveTo(left, y);
+      ctx.lineTo(left + Math.round(innerW * 0.28), y);
+      ctx.stroke();
+      y += Math.round(u * 0.052);
+    }
+
+    var wt = whenText(data);
+    if (wt){
+      var wSize = fitLine(wt, "600", Math.round(u*0.042), LABEL, innerW);
+      ctx.font = "600 " + wSize + "px " + LABEL;
+      ctx.fillStyle = data.cancelled ? mutedCol : accent;
+      ctx.textAlign = "left";
+      ctx.fillText(wt, left, y);
+      if (data.cancelled){
+        ctx.strokeStyle = mutedCol;
+        ctx.lineWidth = Math.max(2, Math.round(W * 0.003));
+        ctx.beginPath();
+        ctx.moveTo(left, y - wSize * 0.30);
+        ctx.lineTo(left + ctx.measureText(wt).width, y - Math.round(u*0.042) * 0.30);
+        ctx.stroke();
+      }
+      y += Math.round(u * 0.058);
+    }
+    if ((data.place || "").trim()){
+      ctx.font = "400 " + fitLine(data.place, "400", Math.round(u*0.038), LABEL, innerW) + "px " + LABEL;
+      ctx.fillStyle = fg; ctx.textAlign = "left";
+      ctx.fillText(data.place, left, y);
+      y += Math.round(u * 0.056);
+    }
+    if ((data.body || "").trim()){
+      y += Math.round(u * 0.012);
+      var bf = "400 " + Math.round(u*0.036) + "px " + LABEL;
+      var bl = wrapML(data.body, bf, innerW);
+      var room = Math.floor((contentBottom - y) / Math.round(u*0.052));
+      drawLines(bl.slice(0, Math.max(room, 0)), left, y, bf, Math.round(u*0.052), mutedCol, "left");
+    }
+
+    if (fl.length){
+      ctx.font = "400 " + fSize + "px " + LABEL;
+      ctx.fillStyle = mutedCol; ctx.textAlign = "left";
+      fl.forEach(function(l,i){ ctx.fillText(l, left, H - pad - (fl.length-1-i)*fLh); });
+    }
+    if (single){
+      drawCornerName(W, H, pad, fg, mutedCol);
+    } else {
+      var evAuto = light ? BRIGHT : HERITAGE;
+      drawMark(W - pad - markSize, H - pad - markSize, markSize,
+               {heritage:HERITAGE, bright:BRIGHT, monopos:MONO_POS, monorev:MONO_REV}[data.markStyle] || evAuto);
+    }
+    ctx.textAlign = "left";
+  }
+
+  /* ---------- the Sunday card ---------- */
+  function drawSunday(W, H, c){
+    var pad = Math.round(W * 0.085);
+    var innerW = W - pad * 2;
+    overflow = 0;
+    dark = !!data.darkCard;
+    /* A story is overlaid at the top by the profile row and the timer bar, so
+       everything starts lower down. */
+    var tall = (H / W) > 1.15;
+    var story = (H / W) > 1.7;
+    var topPad = pad + (story ? Math.round(W * 0.135) : 0);
+
+    var fgCol = dark ? PAPER : INK;
+    var mutedCol = dark ? "rgba(247,248,246,0.72)" : MUTED;
+
+    ctx.fillStyle = dark ? INK : LIME;
+    ctx.fillRect(0, 0, W, H);
+
+    /* One register per artefact: Heritage on the light card, Bright on the ink one. */
+    var single = (church !== "all");
+    var band = single ? Math.round(W * 0.024) : 0;
+    if (single){
+      ctx.fillStyle = dark ? c.b : c.c;
+      ctx.fillRect(0, 0, band, H);
+    }
+    var left = single ? band + Math.round(W * 0.058) : pad;
+    innerW = W - left - pad;
+    var y = topPad;
+
+    /* Headline and date */
+    var headSize = Math.round(W * (story ? 0.104 : 0.086));
+    var headText = (data.head !== undefined ? data.head : "Join Us This Sunday").trim();
+    var headLines = wrap(headText, "400 " + headSize + "px Marcellus, Georgia, serif", innerW);
+    ctx.font = "400 " + headSize + "px Marcellus, Georgia, serif";
+    ctx.fillStyle = fgCol; ctx.textAlign = "left";
+    y += Math.round(headSize * 0.82);
+    headLines.forEach(function(l, i){ ctx.fillText(l, left, y + i * headSize * 1.12); });
+    y += (headLines.length - 1) * headSize * 1.12;
+
+    var d = D(data.date);
+    if (d){
+      var dSize = Math.round(W * 0.024);
+      ctx.font = "600 " + dSize + "px " + LABEL;
+      ctx.fillStyle = mutedCol;
+      ctx.save();
+      ctx.letterSpacing = Math.round(dSize * 0.16) + "px";
+      ctx.fillText(longDate(d).toUpperCase(), left, y + Math.round(W * 0.048));
+      ctx.restore();
+      y += Math.round(W * 0.048);
+    }
+    var headBottom = y;
+
+    /* Bottom right: the woven mark on a parish card, the church's name in words
+       on a single-church one. Bright on ink, Heritage on limewash. */
+    var markSize = Math.round(W * 0.078);
+    var corner = single ? cornerNameSize(W) : {w: markSize, h: markSize};
+    var cornerH = corner.h;
+    if (single){
+      drawCornerName(W, H, pad, fgCol, mutedCol);
+    } else {
+      drawMark(W - pad - markSize, H - pad - markSize, markSize, dark ? BRIGHT : HERITAGE);
+    }
+    /* The corner only takes the right-hand end of the bottom of the card, so
+       the rules run past it. Any row that reaches down into the corner's band
+       is given a narrower column so its text stops short of the mark. */
+    var cornerTop = H - pad - cornerH;
+    var cornerLeft = W - pad - corner.w - Math.round(W * 0.045);
+    var rowsBottom = H - pad - Math.round(W * 0.075);
+
+    /* Services. One rule per church, in that church's heritage colour, with
+       the place name in the same colour above the time and title. */
+    var list = services.filter(function(sv){
+      return (sv.title || sv.time) && (church === "all" || sv.ch === church);
+    });
+
+    /* The buffer under the header is generous when there is room and tightens
+       when there is not, because legible service times matter more than white
+       space. The type is then sized as large as the space allows. */
+    var minBuf = Math.round(W * (story ? 0.130 : 0.085));
+    var maxBuf = Math.round(W * (story ? 0.200 : 0.150));
+
+    if (list.length){
+      var narrowW = (W - pad) - cornerLeft;
+
+      /* Which rows reach into the corner's band, given a set of heights. */
+      function firstNarrow(mm, sc, top){
+        var y = top, g = Math.round(W * 0.030 * sc), idx = Infinity;
+        for (var i = 0; i < mm.rows.length; i++){
+          if (y + mm.rows[i].h > cornerTop){ idx = i; break; }
+          y += mm.rows[i].h + g;
+        }
+        return idx;
+      }
+
+      function solve(buf){
+        var top = headBottom + buf;
+        var av = rowsBottom - top;
+        var nf = Infinity;
+        var lo, hi, mid, mm, tt, i, pass;
+        /* Two passes: size the type, see which rows meet the corner, then size
+           again knowing those rows have less width to play with. */
+        for (pass = 0; pass < 2; pass++){
+          lo = 0.55; hi = story ? 1.30 : 1.60;
+          for (i = 0; i < 20; i++){
+            mid = (lo + hi) / 2;
+            mm = measureRows(list, W, innerW, mid, nf, narrowW);
+            tt = mm.total + (list.length - 1) * Math.round(W * 0.030 * mid);
+            if (tt <= av) lo = mid; else hi = mid;
+          }
+          mm = measureRows(list, W, innerW, lo, nf, narrowW);
+          nf = firstNarrow(mm, lo, top);
+        }
+        var mF = measureRows(list, W, innerW, lo, nf, narrowW);
+        return {sc: lo, m: mF, top: top, avail: av,
+                total: mF.total + (list.length - 1) * Math.round(W * 0.030 * lo)};
+      }
+
+      /* Solve tight first to find the largest type, then give back whatever is
+         spare to the header buffer rather than to the gaps. */
+      var r0 = solve(minBuf);
+      var spare = r0.avail - r0.total;
+      var buf = minBuf + Math.min(maxBuf - minBuf, Math.max(0, Math.round(spare * 0.45)));
+      var r1 = solve(buf);
+      if (r1.sc < r0.sc - 0.02) r1 = r0;
+
+      var sc = r1.sc, m = r1.m, total = r1.total;
+      var rowsTop = r1.top, avail = r1.avail;
+      var few = (church !== "all" && list.length <= 2);
+      var gap = Math.round(W * 0.030 * sc);
+
+      /* If it still will not fit at the smallest readable size, draw only the
+         rows that genuinely fit and report the rest. An image that quietly
+         prints service times over the footer is worse than one that stops. */
+      var fit = [], used = 0;
+      for (var i = 0; i < list.length; i++){
+        var need = m.rows[i].h + (fit.length ? gap : 0);
+        if (fit.length && used + need > avail) break;
+        used += need; fit.push(i);
+      }
+      overflow = list.length - fit.length;
+      total = used;
+
+      var slack = avail - total;
+      if (slack > 0 && !few){
+        /* The fewer the rules, the further apart they can sit before the
+           block stops reading as a group. */
+        var cap = Math.round(W * 0.24 / Math.max(fit.length - 1, 1));
+        var extra = Math.min(cap, Math.round(slack / Math.max(fit.length - 1, 1)));
+        gap += extra;
+        slack -= extra * Math.max(fit.length - 1, 0);
+      }
+      /* Normally the block starts at the top of its space so the header keeps
+         its buffer. With only a service or two it is centred instead. */
+      var centre = few || tall;
+      var ry = rowsTop + (centre ? Math.max(0, Math.round(slack * 0.5)) : 0);
+      fit.forEach(function(idx, j){
+        ry = drawRow(list[idx], m.rows[idx], left, ry, W, innerW, sc);
+        if (j < fit.length - 1) ry += gap;
+      });
+    } else {
+      ctx.font = "400 " + Math.round(W * 0.040) + "px " + LABEL;
+      ctx.fillStyle = mutedCol; ctx.textAlign = "left";
+      ctx.fillText("Add the services on the left.", left, headBottom + minBuf + Math.round(W * 0.04));
+    }
+  }
+
+  /* Row geometry is measured before anything is drawn, so the whole block can
+     be shrunk or spaced out to fill the card rather than piling up at the top. */
+  function rowSizes(W, sc){
+    return {
+      label: Math.round(W * 0.023 * sc),
+      time:  Math.round(W * 0.036 * sc),
+      title: Math.round(W * 0.046 * sc),
+      note:  Math.round(W * 0.028 * sc),
+      indent: (church === "all") ? Math.round(W * 0.034) : 0,
+      bar: (church === "all") ? Math.max(3, Math.round(W * 0.009)) : 0
+    };
+  }
+  function measureRows(list, W, innerW, sc, narrowFrom, narrowW){
+    var z = rowSizes(W, sc), rows = [], total = 0;
+    var parish = (church === "all");
+    if (narrowFrom === undefined) narrowFrom = Infinity;
+    function widthAt(i){ return innerW - z.indent - (i >= narrowFrom ? narrowW : 0); }
+
+    /* Each title follows its own time. Padding every row out to the widest
+       time left too much air after the short ones to be worth the alignment. */
+    var gapAfterTime = Math.round(W * 0.026);
+    function timeWidth(sv){
+      var t = tidyTime(sv.time);
+      if (!t) return 0;
+      ctx.font = "600 " + z.time + "px " + LABEL;
+      return ctx.measureText(t).width + gapAfterTime;
+    }
+
+    /* The beside-the-time layout is all or nothing. One long title dropping to
+       its own line while the others stayed put left half the titles indented
+       and half not, and the column looked broken. */
+    var beside = parish;
+    if (beside){
+      var titleFontAll = "400 " + z.title + "px Marcellus, Georgia, serif";
+      beside = list.every(function(sv, i){
+        return wrap(sv.title || "", titleFontAll,
+                    widthAt(i) - timeWidth(sv)).length <= 1;
+      });
+    }
+
+    /* The place label is set in letterspaced caps and never wraps, so a long
+       one -- Canwell's full dedication above all -- has to be stepped down
+       until it fits rather than being allowed to run off the edge. */
+    function labelFit(sv, i){
+      var text = churchName(sv.ch).toUpperCase();
+      var room = widthAt(i) * 0.98;
+      var size = z.label;
+      while (size > z.label * 0.50){
+        ctx.font = "600 " + Math.round(size) + "px " + LABEL;
+        if (ctx.measureText(text).width + text.length * size * 0.16 <= room) break;
+        size -= 1;
+      }
+      return Math.round(size);
+    }
+    /* One size for every label, or the column reads as a set of mismatched
+       headings rather than one list. */
+    var labelSize = 0;
+    if (parish){
+      labelSize = z.label;
+      list.forEach(function(sv, i){ labelSize = Math.min(labelSize, labelFit(sv, i)); });
+    }
+
+    list.forEach(function(sv, i){
+      var avail = widthAt(i);
+      var t = tidyTime(sv.time);
+      var titleFont = "400 " + z.title + "px Marcellus, Georgia, serif";
+      var note = (sv.note || "").trim();
+      var lines, sameLine = false, noteInline = false, noteGap = Math.round(W * 0.018);
+
+      var tcol = timeWidth(sv);
+      if (beside){
+        sameLine = true;
+        lines = wrap(sv.title || "", titleFont, avail - tcol);
+      } else if (parish){
+        lines = wrap(sv.title || "", titleFont, avail);
+      } else {
+        /* One church to a card: title, the time beneath it, then the note. */
+        lines = wrap(sv.title || "", titleFont, avail);
+      }
+
+      var h = (parish ? labelSize * 1.38 : 0)
+            + Math.max(lines.length, 1) * z.title * 1.12
+            + ((t && !sameLine) ? z.time * 1.34 : 0)
+            + ((note && !noteInline) ? z.note * 1.32 : 0);
+      rows.push({lines: lines, sameLine: sameLine, h: Math.round(h), timeText: t,
+                 noteInline: noteInline, noteGap: noteGap, timeCol: tcol,
+                 labelSize: labelSize, narrow: (i >= narrowFrom)});
+      total += Math.round(h);
+    });
+    return {rows: rows, total: total};
+  }
+  function drawRow(sv, r, pad, y, W, innerW, sc){
+    var z = rowSizes(W, sc);
+    var ch = CH[sv.ch] || CH.all;
+    var col = dark ? ch.b : ch.c;
+    var top = y;
+    if (z.bar){
+      ctx.fillStyle = col;
+      ctx.fillRect(pad, top, z.bar, r.h);
+    }
+
+    var x = pad + z.indent;
+    ctx.textAlign = "left";
+
+    var by = top;
+    if (church === "all"){
+      var ls = r.labelSize || z.label;
+      by += ls * 1.00;
+      ctx.font = "600 " + ls + "px " + LABEL;
+      ctx.fillStyle = col;
+      ctx.save();
+      ctx.letterSpacing = Math.round(ls * 0.16) + "px";
+      ctx.fillText(churchName(sv.ch).toUpperCase(), x, by);
+      ctx.restore();
+      by += ls * 0.38;
+    }
+    by += z.title * 0.90;
+    var tx = x;
+    if (r.sameLine){
+      if (r.timeText){
+        ctx.font = "600 " + z.time + "px " + LABEL;
+        ctx.fillStyle = dark ? PAPER : INK;
+        ctx.fillText(r.timeText, tx, by);
+      }
+      tx += r.timeCol;
+    }
+    ctx.font = "400 " + z.title + "px Marcellus, Georgia, serif";
+    ctx.fillStyle = dark ? PAPER : INK;
+    (r.lines.length ? r.lines : [""]).forEach(function(l, i){
+      ctx.fillText(l, tx, by + i * z.title * 1.16);
+    });
+    if (r.noteInline){
+      ctx.font = "400 " + z.title + "px Marcellus, Georgia, serif";
+      var endX = tx + ctx.measureText(r.lines[0] || "").width + r.noteGap;
+      ctx.font = "400 " + z.note + "px " + LABEL;
+      ctx.fillStyle = dark ? "rgba(247,248,246,0.72)" : MUTED;
+      ctx.fillText(sv.note.trim(), endX, by);
+    }
+    by += (Math.max(r.lines.length, 1) - 1) * z.title * 1.16;
+
+    if (r.timeText && !r.sameLine){
+      by += z.time * 1.24;
+      ctx.font = "600 " + z.time + "px " + LABEL;
+      ctx.fillStyle = dark ? PAPER : INK;
+      ctx.fillText(r.timeText, x, by);
+    }
+    if ((sv.note || "").trim() && !r.noteInline){
+      by += z.note * 1.22;
+      ctx.font = "400 " + z.note + "px " + LABEL;
+      ctx.fillStyle = dark ? "rgba(247,248,246,0.72)" : MUTED;
+      ctx.fillText(sv.note.trim(), x, by);
+    }
+    return top + r.h;
+  }
+
+  /* ---------- draw ---------- */
+  function draw(){
+    var dims = $("size").value.split("x");
+    var W = +dims[0], H = +dims[1];
+    cv.width = W; cv.height = H;
+    var c = CH[church];
+    var pad = Math.round(W * 0.095);
+    var innerW = W - pad*2;
+
+    ctx.clearRect(0,0,W,H);
+
+    if (tpl === "sunday"){ drawSunday(W, H, c); reportOverflow(); return; }
+    overflow = 0; reportOverflow();
+    if (tpl === "event"){ drawEvent(W, H, c); return; }
+
+    // ---- background
+    var onPhoto = !!(data.usePhoto && photo);
+    if (onPhoto){
+      var sc = Math.max(W/photo.width, H/photo.height);
+      var pw = photo.width*sc, ph = photo.height*sc;
+      ctx.drawImage(photo, (W-pw)/2, (H-ph)/2, pw, ph);
+
+      /* Ink underneath guarantees the contrast; the colour sits on top of it,
+         so a pale church colour still tints without making the words unreadable.
+         "Whole picture" is an even wash; "lower half" fades in from the middle. */
+      if (data.washOn !== false){
+        var full = (data.washSize === "full");
+        var gi = full ? null : ctx.createLinearGradient(0, H*0.30, 0, H);
+        if (full){ ctx.fillStyle = "rgba(22,33,31,0.62)"; }
+        else {
+          gi.addColorStop(0, "rgba(22,33,31,0)");
+          gi.addColorStop(0.55, "rgba(22,33,31,0.55)");
+          gi.addColorStop(1, "rgba(22,33,31,0.80)");
+          ctx.fillStyle = gi;
+        }
+        ctx.fillRect(0,0,W,H);
+
+        var washHex = (data.wash === "ink") ? "#16211F"
+                    : (data.wash === "bright") ? c.b : c.c;
+        if (data.wash !== "ink"){
+          if (full){ ctx.fillStyle = hexRgba(washHex, 0.45); }
+          else {
+            var gc = ctx.createLinearGradient(0, H*0.30, 0, H);
+            gc.addColorStop(0, hexRgba(washHex, 0));
+            gc.addColorStop(0.55, hexRgba(washHex, 0.42));
+            gc.addColorStop(1, hexRgba(washHex, 0.62));
+            ctx.fillStyle = gc;
+          }
+          ctx.fillRect(0,0,W,H);
+        }
+      }
+    } else if (tpl === "words"){
+      var bgKey = (church === "all") ? (data.bg || "ink") : (data.bg || "church");
+      ctx.fillStyle = bgKey === "custom" ? (data.bgHex || INK)
+                    : bgKey === "ink"    ? INK
+                    : bgKey === "lime"   ? LIME
+                    : bgKey === "church" ? c.c
+                    : bgKey === "bright" ? c.b
+                    : HERITAGE[bgKey];
+      ctx.fillRect(0,0,W,H);
+    } else {
+      ctx.fillStyle = LIME; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = c.c; ctx.fillRect(0,0,W, Math.round(H*0.018));
+    }
+
+    /* Whether the words want ink or paper on top depends on the ground alone,
+       so this can no longer be a parish-only question. */
+    var groundHex = (tpl !== "words" || onPhoto) ? null
+      : (data.bg === "custom") ? (data.bgHex || INK)
+      : (data.bg === "lime")   ? LIME
+      : (data.bg === "ink")    ? INK
+      : (data.bg === "bright") ? c.b
+      : (church === "all")     ? (HERITAGE[data.bg] || INK)
+      : c.c;
+    var lightGround = !!groundHex && luminance(groundHex) > 0.55;
+    var autoDark = onPhoto || (tpl==="words" && !lightGround);
+    var onDark = (data.textStyle === "light") ? true
+               : (data.textStyle === "dark") ? false : autoDark;
+    var fg = onDark ? PAPER : INK;
+    /* Over a photograph the quiet grey has nothing steady behind it to sit
+       against, so it reads as dirt rather than as a lower voice. On a picture,
+       washed or not, the source line and the footer come up to the same colour
+       and strength as the words themselves. */
+    var soft = onPhoto ? fg : (onDark ? "rgba(247,248,246,0.72)" : MUTED);
+    // Bright only where the ground is ink or photograph. On the "words" card the
+    // ground is already the heritage colour, so a Bright accent would mix registers.
+    var brightGround = onPhoto;
+    var accent = brightGround ? c.b : (onDark ? "rgba(247,248,246,0.90)" : c.c);
+
+    /* The corner's room is reserved whether or not the logo is switched on, so
+       ticking the box never shifts the words that are already placed. */
+    var markSize = Math.round(W * 0.070);
+    var corner = (church === "all") ? {w: markSize, h: markSize} : cornerNameSize(W);
+
+    /* Bottom of the card: the footer on the left, the logo on the right. */
+    var fy = H - pad;
+    var fSize = Math.round(W * 0.033), fLh = Math.round(W * 0.046);
+    var footText = (data.foot || "").trim();
+    var footW = innerW - (corner.w ? corner.w + Math.round(W * 0.055) : 0);
+    var fl = footText ? wrapML(footText, "400 " + fSize + "px " + LABEL, footW).slice(0, 3) : [];
+    var bottomH = Math.max(fl.length ? (fl.length - 1) * fLh + fSize : 0, corner.h);
+    var contentBottom = H - pad - bottomH - (bottomH ? Math.round(W * 0.055) : 0);
+    var contentTop = pad;
+
+    // ---- body by template
+    if (tpl === "event"){
+      var title = data.title || "";
+      var tsize = fitFont(title, "Marcellus, Georgia, serif", Math.round(W*0.115), Math.round(W*0.055), innerW, 3);
+      var tf = "400 "+tsize+"px Marcellus, Georgia, serif";
+      var tl = wrap(title, tf, innerW);
+
+      /* Over a photograph the words hang off the bottom of the frame; on a
+         plain card they start at the top. */
+      var y;
+      if (onPhoto){
+        var bodyLines = (data.body||"").trim()
+          ? wrap(data.body, "400 "+Math.round(W*0.040)+"px " + LABEL, innerW).length : 0;
+        var whenH = (data.when||"").trim() ? Math.round(W*0.062) : 0;
+        var whereH = (data.where||"").trim() ? Math.round(W*0.060) : 0;
+        y = contentBottom - bodyLines*Math.round(W*0.056) - whenH - whereH
+            - (tl.length - 1) * tsize * 1.14;
+        y = Math.max(y, contentTop + tsize);
+      } else {
+        y = contentTop + Math.round(tsize * 0.86);
+      }
+
+      y = drawLines(tl, pad, y, tf, tsize*1.14, fg, "left");
+
+      y += Math.round(W*0.018);
+      if ((data.when||"").trim()){
+        ctx.font = "600 "+Math.round(W*0.046)+"px " + LABEL;
+        ctx.fillStyle = accent; ctx.textAlign = "left";
+        ctx.fillText(data.when, pad, y);
+        y += Math.round(W*0.062);
+      }
+      if ((data.where||"").trim()){
+        ctx.font = "400 "+Math.round(W*0.042)+"px " + LABEL;
+        ctx.fillStyle = fg; ctx.textAlign = "left";
+        ctx.fillText(data.where, pad, y);
+        y += Math.round(W*0.060);
+      }
+      if ((data.body||"").trim()){
+        y += Math.round(W*0.012);
+        var bf = "400 "+Math.round(W*0.040)+"px " + LABEL;
+        drawLines(wrapML(data.body, bf, innerW), pad, y, bf, Math.round(W*0.056), soft, "left");
+      }
+    }
+
+    else if (tpl === "words"){
+      var q = (data.quote || "").trim();
+      var srcText = (data.src || "").trim();
+      var marks = !!data.quotes;
+
+      /* Reserve the source line and the quote mark BEFORE sizing the words, so
+         a long verse can never push the reference off the bottom of the card. */
+      var srcSize = Math.round(W*0.034);
+      var srcH = srcText ? Math.round(srcSize * 1.9) : 0;
+      var markH = marks ? Math.round(W * 0.075) : 0;
+      var availH = contentBottom - contentTop - srcH - markH;
+
+      var qs = Math.round(W*0.082), ql = [];
+      var minQ = Math.round(W*0.036);
+      while (qs > minQ){
+        ql = wrapML(q, "400 "+qs+"px Marcellus, Georgia, serif", innerW);
+        if (ql.length * qs * 1.32 <= availH) break;
+        qs -= 2;
+      }
+      if (!ql.length) ql = wrapML(q, "400 "+qs+"px Marcellus, Georgia, serif", innerW);
+      var qf = "400 "+qs+"px Marcellus, Georgia, serif";
+      var blockH = ql.length * qs * 1.32;
+
+      var top = contentTop + markH + Math.max(0, Math.round((availH - blockH) / 2));
+
+      if (marks){
+        ctx.font = "400 "+Math.round(W*0.16)+"px Marcellus, Georgia, serif";
+        /* On a flat ground the mark is faint furniture. Over a photograph a
+           faint mark has nothing steady to sit against and disappears, so it
+           comes up to the same colour and strength as the words. */
+        ctx.fillStyle = onPhoto ? fg
+                      : onDark ? "rgba(247,248,246,0.28)" : "rgba(22,33,31,0.16)";
+        ctx.textAlign = "left";
+        /* Clamped so a long verse cannot push the mark off the top edge. */
+        var qmY = Math.max(top - Math.round(W*0.012), pad + Math.round(W*0.105));
+        ctx.fillText("\u201C", pad - Math.round(W*0.012), qmY);
+      }
+
+      var qy = drawLines(ql, pad, top + qs*0.86, qf, qs*1.32, fg, "left");
+
+      if (srcText){
+        ctx.font = "600 "+srcSize+"px " + LABEL;
+        ctx.fillStyle = soft; ctx.textAlign = "left";
+        ctx.fillText(srcText, pad, qy + Math.round(srcSize * 0.9));
+      }
+    }
+
+    // ---- footer and corner attribution
+    if (fl.length){
+      ctx.font = "400 "+fSize+"px " + LABEL;
+      ctx.fillStyle = soft; ctx.textAlign = "left";
+      fl.forEach(function(l,i){ ctx.fillText(l, pad, fy - (fl.length-1-i)*fLh); });
+    }
+    if (data.showMark){
+      if (church === "all"){
+        var auto = onPhoto ? BRIGHT : (tpl === "words" ? MONO_REV : HERITAGE);
+        var fills = {heritage:HERITAGE, bright:BRIGHT, monopos:MONO_POS, monorev:MONO_REV}[data.markStyle] || auto;
+        drawMark(W - pad - markSize, H - pad - markSize, markSize, fills);
+      } else {
+        drawCornerName(W, H, pad, fg, soft);
+      }
+    }
+    ctx.textAlign = "left";
+  }
+
+  function reportOverflow(){
+    var el = $("warn");
+    if (!el) return;
+    if (!overflow){ el.style.display = "none"; return; }
+    el.style.display = "";
+    el.innerHTML = "<b>Not everything fits</b>" +
+      overflow + " service" + (overflow === 1 ? " is" : "s are") +
+      " missing from this picture. Try the Tall shape, shorten a service name, " +
+      "or split it across two posts \u2014 one for the morning, one for the evening.";
+  }
+
+  /* Options that belong to the church choice rather than to the card. */
+  function buildChurchOpts(){
+    var wrap = $("chopts");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+  }
+  /* Shown wherever Canwell can actually appear on the card -- which includes a
+     parish card carrying a Canwell service, not just a Canwell-only card. */
+  function canwellShowing(){
+    if (church === "cw") return true;
+    if (tpl !== "sunday") return false;
+    return services.some(function(sv){ return sv.ch === "cw"; });
+  }
+  function canwellOpt(wrap){
+    if (!canwellShowing()) return;
+    opt(wrap, "Canwell in full", "cwFull",
+        "Sets Canwell as \u201c" + CW_FULL + "\u201d. Off by default \u2014 the short form fits better.");
+  }
+
+  /* Wash and ground share one vocabulary: Heritage, Bright, Ink, or a colour
+     of your own. On a parish card "Heritage" falls back to ink, since the
+     parish has no heritage colour of its own. */
+  var TONES = [
+    ["church", "Heritage"],
+    ["bright", "Bright"],
+    ["ink",    "Ink"],
+    ["custom", "Something else\u2026"]
+  ];
+  function toneHex(key, c, hexKey){
+    if (key === "ink") return INK;
+    if (key === "custom") return data[hexKey] || INK;
+    if (key === "bright") return c.b;
+    return (church === "all") ? INK : c.c;
+  }
+  function toneField(wrap, key, hexKey, label, hint){
+    sel(wrap, label, key, TONES, hint);
+    if (data[key] === "custom") colourField(wrap, hexKey, "Pick a colour");
+  }
+
+  /* ---------- pickers ---------- */
+  /* Move a picker's pressed state without firing its click handler. */
+  function setPressed(id, attr, value){
+    [].forEach.call(document.querySelectorAll("#"+id+" button"), function(b){
+      b.setAttribute("aria-pressed", String(b.dataset[attr] === value));
+    });
+  }
+  function picker(id, cb){
+    var bs = [].slice.call(document.querySelectorAll("#"+id+" button"));
+    bs.forEach(function(b){
+      b.addEventListener("click", function(){
+        bs.forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+        b.setAttribute("aria-pressed","true");
+        cb(b.dataset);
+      });
+    });
+  }
+  picker("tpl", function(d){
+    tpl = d.t;
+    data = STATE[tpl];
+    buildChurchOpts(); buildFields(); draw();
+  });
+  picker("ch", function(d){ church = d.k; buildChurchOpts(); buildFields(); draw(); });
+  $("size").addEventListener("change", draw);
+
+  $("dl").addEventListener("click", function(){
+    var a = document.createElement("a");
+    a.download = "peel-" + tpl + "-" + $("size").value + ".png";
+    a.href = cv.toDataURL("image/png");
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast("Saved to your downloads");
+  });
+
+  $("reset").addEventListener("click", function(){
+    STATE[tpl] = {};
+    data = STATE[tpl];
+    photo = null;
+    if (tpl === "sunday"){ services = []; data.date = nextSunday(); }
+    if (tpl === "event"){ data.mode = "once"; panel = null; saveEvent(); }
+    buildFields(); draw();
+    toast("Cleared this card");
+  });
+
+  function toast(m){
+    var el = $("toast"); el.textContent = m; el.classList.add("on");
+    setTimeout(function(){ el.classList.remove("on"); }, 1800);
+  }
+
+  loadEvent();
+  data.date = nextSunday();
+  rotaFill();
+  buildFields();
+  if (document.fonts && document.fonts.ready){
+    document.fonts.ready.then(draw);
+    setTimeout(draw, 700);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Signature Logo Test</title>
+    <meta name="claude:viewport-fit-sides" content="cover">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;600&display=swap">
+    <style>
+    /* Layout: form left, live email preview right; stacks on phone. Heritage register only. */
+    :root {
+        --bg: #F7F6F3;
+        --panel: #FFFFFF;
+        --fg: #22252A;
+        --muted: #6A6E75;
+        --rule: #DEDBD4;
+        --accent: #1F5F6B;
+        --ok: #2E6B3A;
+        --display: "Marcellus", Georgia, serif;
+        --body: "Source Sans 3", Helvetica, Arial, sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --bg: #17191C;
+            --panel: #202327;
+            --fg: #ECEAE5;
+            --muted: #A3A6AB;
+            --rule: #34383D;
+            --accent: #6FB3BF;
+            --ok: #7CC48A;
+            color-scheme: dark
+        }
+    }
+
+    :root[data-theme="dark"] {
+        --bg: #17191C;
+        --panel: #202327;
+        --fg: #ECEAE5;
+        --muted: #A3A6AB;
+        --rule: #34383D;
+        --accent: #6FB3BF;
+        --ok: #7CC48A;
+        color-scheme: dark
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--body);
+        font-size: 15px;
+        line-height: 1.5
+    }
+
+    .wrap {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding-block: 32px 56px;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px))
+    }
+
+    h1 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 2rem;
+        margin: 0 0 4px;
+        text-wrap: balance
+    }
+
+    .lede {
+        color: var(--muted);
+        margin: 0 0 28px;
+        max-width: 62ch
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+        gap: 24px
+    }
+
+    @media (max-width: 760px) {
+        .grid {
+            grid-template-columns: minmax(0, 1fr)
+        }
+    }
+
+    .card {
+        background: var(--panel);
+        border: 1px solid var(--rule);
+        border-radius: 6px;
+        padding: 20px
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px
+    }
+
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: .78rem;
+        font-weight: 600;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: var(--muted)
+    }
+
+    input, select {
+        font: inherit;
+        font-size: 15px;
+        color: var(--fg);
+        background: var(--bg);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        padding: 8px 10px;
+        text-transform: none;
+        letter-spacing: 0
+    }
+
+    input:focus, select:focus, button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px
+    }
+
+    .hint {
+        font-size: .8rem;
+        color: var(--muted);
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: 0
+    }
+
+    .sheet {
+        background: #FFFFFF;
+        color: #222;
+        border-radius: 4px;
+        padding: 24px;
+        border: 1px solid var(--rule);
+        overflow-x: auto
+    }
+
+    .mailhead {
+        font-size: .8rem;
+        color: #777;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 16px
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-top: 16px
+    }
+
+    button {
+        font: inherit;
+        font-weight: 600;
+        border: 0;
+        border-radius: 4px;
+        padding: 10px 16px;
+        cursor: pointer;
+        background: var(--accent);
+        color: var(--panel)
+    }
+
+    button.ghost {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent)
+    }
+
+    #status {
+        font-size: .9rem;
+        color: var(--ok)
+    }
+
+    textarea {
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 120px;
+        font: 12px/1.4 ui-monospace, Menlo, monospace;
+        color: var(--fg);
+        background: var(--bg);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        margin-top: 12px
+    }
+
+    .guide {
+        margin-top: 32px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: 24px
+    }
+
+    .guide h2 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 1.3rem;
+        margin: 0 0 8px
+    }
+
+    .guide p, .guide li {
+        max-width: 65ch
+    }
+
+    .guide ol, .guide ul {
+        padding-left: 20px;
+        margin: 0
+    }
+
+    .guide li {
+        margin-bottom: 6px
+    }
+
+    code {
+        font-size: .88em;
+        background: var(--bg);
+        padding: 1px 4px;
+        border-radius: 3px
+    }
+    </style>
+
+    <div class="wrap">
+        <h1>Peel Parishes Email Signature</h1>
+        <p class="lede">Fill in your details, copy the signature, and paste it into your email settings. Every team signature uses the same layout; only your details and church colour change.</p>
+
+        <div class="grid">
+            <div class="card">
+                <form id="f" onsubmit="return false">
+                    <label for="name">
+                        Name
+                        <input id="name" value="">
+                    </label>
+                    <label for="role">
+                        Role
+                        <input id="role" value="">
+                    </label>
+                    <label for="church">
+                        Church
+                                  
+                        <select id="church">
+                            <option value="parish">Peel Parishes (whole benefice)</option>
+                            <option value="drayton">St Peter's, Drayton Bassett</option>
+                            <option value="fazeley">St Paul's, Fazeley</option>
+                            <option value="mileoak">St Barnabas, Mile Oak</option>
+                            <option value="canwell">Canwell Church</option>
+                        </select>
+                    </label>
+                    <label for="email">
+                        Email
+                        <input id="email" value="@peelparishes.church">
+                    </label>
+                    <label for="phone">
+                        Phone 
+                        <span class="hint">optional</span>
+                        <input id="phone" value="">
+                    </label>
+                    <label for="logo">
+                        Logo image URL
+                                  
+                        <input id="logo" value="https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/0e61f343-c2c4-4d0c-9d13-dc04cef6a933/Peel+Parishes+Email+Sig.png?content-type=image%2Fpng">
+                        <span class="hint">Must be a public https link to a PNG.</span>
+                    </label>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="sheet">
+                    <div class="mailhead">Preview, as it appears in a sent email</div>
+                    <p style="margin:0 0 16px;font-family:Arial,sans-serif;font-size:14px;color:#222">Thanks, see you on Sunday.</p>
+                    <div id="sig"></div>
+                </div>
+                <div class="actions">
+                    <button id="copy" type="button">Copy signature</button>
+                    <button id="showHtml" class="ghost" type="button">Show HTML</button>
+                    <span id="status" role="status"></span>
+                </div>
+                <textarea id="html" hidden readonly aria-label="Signature HTML"></textarea>
+            </div>
+        </div>
+
+        <div class="guide">
+            <div class="card">
+                <h2>Installing it</h2>
+                <ul>
+                    <li>
+                        <strong>Gmail (web):</strong>
+                         Settings ⚙ → See all settings → General → Signature → Create new. Paste, then Save changes at the bottom. Set it as default for new emails and replies.
+                    </li>
+                    <li>
+                        <strong>Outlook (web / new Outlook):</strong>
+                         Settings → Accounts → Signatures → New signature. Paste and Save.
+                    </li>
+                    <li>
+                        <strong>Apple Mail (Mac):</strong>
+                         Mail → Settings → Signatures. Add one, paste, and untick "Always match my default message font".
+                    </li>
+                    <li>
+                        <strong>iPhone Mail:</strong>
+                         pasting rich signatures is unreliable. Email the signature to yourself from a computer, copy it from that email, and paste into Settings → Mail → Signature. Shake to undo if iOS strips formatting.
+                    </li>
+                    <li>
+                        <strong>Test it:</strong>
+                         send one email to a Gmail address and one to an Outlook/Hotmail address before you rely on it.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const C = {
+        parish: ["#16211F", "Peel Parishes"],
+        drayton: ["#8A6A2F", "St Peter's, Drayton Bassett"],
+        fazeley: ["#1F5F6B", "St Paul's, Fazeley"],
+        mileoak: ["#A4462E", "St Barnabas, Mile Oak"],
+        canwell: ["#573984", "Canwell Church"]
+    };
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;"
+    }[c]));
+    function build() {
+        const [col, church] = C[$("church").value];
+        const name = esc($("name").value.trim()),
+            role = esc($("role").value.trim()),
+            email = esc($("email").value.trim()),
+            phone = esc($("phone").value.trim()),
+            logo = esc($("logo").value.trim());
+        const f = "font-family:Helvetica,Arial,sans-serif;";
+        const showChurch = $("church").value !== "parish";
+        return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;${f}">
+        <tr><td style="border-left:3px solid ${col};padding:0 0 0 12px;">
+        <div style="${f}font-size:15px;font-weight:bold;color:#222222;line-height:20px;">${name}</div>
+        ${role ? `<div style="${f}font-size:13px;color:#555555;line-height:18px;">${role}</div>` : ""}
+        ${showChurch ? `<div style="${f}font-size:13px;font-weight:bold;color:${col};line-height:18px;">${esc(church)}</div>` : ""}
+        <div style="${f}font-size:13px;color:#555555;line-height:18px;padding-top:6px;"><a href="mailto:${email}" style="color:#555555;text-decoration:none;">${email}</a>${phone ? ` &nbsp;|&nbsp; ${phone}` : ""}</div>
+        <div style="${f}font-size:13px;line-height:18px;"><a href="https://peelparishes.church" style="color:${col};text-decoration:none;">peelparishes.church</a></div>
+        </td></tr>
+        <tr><td style="padding:14px 0 0 0;"><a href="https://peelparishes.church" style="text-decoration:none;"><img src="${logo}" width="132" height="47" alt="Peel Parishes" style="display:block;width:132px;max-width:132px;height:47px;border:0;outline:none;font-family:Georgia,'Times New Roman',serif;font-size:18px;line-height:47px;color:#16211F;"></a></td></tr>
+        </table>`;
+    }
+    function render() {
+        const h = build();
+        $("sig").innerHTML = h;
+        $("html").value = h;
+        $("status").textContent = "";
+    }
+    $("f").addEventListener("input", render);
+    $("showHtml").addEventListener("click", () => {
+        const t = $("html");
+        t.hidden = !t.hidden;
+        $("showHtml").textContent = t.hidden ? "Show HTML" : "Hide HTML";
+    });
+    $("copy").addEventListener("click", async () => {
+        const h = build();
+        try {
+            await navigator.clipboard.write([new ClipboardItem({
+                "text/html": new Blob([h], {
+                    type: "text/html"
+                }),
+                "text/plain": new Blob([$("sig").innerText], {
+                    type: "text/plain"
+                })
+            })]);
+            $("status").textContent = "Copied. Paste into your signature settings.";
+        } catch (e) {
+            const r = document.createRange();
+            r.selectNodeContents($("sig"));
+            const s = getSelection();
+            s.removeAllRanges();
+            s.addRange(r);
+            let ok = false;
+            try {
+                ok = document.execCommand("copy");
+            } catch (_) {}
+            $("status").textContent = ok ? "Copied. Paste into your signature settings." : "Signature selected. Press Ctrl+C (Cmd+C on Mac) to copy.";
+        }
+    });
+    render();
+    </script>
+
+</body></html>

@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Peel Parishes — Newsletter Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --db:#8A6A2F; --fz:#1F5F6B; --mo:#A4462E; --cw:#573984;
+  --ink:#16211F; --limewash:#EFF1EF; --paper:#F7F8F6; --stone:#D5D8D3; --muted:#5C6660;
+  --disp:Marcellus,Georgia,serif; --bod:"Source Sans 3",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--limewash);color:var(--ink);font:17px/1.6 var(--bod);-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--disp);font-weight:400;line-height:1.15;margin:0}
+p{margin:0 0 14px}
+.lab{font-weight:600;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:10px}
+:focus-visible{outline:3px solid var(--fz);outline-offset:2px}
+
+header{background:var(--ink);color:var(--paper);padding:18px 28px;display:flex;align-items:center;gap:22px}
+header svg{width:46px;height:46px;flex:none}
+header .lab{color:#8A918D;margin-bottom:3px}
+header h1{color:var(--paper);font-size:1.45rem}
+header p{color:#B9C0BC;margin:4px 0 0;font-size:.9rem;max-width:74ch}
+
+.shell{display:grid;grid-template-columns:minmax(360px,470px) minmax(0,1fr);min-height:calc(100vh - 92px)}
+.pane{padding:0;position:relative;min-width:0}
+.left{background:var(--paper);border-right:1px solid var(--stone);display:flex;flex-direction:column}
+.right{background:var(--limewash);padding:22px 26px;min-width:0}
+
+.steps{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--stone);background:#fff}
+.steps button{flex:1;min-width:80px;font-family:var(--bod);font-weight:600;font-size:.68rem;letter-spacing:.08em;
+  text-transform:uppercase;border:0;border-right:1px solid var(--stone);border-bottom:3px solid transparent;
+  background:transparent;padding:12px 4px;cursor:pointer;color:var(--muted)}
+.steps button:last-child{border-right:0}
+.steps button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);background:var(--paper)}
+.steps .dot{display:block;font-size:.6rem;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted);margin-top:2px}
+.body{padding:22px 28px 40px;overflow-y:auto;flex:1}
+
+label{display:block;font-size:.85rem;font-weight:600;margin:16px 0 6px}
+label span.opt{font-weight:400;color:var(--muted)}
+input[type=text],input[type=url],input[type=date],input[type=time],input[type=number],textarea,select{
+  width:100%;padding:9px 11px;border:1px solid var(--stone);background:#fff;
+  font-family:var(--bod);font-size:.97rem;color:var(--ink);border-radius:0}
+textarea{resize:vertical;min-height:64px}
+.hint{font-size:.81rem;color:var(--muted);margin-top:5px}
+.hint.warn{color:var(--mo);font-weight:600}
+.hint.good{color:var(--fz);font-weight:600}
+.count{font-size:.73rem;font-weight:600;color:var(--muted);float:right}
+.count.over{color:var(--mo)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+.btn{display:inline-block;background:var(--ink);color:var(--paper);padding:10px 18px;border:1px solid var(--ink);
+  font-family:var(--bod);font-weight:600;font-size:.92rem;cursor:pointer}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:var(--paper)}
+.btn.sm{padding:7px 12px;font-size:.83rem}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;align-items:center}
+
+fieldset{border:1px solid var(--stone);background:#fff;padding:2px 15px 16px;margin:16px 0 0}
+legend{font-weight:600;font-size:.65rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:0 7px}
+ol.brief{padding-left:20px;margin:0 0 4px;font-size:.92rem;color:var(--muted)}
+ol.brief li{margin-bottom:6px}
+ol.brief strong{color:var(--ink)}
+
+.pick{display:grid;gap:5px;margin-top:6px}
+.pick button{font-family:var(--bod);font-size:.9rem;text-align:left;cursor:pointer;border:1px solid var(--stone);
+  background:#fff;color:var(--ink);display:flex;align-items:stretch;padding:0;overflow:hidden}
+.pick button .bar{width:9px;flex:none;background:var(--c)}
+.pick button .nm{padding:8px 11px}
+.pick button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.pick button[aria-pressed="true"] .nm{font-weight:600}
+
+.when{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
+.when button{font-family:var(--bod);font-size:.86rem;padding:8px 9px;cursor:pointer;border:1px solid var(--stone);
+  background:#fff;color:var(--ink);text-align:left}
+.when button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.chips button{font-family:var(--bod);font-size:.77rem;padding:5px 10px;cursor:pointer;border:1px solid var(--stone);
+  background:var(--paper);color:var(--ink)}
+.chips button:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+.svcsec{margin-bottom:16px}
+.svchead{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.svchead .key{width:9px;height:16px;display:inline-block;flex:none}
+.svchead .nm{font-weight:600;font-size:.87rem}
+.svcnone{font-size:.81rem;color:var(--muted);margin:0 0 8px 18px}
+.cwfull{display:flex;gap:9px;align-items:flex-start;font-size:.84rem;margin:0 0 9px 18px;font-weight:400;cursor:pointer}
+.cwfull input{width:16px;height:16px;margin-top:2px;flex:none}
+.cwfull small{color:var(--muted);display:block}
+.svc{border:1px solid var(--stone);background:#fff;padding:10px 12px;margin:0 0 8px 18px;position:relative}
+.svc .top{display:flex;gap:8px;align-items:center;margin-bottom:7px}
+.svc .swatch{width:9px;height:24px;flex:none;background:var(--c)}
+.svc .ti{flex:1;border:1px solid var(--stone);padding:8px 10px}
+.svc .x{border:1px solid var(--stone);background:#fff;cursor:pointer;width:26px;height:26px;flex:none;color:var(--muted)}
+.svc .x:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.svcadd{margin-left:18px}
+
+.queue{margin-top:8px;border-top:1px solid var(--stone)}
+.qsec{font-weight:600;font-size:.63rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  padding:13px 0 5px;border-bottom:1px solid var(--stone)}
+.qitem{display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--stone)}
+.qitem.on{background:rgba(31,95,107,.05)}
+.qitem .bar{width:5px;align-self:stretch;min-height:30px;flex:none;background:var(--c)}
+.qitem .t{flex:1;min-width:0;cursor:pointer}
+.qitem .t b{display:block;font-weight:600;font-size:.92rem;line-height:1.3}
+.qitem .t small{color:var(--muted);font-size:.79rem;display:block}
+.qitem .acts{display:flex;gap:3px;flex:none}
+.qitem .acts button{border:1px solid var(--stone);background:#fff;cursor:pointer;width:26px;height:26px;
+  font-size:.82rem;color:var(--muted);line-height:1;padding:0}
+.qitem .acts button:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tag{display:inline-block;font-weight:600;font-size:.59rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:2px 6px;margin:4px 5px 0 0;border:1px solid currentColor}
+.tag.open{color:var(--fz)} .tag.shut{color:var(--db)} .tag.run{color:var(--mo)}
+.tag.done{color:var(--muted)} .tag.nolink{color:var(--db);border-style:dashed}
+.tag.off{color:#fff;background:#8A918D;border-color:#8A918D}
+.nudge{display:block;margin-top:5px;font-size:.77rem;font-weight:600;color:var(--fz);background:none;border:0;
+  padding:0;cursor:pointer;text-align:left;text-decoration:underline}
+
+.rd{display:grid;grid-template-columns:74px 1fr 1fr 1fr;gap:6px;align-items:center;margin-bottom:6px}
+.rd .d{font-weight:600;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rd input{padding:7px 9px;font-size:.88rem}
+.rdhead{display:grid;grid-template-columns:74px 1fr 1fr 1fr;gap:6px;margin-bottom:5px}
+.rdhead span{font-weight:600;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+.tabs{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap}
+.tabs button{font-family:var(--bod);font-weight:600;font-size:.67rem;letter-spacing:.13em;text-transform:uppercase;
+  border:1px solid var(--stone);background:var(--paper);padding:8px 12px;cursor:pointer;color:var(--ink)}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tabs .sp{margin-left:auto}
+.stage{background:var(--stone);padding:16px;overflow-x:auto;overflow-y:visible;max-height:calc(100vh - 260px);display:flex;justify-content:center;box-sizing:border-box}
+.stage-inner{width:100%;max-width:700px;transition:max-width .15s}
+.stage.phone .stage-inner{max-width:375px}
+#previewFrame{border:0;background:#EFF1EF;display:block;width:700px;height:900px;transform-origin:top left}
+.stage-inner{overflow:hidden}
+pre{background:var(--ink);color:#CFE3E0;padding:16px;overflow:auto;font-family:ui-monospace,Menlo,monospace;
+  font-size:.72rem;line-height:1.6;max-height:calc(100vh - 300px);margin:0;white-space:pre-wrap;word-break:break-word}
+pre.plain{background:#fff;color:var(--ink);border:1px solid var(--stone);font-family:var(--bod);font-size:.86rem}
+
+.meter{margin:8px 0 0;font-size:.76rem;line-height:1.5;color:var(--muted)}
+.meter b{color:var(--ink);font-weight:600}
+.meter #verdict{font-weight:600;color:var(--fz)}
+.meter #verdict.warn{color:var(--db)} .meter #verdict.bad{color:var(--mo)}
+
+.note{border-left:3px solid var(--fz);background:rgba(31,95,107,.06);padding:13px 16px;margin-top:16px;
+  font-size:.86rem;color:var(--muted)}
+.note b{display:block;color:var(--ink);font-weight:600;font-size:.63rem;letter-spacing:.15em;
+  text-transform:uppercase;margin-bottom:5px}
+.note.warn{border-left-color:var(--mo);background:rgba(164,70,46,.07)}
+.rdgap{margin:10px 0 0;padding:10px 12px;border-left:3px solid var(--mo);
+  background:rgba(164,70,46,.07);color:var(--mo);font-size:.86rem;line-height:1.5}
+.rdgap b{display:block;font-weight:600;margin-bottom:4px}
+.rdgap ul{margin:0 0 6px;padding-left:18px}
+.rdgap li{margin:2px 0}
+.rdgap li b{display:inline;font-weight:600;margin:0}
+.empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:.9rem;border:1px dashed var(--stone)}
+.err{background:rgba(164,70,46,.07);border-left:3px solid var(--mo);padding:9px 13px;font-size:.85rem;color:var(--ink);margin-top:11px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);
+  padding:11px 22px;font-size:.89rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
+.toast.on{opacity:1}
+.review{position:absolute;inset:0;background:var(--paper);z-index:20;overflow-y:auto;padding:22px 28px}
+.rv{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--stone)}
+.rv input{margin-top:5px;flex:none;width:17px;height:17px;accent-color:#1F5F6B}
+.rv .bar{width:5px;align-self:stretch;min-height:28px;flex:none;background:var(--c)}
+.rv .t{flex:1;min-width:0}
+.rv .t b{display:block;font-weight:600;font-size:.9rem}
+.rv .t small{display:block;color:var(--muted);font-size:.78rem}
+.rv .why{font-weight:600;font-size:.71rem;color:var(--fz)}
+.rv .why.drop{color:var(--mo)}
+.f{display:none}
+@media (max-width:1000px){
+  .shell{grid-template-columns:1fr}
+  .left{border-right:0;border-bottom:1px solid var(--stone)}
+  /* Stacked view: the masthead scrolls away but the step tabs stay put, so you
+     can jump between steps -- or tap the step you're on to get back to the top
+     of it -- without scrolling up. */
+  .steps{position:sticky;top:0;z-index:30;box-shadow:0 1px 0 var(--stone),0 6px 14px rgba(22,33,31,.07)}
+  /* And a way back down to the preview once it has scrolled out of sight. */
+  .jump{position:fixed;right:calc(14px + env(safe-area-inset-right));
+    bottom:calc(76px + env(safe-area-inset-bottom));z-index:40;border:0;background:var(--ink);color:var(--paper);
+    font-family:var(--bod);font-weight:600;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    padding:12px 16px;cursor:pointer;box-shadow:0 4px 14px rgba(22,33,31,.28);
+    opacity:0;pointer-events:none;transition:opacity .2s}
+  .jump.on{opacity:1;pointer-events:auto}
+}
+@media (min-width:1001px){ .jump{display:none} }
+
+/* Wide view only: the two columns fill the window and scroll inside themselves,
+   so the preview, the action buttons and the weight gauge all stay on screen
+   however long the step you're editing is. Below 1000px the columns stack and
+   the page scrolls normally -- none of this applies. */
+@media (min-width:1001px){
+  html,body{height:100%;overflow:hidden}
+  body{display:flex;flex-direction:column}
+  header{flex:none}
+  .shell{flex:1 1 0;height:auto;min-height:0;overflow:hidden}
+  .pane{min-height:0}
+  .left{min-height:0}
+  .right{display:flex;flex-direction:column;overflow:hidden;padding-bottom:20px}
+  .tabs{flex:none}
+  #v-prev:not([hidden]),#v-plain:not([hidden]),#v-code:not([hidden]){
+    flex:1 1 0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  .stage{flex:1 1 0;min-height:0;max-height:none;overflow-y:auto;align-items:flex-start}
+  pre{flex:1 1 0;min-height:0;max-height:none}
+  .row,.meter{flex:none}
+  .row{margin-top:14px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-label="Peel Parishes woven mark">
+    <rect x="0" y="20" width="90" height="20" fill="#D9392B"/><rect x="0" y="50" width="90" height="20" fill="#9457C4"/>
+    <rect x="20" y="0" width="20" height="50" fill="#D4A24C"/><rect x="20" y="70" width="20" height="20" fill="#D4A24C"/>
+    <rect x="50" y="0" width="20" height="20" fill="#0E8C9E"/><rect x="50" y="40" width="20" height="50" fill="#0E8C9E"/>
+  </svg>
+  <div>
+    <span class="lab">Peel Parishes · Weekly email</span>
+    <h1>Newsletter Builder</h1>
+    <p>Work through the steps. The finished email builds itself.<br>Copy it into Mailchimp when you're done.</p>
+  </div>
+</header>
+
+<div class="shell">
+  <section class="pane left">
+    <div class="review" id="review" hidden></div>
+    <div class="steps" id="steps" role="tablist"></div>
+    <div class="body" id="stepbody"></div>
+  </section>
+
+  <section class="pane right">
+    <div class="tabs">
+      <button id="t-prev" aria-pressed="true">Preview</button>
+      <button id="t-plain" aria-pressed="false">Plain text</button>
+      <button id="t-code" aria-pressed="false">Code</button>
+      <span class="sp"></span>
+      <button id="t-wide" aria-pressed="true">Desktop</button>
+      <button id="t-phone" aria-pressed="false">Phone</button>
+    </div>
+    <div id="v-prev"><div class="stage" id="stage"><div class="stage-inner"><iframe id="previewFrame" title="Email preview" scrolling="no"></iframe></div></div></div>
+    <div id="v-plain" hidden><pre class="plain" id="plain"></pre></div>
+    <div id="v-code" hidden><pre id="code"></pre></div>
+
+    <div class="row">
+      <button class="btn" id="copy">Copy the whole email</button>
+      <button class="btn ghost" id="copyplain">Copy plain text</button>
+      <button class="btn ghost" id="dl">Download</button>
+    </div>
+
+    <p class="meter">Email weight: <b id="kb">0 KB</b> of the <b>102 KB</b> Gmail shows before it hides the rest behind &ldquo;Message clipped&rdquo;. <span id="verdict"></span></p>
+  </section>
+</div>
+
+<input type="file" id="weekFile" accept=".json,application/json" class="f">
+<button class="jump" id="jump" type="button">↓ Preview</button>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+var mem={};
+var store={
+  set:function(k,v){
+    try{ if(window.storage&&window.storage.set){ window.storage.set(k,v); return; } }catch(e){}
+    try{ localStorage.setItem(k,v); return; }catch(e){}
+    mem[k]=v;
+  },
+  get:async function(k){
+    try{ if(window.storage&&window.storage.get){ var r=await window.storage.get(k); return r&&r.value?r.value:null; } }catch(e){}
+    try{ var s=localStorage.getItem(k); if(s!==null) return s; }catch(e){}
+    return mem[k]||null;
+  }
+};
+
+var CH=[
+  {k:"db", label:"St Peter's, Drayton Bassett", pick:"Drayton Bassett",   c:"#8A6A2F"},
+  {k:"fz", label:"St Paul's, Fazeley",          pick:"Fazeley",           c:"#1F5F6B"},
+  {k:"mo", label:"St Barnabas, Mile Oak",       pick:"Mile Oak",          c:"#A4462E"},
+  {k:"cw", label:"Canwell",                     pick:"Canwell",           c:"#573984"},
+  {k:"ink",label:"Peel Parishes",               pick:"Multiple Churches", c:"#16211F"}
+];
+var CW_FULL="St Mary, St Giles & All Saints, Canwell";
+var BY={}; CH.forEach(function(c){ BY[c.k]=c; });
+var SECTIONS=["This week","Coming up","Please pray","Help needed","Every week"];
+var DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+var SHORT=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var CTAS=["Sign up","Book a place","Read more","Find out more","Visit their website","Give"];
+var SITE="https://peelparishes.church/whats-on/";
+var KEY="peel:newsletter:v2", PREV="peel:newsletter:v2:prev";
+
+var ROTA={
+ 1:[{c:"db",t:"09:30",s:"Morning Worship"},
+    {c:"fz",t:"11:00",s:"Holy Communion",n:"with Kingdom Kids"},
+    {c:"mo",t:"18:00",s:"Evening Praise Together"},
+    {c:"cw",t:"11:00",s:"All Age Worship"}],
+ 2:[{c:"db",t:"09:30",s:"Warden Led Service"},
+    {c:"fz",t:"11:00",s:"Morning Worship",n:"with Kingdom Kids"},
+    {c:"mo",t:"09:00",s:"Morning Worship"},
+    {c:"cw",t:"11:00",s:"Holy Communion",n:"Common Worship"}],
+ 3:[{c:"db",t:"09:30",s:"Holy Communion"},
+    {c:"fz",t:"11:00",s:"Café Church",n:"all age"},
+    {c:"fz",t:"18:00",s:"Evening Holy Communion"},
+    {c:"cw",t:"11:00",s:"Warden Led Service"}],
+ 4:[{c:"db",t:"09:30",s:"Warden Led Service"},
+    {c:"fz",t:"11:00",s:"Morning Worship",n:"with Kingdom Kids"},
+    {c:"mo",t:"09:00",s:"Holy Communion"},
+    {c:"cw",t:"11:00",s:"Book of Common Prayer Communion"}],
+ 5:[{c:"ink",t:"",s:"All Together Communion",n:"location rotates \u2014 check the notices"}]
+};
+var ORD=["","first","second","third","fourth","fifth"];
+
+var S={
+  sunday:"", season:"", preheader:"Going deeper with God, each other and the local community. Coming up this Sunday and next week.", logo:"https://mcusercontent.com/6735b6d743f7accf05ed7b09c/images/10c92d33-1ddb-0b97-767b-9f392eaf2242.png",
+  services:[], theme:{title:"",body:"",image:""},
+  cwFullSvc:false,
+  notices:[], dio:[], readings:[], video:{label:"WATCH THIS WEEK",caption:"",url:"",thumb:""}
+};
+var step=0, church="ink", whenMode="once", editIndex=-1, dioIndex=-1, prev=null;
+var $=function(id){ return document.getElementById(id); };
+
+function save(){ store.set(KEY, JSON.stringify(S)); }
+async function load(){
+  try{ var v=await store.get(KEY); if(v){ var o=JSON.parse(v); if(o&&typeof o==="object") S=Object.assign(S,o); } }catch(e){}
+  if(!S.sunday){ S.sunday=nextSunday(); }
+  if(!S.readings.length) buildReadings();
+  renderSteps(); renderStep(); renderOut();
+}
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function toast(m){ var e=$("toast"); e.textContent=m; e.classList.add("on"); setTimeout(function(){e.classList.remove("on");},1900); }
+function D(s){ if(!s) return null; var d=new Date(s+"T12:00:00"); return isNaN(d)?null:d; }
+function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function today(){ var t=new Date(); t.setHours(12,0,0,0); return t; }
+function nextSunday(){ var d=today(); d.setDate(d.getDate()+((7-d.getDay())%7)); return iso(d); }
+function ordinal(d){ return Math.floor((d.getDate()-1)/7)+1; }
+function longDate(d){ return d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"}); }
+function medDate(d){ return d.toLocaleDateString("en-GB",{day:"numeric",month:"long"}); }
+function tidyTime(t){ if(!t) return ""; var p=t.split(":"),h=parseInt(p[0],10),m=p[1];
+  var ap=h>=12?"pm":"am",hh=h%12; if(hh===0)hh=12; return hh+(m==="00"?"":"."+m)+ap; }
+function timeRange(a,b){ if(!a) return ""; if(!b) return tidyTime(a);
+  var ap=function(t){ return parseInt(t.split(":")[0],10)>=12?"pm":"am"; };
+  return ap(a)===ap(b)? tidyTime(a).replace(/(am|pm)$/,"")+"\u2013"+tidyTime(b) : tidyTime(a)+"\u2013"+tidyTime(b); }
+
+function buildReadings(){
+  var s=D(S.sunday)||today();
+  S.readings=[];
+  for(var i=1;i<=6;i++){
+    var d=new Date(s); d.setDate(d.getDate()+i);
+    S.readings.push({date:iso(d),psalm:"",ot:"",nt:""});
+  }
+}
+
+/* ============================================================
+   Common Worship weekday lectionary — Old & New Testament
+   readings only (Table 2), Monday-Saturday. Psalms are not
+   included; they follow separate tables with their own reset
+   points and are a later piece of work.
+
+   Transcribed mechanically via pdftotext -layout on the actual
+   PDF, parsed by position (not typed from memory), and checked
+   against the real published newsletter: all 5 checkable days
+   of the week of 24-29 Aug 2026 matched exactly, chapter and
+   verse, through the full pipeline (date -> week name -> year
+   column -> reading).
+
+   Covers church years 2020-2044. Outside that range the button
+   says so rather than guessing.
+   ============================================================ */
+// ============================================================
+// Common Worship weekday-lectionary calendar engine.
+// Port of the Python engine already tested against known Easter
+// dates, the 2020-2045 Advent-Sunday range, the 6-Jan-on-Sunday
+// edge case, and the real published newsletter (5/5 days matched).
+// ============================================================
+
+function easterSunday(year){
+  var a=year%19, b=Math.floor(year/100), c=year%100, d=Math.floor(b/4), e=b%4;
+  var f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3);
+  var h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4;
+  var l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451);
+  var month=Math.floor((h+l-7*m+114)/31), day=((h+l-7*m+114)%31)+1;
+  return new Date(Date.UTC(year, month-1, day));
+}
+function addDays(d,n){ var r=new Date(d); r.setUTCDate(r.getUTCDate()+n); return r; }
+function dow(d){ return d.getUTCDay(); }               // 0=Sun..6=Sat
+function isoDate(d){ return d.toISOString().slice(0,10); }
+
+function adventSunday(year){
+  var d = new Date(Date.UTC(year,10,27));               // 27 Nov
+  return addDays(d, (7 - dow(d)) % 7);                  // JS getUTCDay(): Sun=0
+}
+function weekStart(sunday){ return addDays(sunday, 1); } // the Monday after
+
+var BEFORE_LENT   = ["5 before Lent","4 before Lent","3 before Lent","2 before Lent","1 before Lent"];
+var BEFORE_ADVENT = ["4 before Advent","3 before Advent","2 before Advent","1 before Advent"];
+
+function buildChurchYear(startYear){
+  var weeks = [];
+  var advThis = adventSunday(startYear), advNext = adventSunday(startYear+1);
+  var easter = easterSunday(startYear+1);
+  var ashWed = addDays(easter, -46);
+  var lent1Sunday = addDays(ashWed, 4);
+  var palmSunday = addDays(easter, -7);
+  var trinitySunday = addDays(easter, 56);
+
+  for (var n=0;n<4;n++) weeks.push([addDays(weekStart(advThis), n*7), "Advent "+(n+1)]);
+
+  var epiphanyFixed = new Date(Date.UTC(startYear+1,0,6));
+  var baptismSunday;
+  if (dow(epiphanyFixed)===0) baptismSunday = new Date(Date.UTC(startYear+1,0,13));
+  else baptismSunday = addDays(epiphanyFixed, (7-dow(epiphanyFixed))%7);
+
+  for (var n=0;n<4;n++) weeks.push([addDays(weekStart(baptismSunday), n*7), "Epiphany "+(n+1)]);
+
+  var epiphanyBlockEnd = addDays(weekStart(baptismSunday), 28);
+  var lent1Monday = weekStart(lent1Sunday);
+  var nBeforeLent = Math.round((lent1Monday - epiphanyBlockEnd)/86400000/7);
+  var useBL = nBeforeLent>0 ? BEFORE_LENT.slice(BEFORE_LENT.length-nBeforeLent) : [];
+  useBL.forEach(function(lab,i){ weeks.push([addDays(epiphanyBlockEnd, i*7), lab]); });
+
+  for (var n=0;n<5;n++) weeks.push([addDays(lent1Monday, n*7), "Lent "+(n+1)]);
+
+  weeks.push([addDays(palmSunday,1), "Holy Week"]);
+  weeks.push([addDays(easter,1), "Easter"]);
+  for (var n=1;n<7;n++) weeks.push([addDays(easter, 1+7*n), "Easter "+(n+1)]);
+
+  var pentecost = addDays(easter, 49);
+  weeks.push([addDays(pentecost,1), "Pentecost"]);
+  weeks.push([addDays(trinitySunday,1), "Trinity"]);
+
+  var trinity1Monday = addDays(trinitySunday, 8);
+  var beforeAdvStart = addDays(advNext, -28+1);
+  var nTrinity = Math.max(0, Math.round((beforeAdvStart - trinity1Monday)/86400000/7));
+  for (var n=0;n<nTrinity;n++) weeks.push([addDays(trinity1Monday,n*7), "Trinity "+(n+1)]);
+  BEFORE_ADVENT.forEach(function(lab,i){ weeks.push([addDays(beforeAdvStart,i*7), lab]); });
+
+  weeks.sort(function(a,b){ return a[0]-b[0]; });
+  return weeks;
+}
+
+var CHURCH_YEAR_CACHE = {};
+function weekForDate(target){
+  var y = target >= adventSunday(target.getUTCFullYear()) ? target.getUTCFullYear() : target.getUTCFullYear()-1;
+  if (!CHURCH_YEAR_CACHE[y]) CHURCH_YEAR_CACHE[y] = buildChurchYear(y);
+  var weeks = CHURCH_YEAR_CACHE[y];
+  var label = null, start = null;
+  for (var i=0;i<weeks.length;i++){
+    if (weeks[i][0] <= target) { label = weeks[i][1]; start = weeks[i][0]; } else break;
+  }
+  return {label: label, weekStart: start, churchYearStart: y};
+}
+
+// Year-column lookup, transcribed directly from
+// weekday-lectionary-table-2020-2045.pdf (Morning Prayer columns only —
+// that's the office the parish's own newsletter follows, confirmed by the
+// 5/5 match against the real published email).
+var YEAR_TABLE = {
+  2020: {ord:"OT2b", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2021: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2022: {ord:"OT2a", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2023: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2024: {ord:"OT2b", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2025: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2026: {ord:"OT2a", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2027: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2028: {ord:"OT2b", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2029: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2030: {ord:"OT2a", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2031: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2032: {ord:"OT2b", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2033: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2034: {ord:"OT2a", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2035: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2036: {ord:"OT2b", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2037: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2038: {ord:"OT2a", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2039: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2040: {ord:"OT2b", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2041: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2042: {ord:"OT2a", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"},
+  2043: {ord:"OT1", ordNT:"NT1", sea:"OT1", seaNT:"NT1"},
+  2044: {ord:"OT2b", ordNT:"NT2", sea:"OT2a", seaNT:"NT2"}
+};
+
+function isOrdinaryTime(label){
+  return /^Trinity \d+$/.test(label) || BEFORE_LENT.includes(label) || BEFORE_ADVENT.includes(label);
+}
+
+function pickReading(weekData, label, churchYearStart){
+  var yr = YEAR_TABLE[churchYearStart];
+  if (!yr) return null;                          // outside the transcribed 2020-2044 range
+  var ordinary = isOrdinaryTime(label);
+  var otCol = ordinary ? yr.ord   : yr.sea;
+  var ntCol = ordinary ? yr.ordNT : yr.seaNT;
+  var otKey = otCol.toLowerCase();                // "ot1"/"ot2a"/"ot2b"
+  var ntKey = ntCol.toLowerCase();                // "nt1"/"nt2"
+  var ot = weekData[otKey];
+  if (!ot) ot = weekData.ot1;                     // fall back if that week has no OT2b etc.
+  var nt = weekData[ntKey] || weekData.nt1;
+  return {ot: ot, nt: nt};
+}
+
+/* ============================================================
+   Psalms (Tables 3 & 4). Mechanically extracted the same way as
+   the readings, tested end-to-end against the real published
+   newsletter (all 5 checkable days matched exactly). Uses two
+   independent reset anchors per the source's own rules -- the
+   January anchor for the pre-Lent weeks, the Easter anchor for
+   Trinity weeks -- verified against real data rather than
+   assumed from the ambiguous 'Second Sunday of Easter' wording.
+
+   Known gaps, same class as the readings' fixed-date gap:
+   Christmas week, the fixed Epiphany dates, Ascension Day, and
+   the single transitional 'Pentecost'/'Trinity' weeks are not
+   covered -- getPsalm returns null there rather than guessing.
+   ============================================================ */
+var PSALMS_SEASONAL = {"Advent 1":{"M":"50, 54","T":"80, 82","W":"5, 7","Th":"42, 43","F":"25, 26","Sat":"9, (10)"},"Advent 2":{"M":"44","T":"56, 57","W":"62, 63","Th":"53, 54, 60","F":"85, 86","Sat":"145"},"Advent 3":{"M":"40","T":"70, 74","W":"75, 96","Th":"76, 97","F":"77, 98","Sat":"71"},"Epiphany 1":{"M":"2, 110","T":"8, 9","W":"19, 20","Th":"21, 24","F":"67, 72","Sat":"29, 33"},"Epiphany 2":{"M":"145, 146","T":"132, 147.1-12","W":"81, 147.13-end","Th":"76, 148","F":"27, 149","Sat":"122, 128, 150"},"Epiphany 3":{"M":"40, 108","T":"34, 36","W":"45, 46","Th":"47, 48","F":"61, 65","Sat":"68"},"Epiphany 4":{"M":"57, 96","T":"93, 97","W":"95, 98","Th":"99, 110","F":"113, 115","Sat":"118"},"Lent 1":{"M":"10, 11","T":"44","W":"6, 17","Th":"42, 43","F":"22","Sat":"59, 63"},"Lent 2":{"M":"26, 32","T":"50","W":"35","Th":"34","F":"40, 41","Sat":"3, 25"},"Lent 3":{"M":"5, 7","T":"6, 9","W":"38","Th":"56, 57","F":"22","Sat":"31"},"Lent 4":{"M":"70, 77","T":"54, 79","W":"63, 90","Th":"53, 86","F":"102","Sat":"32"},"Lent 5":{"M":"73, 121","T":"35, 123","W":"55, 124","Th":"40, 125","F":"22, 126","Sat":"23, 127"},"Easter 2":{"M":"2, 19","T":"8, 20, 21","W":"16, 30","Th":"28, 29","F":"57, 61","Sat":"63, 84"},"Easter 3":{"M":"96, 97","T":"98, 99, 100","W":"105","Th":"136","F":"107","Sat":"108, 110, 111"},"Easter 4":{"M":"103","T":"139","W":"135","Th":"118","F":"33","Sat":"34"},"Easter 5":{"M":"145","T":"19, 147.1-12","W":"30, 147.13-end","Th":"57, 148","F":"138, 149","Sat":"146, 150"},"Easter 6":{"M":"65, 67","T":"124, 125, 126, 127","W":"132, 133","F":"20, 81","Sat":"21, 47"},"Easter 7":{"M":"93, 96, 97","T":"98, 99,100","W":"2, 29","Th":"24, 72","F":"28, 30","Sat":"42, 43"},"4 before Advent":{"M":"2, 146","T":"5, 147.1-12","W":"9, 147.13-end","Th":"11, 15, 148","F":"16, 149","Sat":"18.31-end, 150"},"3 before Advent":{"M":"19, 20","T":"21, 24","W":"23, 25","Th":"26, 27","F":"28, 32","Sat":"33"},"2 before Advent":{"M":"46, 47","T":"48, 52","W":"56, 57","Th":"61, 62","F":"63, 65","Sat":"78.1-39"},"1 before Advent":{"M":"92, 96","T":"97, 98, 100","W":"110, 111, 112","Th":"125, 126, 127, 128","F":"139","Sat":"145"},"Easter":{"M":"111, 117, 146","T":"112, 147.1-12","W":"113, 147.13-end","Th":"114, 148","F":"115, 149","Sat":"116, 150"},"1 before Lent (Th-Sat only)":{"Th":"77","F":"3, 7","Sat":"71"}};
+var PSALMS_ORDINARY = {"Week 1":{"M":"1, 2, 3","Tu":"5, 6, (8)","W":"119.1-32","Th":"14, 15, 16","F":"17, 19","S":"20, 21, 23"},"Week 2":{"M":"27, 30","Tu":"32, 36","W":"34","Th":"37*","F":"31","S":"41, 42, 43"},"Week 3":{"M":"44","Tu":"48, 52","W":"119.57-80","Th":"56, 57, (63*)","F":"51, 54","S":"68"},"Week 4":{"M":"71","Tu":"73","W":"77","Th":"78.1-39*","F":"55","S":"76, 79"},"Week 5":{"M":"80, 82","Tu":"87, 89.1-18","W":"119.105-128","Th":"90, 92","F":"88, (95)","S":"96, 97, 100"},"Week 6":{"M":"98, 99, 101","Tu":"106* (or 103)","W":"110, 111, 112","Th":"113, 115","F":"139","S":"120, 121, 122"},"Week 7":{"M":"123, 124, 125, 126","Tu":"132, 133","W":"119.153-end","Th":"143, 146","F":"142, 144","S":"147"}};
+function mondayOf(d){
+  var wd = (d.getUTCDay()+6)%7;              // Mon=0..Sun=6
+  return addDays(d, -wd);
+}
+function janAnchor(year){
+  var d = new Date(Date.UTC(year,0,2));
+  var wd = (d.getUTCDay()+6)%7;
+  return addDays(d, (7-wd)%7);
+}
+function easterAnchorPsalm(year){
+  // Verified against real data: Easter Day counts as the first Sunday of
+  // the season, so "the day after the Second Sunday of Easter" = Easter+8,
+  // the same Monday that starts the readings engine's "Easter 2" week.
+  return mondayOf(addDays(easterSunday(year), 8));
+}
+function cycleWeek(monday, anchor, anchorWeekNo){
+  var weeksSince = Math.floor((monday - anchor)/86400000/7);
+  return ((anchorWeekNo - 1 + weeksSince) % 7 + 7) % 7 + 1;
+}
+function table4Week(date, window){
+  var m = mondayOf(date);
+  if (window === "before-lent"){
+    var a = janAnchor(date.getUTCFullYear());
+    if (a > date) a = janAnchor(date.getUTCFullYear()-1);
+    return cycleWeek(m, a, 4);
+  }
+  if (window === "trinity"){
+    var y = date.getUTCFullYear();
+    while (easterSunday(y) > date) y--;
+    var a2 = easterAnchorPsalm(y);
+    return cycleWeek(m, a2, 1);
+  }
+  return null;
+}
+
+var BEFORE_LENT_SET = {};
+BEFORE_LENT.forEach(function(l){ BEFORE_LENT_SET[l]=true; });
+
+function cleanPsalm(v){
+  // Strip the asterisk (shortening marker) and "(or N)" alternative-psalm
+  // annotations. The real parish newsletter already does this for its
+  // readers -- confirmed against the published email: the source's
+  // "106* (or 103)" is printed there simply as "106".
+  var t = v.replace(/\s*\(or [^)]+\)/g, "").replace(/\*/g, "").trim();
+  if(!t) return t;
+  // The source gives bare numbers ("106", "5, 6"). On desktop the column
+  // header supplies the word, but the header is hidden once the table stacks
+  // on a phone, so the word has to live in the value itself. Matches the
+  // wording of the example week: singular unless there is more than one.
+  if(!/^psalms?\b/i.test(t)) t = (/[,;]|\band\b/i.test(t) ? "Psalms " : "Psalm ") + t;
+  return t;
+}
+
+function getPsalm(dateObj, weekLabel){
+  var proper = properFor(dateObj);
+  if (proper && proper.third) return {psalm:proper.third.psalm, source:"proper"};
+  var dated = datedPsalmFor(dateObj);
+  if (dated) return {psalm:cleanPsalm(dated), source:"by date"};
+
+  var seasonalDayKey = ["Sat","M","T","W","Th","F","Sat"][dateObj.getUTCDay()]; // Table 3 uses "Sat"
+  var ordinaryDayKey = ["S","M","Tu","W","Th","F","S"][dateObj.getUTCDay()];    // Table 4 uses "Tu"/"S"
+
+  if (PSALMS_SEASONAL[weekLabel]) {
+    var v = PSALMS_SEASONAL[weekLabel][seasonalDayKey];
+    return v ? {psalm:cleanPsalm(v), source:"seasonal"} : null;
+  }
+  if (BEFORE_LENT_SET[weekLabel]) {
+    var wk = table4Week(dateObj, "before-lent");
+    var v2 = PSALMS_ORDINARY["Week "+wk][ordinaryDayKey];
+    return v2 ? {psalm:cleanPsalm(v2), source:"ordinary Week "+wk} : null;
+  }
+  /* "The Psalms for Ordinary Time are used from the day after Pentecost
+     until the eve of the Fourth Sunday before Advent" -- so the weeks
+     labelled plainly "Pentecost" and "Trinity" belong to Table 4 too, and
+     the cycle runs on unbroken from the Easter anchor. */
+  if (/^Trinity( \d+)?$/.test(weekLabel) || weekLabel === "Pentecost") {
+    var wk2 = table4Week(dateObj, "trinity");
+    var v3 = PSALMS_ORDINARY["Week "+wk2][ordinaryDayKey];
+    return v3 ? {psalm:cleanPsalm(v3), source:"ordinary Week "+wk2} : null;
+  }
+  return null;   // remaining gaps: Ash Wednesday, Holy Week, Ascension Day
+}
+
+
+var READINGS = {"Advent 1":{"M":{"ot1":"Isaiah 25.1–9","ot2a":"Isaiah 42.18–end","ot2b":null,"nt1":"Matthew 12.1–21","nt2":"Revelation 19"},"T":{"ot1":"Isaiah 26.1–13","ot2a":"Isaiah 43.1–13","ot2b":null,"nt1":"Matthew 12.22–37","nt2":"Revelation 20"},"W":{"ot1":"Isaiah 28.1–13","ot2a":"Isaiah 43.14–end","ot2b":null,"nt1":"Matthew 12.38–end","nt2":"Revelation 21.1–8"},"Th":{"ot1":"Isaiah 28.14–end","ot2a":"Isaiah 44.1–8","ot2b":null,"nt1":"Matthew 13.1–23","nt2":"Revelation 21.9–21"},"F":{"ot1":"Isaiah 29.1–14","ot2a":"Isaiah 44.9–23","ot2b":null,"nt1":"Matthew 13.24–43","nt2":"Revelation 21.22–22.5"},"S":{"ot1":"Isaiah 29.15–end","ot2a":"Isaiah 44.24–45.13","ot2b":null,"nt1":"Matthew 13.44–end","nt2":"Revelation 22.6–end"}},"Advent 2":{"M":{"ot1":"Isaiah 30.1–18","ot2a":"Isaiah 45.14–end","ot2b":null,"nt1":"Matthew 14.1–12","nt2":"1 Thessalonians 1"},"T":{"ot1":"Isaiah 30.19–end","ot2a":"Isaiah 46","ot2b":null,"nt1":"Matthew 14.13–end","nt2":"1 Thessalonians 2.1–12"},"W":{"ot1":"Isaiah 31","ot2a":"Isaiah 47","ot2b":null,"nt1":"Matthew 15.1–20","nt2":"1 Thessalonians 2.13–end"},"Th":{"ot1":"Isaiah 32","ot2a":"Isaiah 48.1–11","ot2b":null,"nt1":"Matthew 15.21–28","nt2":"1 Thessalonians 3"},"F":{"ot1":"Isaiah 33.1–22","ot2a":"Isaiah 48.12–end","ot2b":null,"nt1":"Matthew 15.29–end","nt2":"1 Thessalonians 4.1–12"},"S":{"ot1":"Isaiah 35","ot2a":"Isaiah 49.1–13","ot2b":null,"nt1":"Matthew 16.1–12","nt2":"1 Thessalonians 4.13–end"}},"Advent 3":{"M":{"ot1":"Isaiah 38. 1–8, 21–22","ot2a":"Isaiah 49.14–25","ot2b":null,"nt1":"Matthew 16.13–end","nt2":"1 Thessalonians 5.1–11"},"T":{"ot1":"Isaiah 38. 9–20","ot2a":"Isaiah 50","ot2b":null,"nt1":"Matthew 17.1–13","nt2":"1 Thessalonians 5.12–end"},"W":{"ot1":"Isaiah 39","ot2a":"Isaiah 51.1–8","ot2b":null,"nt1":"Matthew 17.14–21","nt2":"2 Thessalonians 1"},"Th":{"ot1":"Zephaniah 1.1–2.3","ot2a":"Isaiah 51.9–16","ot2b":null,"nt1":"Matthew 17.22–end","nt2":"2 Thessalonians 2"},"F":{"ot1":"Zephaniah 3.1–13","ot2a":"Isaiah 51.17–end","ot2b":null,"nt1":"Matthew 18.1–20","nt2":"2 Thessalonians 3"},"S":{"ot1":"Zephaniah 3.14–end","ot2a":"Isaiah 52.1–12","ot2b":null,"nt1":"Matthew 18.21–end","nt2":"Jude"}},"Advent 4":{"M":{"ot1":"Malachi 1.1, 6–end","ot2a":"Isaiah 52.13–end of 53","ot2b":null,"nt1":"Matthew 19.1–12","nt2":"2 Peter 1.1–15"},"T":{"ot1":"Malachi 2.1–16","ot2a":"Isaiah 54","ot2b":null,"nt1":"Matthew 19.13–15","nt2":"2 Peter 1.16–2.3"},"W":{"ot1":"Malachi 2.17–3.12","ot2a":"Isaiah 55","ot2b":null,"nt1":"Matthew 19.16–end","nt2":"2 Peter 2.4–end"},"Th":{"ot1":"Malachi 3.13–end of 4","ot2a":"Isaiah 56.1–8","ot2b":null,"nt1":"Matthew 23.1–12","nt2":"2 Peter 3"},"F":{"ot1":"Nahum 1","ot2a":"Isaiah 63.1–6","ot2b":null,"nt1":"Matthew 23.13–28","nt2":"2 John"},"S":{"ot1":"Obadiah","ot2a":"Isaiah 58","ot2b":null,"nt1":"Matthew 23.29–end","nt2":"3 John"}},"Epiphany 1":{"M":{"ot1":"Genesis 1.1–19","ot2a":"Amos 1","ot2b":null,"nt1":"Matthew 21.1–17","nt2":"1 Corinthians 1.1–17"},"T":{"ot1":"Genesis 1.20–2.3","ot2a":"Amos 2","ot2b":null,"nt1":"Matthew 21.18–32","nt2":"1 Corinthians 1.18–end"},"W":{"ot1":"Genesis 2.4–end","ot2a":"Amos 3","ot2b":null,"nt1":"Matthew 21.33–end","nt2":"1 Corinthians 2"},"Th":{"ot1":"Genesis 3","ot2a":"Amos 4","ot2b":null,"nt1":"Matthew 22.1–14","nt2":"1 Corinthians 3"},"F":{"ot1":"Genesis 4.1–16, 25–26","ot2a":"Amos 5.1–17","ot2b":null,"nt1":"Matthew 22.15–33","nt2":"1 Corinthians 4"},"S":{"ot1":"Genesis 6.1–10","ot2a":"Amos 5.18–end","ot2b":null,"nt1":"Matthew 22.34–end","nt2":"1 Corinthians 5"}},"Epiphany 2":{"M":{"ot1":"Genesis 6.11–7.10","ot2a":"Amos 6","ot2b":null,"nt1":"Matthew 24.1–14","nt2":"1 Corinthians 6.1–11"},"T":{"ot1":"Genesis 7.11–end","ot2a":"Amos 7","ot2b":null,"nt1":"Matthew 24.15–28","nt2":"1 Corinthians 6.12–end"},"W":{"ot1":"Genesis 8.1–14","ot2a":"Amos 8","ot2b":null,"nt1":"Matthew 24.29–end","nt2":"1 Corinthians 7.1–24"},"Th":{"ot1":"Genesis 8.15–9.7","ot2a":"Amos 9","ot2b":null,"nt1":"Matthew 25.1–13","nt2":"1 Corinthians 7.25–end"},"F":{"ot1":"Genesis 9.8–19","ot2a":"Hosea 1.1–2.1","ot2b":null,"nt1":"Matthew 25.14–30","nt2":"1 Corinthians 8"},"S":{"ot1":"Genesis 11.1–9","ot2a":"Hosea 2.2–17","ot2b":null,"nt1":"Matthew 25.31–end","nt2":"1 Corinthians 9.1–14"}},"Epiphany 3":{"M":{"ot1":"Genesis 11.27–12.9","ot2a":"Hosea 2.18–end of 3","ot2b":null,"nt1":"Matthew 26.1–16","nt2":"1 Corinthians 9.15–end"},"T":{"ot1":"Genesis 13.2–end","ot2a":"Hosea 4.1–16","ot2b":null,"nt1":"Matthew 26.17–35","nt2":"1 Corinthians 10.1–13"},"W":{"ot1":"Genesis 14","ot2a":"Hosea 5.1–7","ot2b":null,"nt1":"Matthew 26.36–46","nt2":"1 Corinthians 10.14–11.1"},"Th":{"ot1":"Genesis 15","ot2a":"Hosea 5.8–6.6","ot2b":null,"nt1":"Matthew 26.47–56","nt2":"1 Corinthians 11.2–16"},"F":{"ot1":"Genesis 16","ot2a":"Hosea 6.7–7.2","ot2b":null,"nt1":"Matthew 26.57–end","nt2":"1 Corinthians 11.17–end"},"S":{"ot1":"Genesis 17.1–22","ot2a":"Hosea 8","ot2b":null,"nt1":"Matthew 27.1–10","nt2":"1 Corinthians 12.1–11"}},"Epiphany 4":{"M":{"ot1":"Genesis 18.1–15","ot2a":"Hosea 9","ot2b":null,"nt1":"Matthew 27.11–26","nt2":"1 Corinthians 12.12–end"},"T":{"ot1":"Genesis 18.16–end","ot2a":"Hosea 10","ot2b":null,"nt1":"Matthew 27.27–44","nt2":"1 Corinthians 13"},"W":{"ot1":"Genesis 19.1–3, 12–29","ot2a":"Hosea 11.1–11","ot2b":null,"nt1":"Matthew 27.45–56","nt2":"1 Corinthians 14.1–19"},"Th":{"ot1":"Genesis 21.1–21","ot2a":"Hosea 11.12–end of 12","ot2b":null,"nt1":"Matthew 27.57–end","nt2":"1 Corinthians 14.20–end"},"F":{"ot1":"Genesis 22.1–19","ot2a":"Hosea 13.1–14","ot2b":null,"nt1":"Matthew 28.1–15","nt2":"1 Corinthians 16.1–9"},"S":{"ot1":"Genesis 23","ot2a":"Hosea 14","ot2b":null,"nt1":"Matthew 28.16–end","nt2":"1 Corinthians 16. 10–end"}},"5 before Lent":{"M":{"ot1":"Exodus 22.21–27, 23.1–17","ot2a":"1 Chr. 10.1–11.9","ot2b":"Azariah and Song 1–27 or Mal. 1.1, 6–end","nt1":"Philippians 1.1–11","nt2":"John 13.1–11"},"T":{"ot1":"Exodus 29.38–30.16","ot2a":"1 Chr. 13","ot2b":"Song 28–end or Mal. 2.1–16","nt1":"Philippians 1.12–end","nt2":"John 13.12–20"},"W":{"ot1":"Leviticus 8","ot2a":"1 Chr. 15.1–16.3","ot2b":"Susannah 1–27 or Mal. 2.17–3.12","nt1":"Philippians 2.1–13","nt2":"John 13.21–30"},"Th":{"ot1":"Leviticus 9","ot2a":"1 Chr. 17","ot2b":"Susannah 28–end or Mal. 3.13–end of 4","nt1":"Philippians 2.14–end","nt2":"John 13.31–end"},"F":{"ot1":"Leviticus 16.2–24","ot2a":"1 Chr. 21.1–22.1","ot2b":"Bel & Dragon or Nahum 1","nt1":"Philippians 3.1–4.1","nt2":"John 14.1–14"},"S":{"ot1":"Leviticus 17","ot2a":"1 Chr. 22.2–end","ot2b":"Prayer of Manasseh or Obadiah","nt1":"Philippians 4.2–end","nt2":"John 14.15–end"}},"4 before Lent":{"M":{"ot1":"Leviticus 19.1–18, 30–end","ot2a":"1 Chr. 28.1–10","ot2b":"Joel 1.1–14","nt1":"1 Timothy 1.1–17","nt2":"John 15.1–11"},"T":{"ot1":"Leviticus 23.1–22","ot2a":"1 Chr. 28.11–end","ot2b":"Joel 1.15–end","nt1":"1 Timothy 1.18–end of 2","nt2":"John 15.12–17"},"W":{"ot1":"Leviticus 23.23–end","ot2a":"1 Chr. 29.1–9","ot2b":"Joel 2.1–17","nt1":"1 Timothy 3","nt2":"John 15.18–end"},"Th":{"ot1":"Leviticus 24.1–9","ot2a":"1 Chr. 29.10–20","ot2b":"Joel 2.18–27","nt1":"1 Timothy 4","nt2":"John 16.1–15"},"F":{"ot1":"Leviticus 25.1–24","ot2a":"1 Chr. 29.21–end","ot2b":"Joel 2.28–end","nt1":"1 Timothy 5.1–16","nt2":"John 16.16–22"},"S":{"ot1":"Numbers 6.1–5, 21–end","ot2a":"2 Chr. 1.1–13","ot2b":"Joel 3.1–3, 9–end","nt1":"1 Timothy 5.17–end","nt2":"John 16.23–end"}},"3 before Lent":{"M":{"ot1":"Genesis 24.1–28","ot2a":"2 Chr. 2.1–16","ot2b":"Ecclesiastes 1","nt1":"1 Timothy 6.1–10","nt2":"John 17.1–5"},"T":{"ot1":"Genesis 24.29–end","ot2a":"2 Chr. 3","ot2b":"Ecclesiastes 2","nt1":"1 Timothy 6.11–end","nt2":"John 17.6–19"},"W":{"ot1":"Genesis 25.7–11, 19–end","ot2a":"2 Chr. 5","ot2b":"Ecclesiastes 3.1–15","nt1":"2 Timothy 1.1–14","nt2":"John 17.20–end"},"Th":{"ot1":"Genesis 26.34–27.40","ot2a":"2 Chr. 6.1–21","ot2b":"Ecclesiastes 3.16–end of 4","nt1":"2 Timothy 1.15–2.13","nt2":"John 18.1–11"},"F":{"ot1":"Genesis 27.41–end of 28","ot2a":"2 Chr. 6.22–end","ot2b":"Ecclesiastes 5","nt1":"2 Timothy 2.14–end","nt2":"John 18.12–27"},"S":{"ot1":"Genesis 29.1–30","ot2a":"2 Chr. 7","ot2b":"Ecclesiastes 6","nt1":"2 Timothy 3","nt2":"John 18.28–end"}},"2 before Lent":{"M":{"ot1":"Genesis 29.31–30.24","ot2a":"2 Chr. 9.1–12","ot2b":"Ecclesiastes 7.1–14","nt1":"2 Timothy 4.1–8","nt2":"John 19.1–16"},"T":{"ot1":"Genesis 31.1–24","ot2a":"2 Chr. 10.1–11.4","ot2b":"Ecclesiastes 7.15–end","nt1":"2 Timothy 4.9–end","nt2":"John 19.17–30"},"W":{"ot1":"Genesis 31.25–32.2","ot2a":"2 Chr. 12","ot2b":"Ecclesiastes 8","nt1":"Titus 1","nt2":"John 19.31–end"},"Th":{"ot1":"Genesis 32.3–30","ot2a":"2 Chr. 13.1–14.1","ot2b":"Ecclesiastes 9","nt1":"Titus 2","nt2":"John 20.1–10"},"F":{"ot1":"Genesis 33.1–17","ot2a":"2 Chr. 14.2–end","ot2b":"Ecclesiastes 11.1–8","nt1":"Titus 3","nt2":"John 20.11–18"},"S":{"ot1":"Genesis 35","ot2a":"2 Chr. 15.1–15","ot2b":"Ecclesiastes 11.9–end of 12","nt1":"Philemon","nt2":"John 20.19–end"}},"1 before Lent":{"M":{"ot1":"Genesis 37.1–11","ot2a":"Jeremiah 1","ot2b":null,"nt1":"Galatians 1","nt2":"John 3.1–21"},"T":{"ot1":"Genesis 37.12–end","ot2a":"Jeremiah 2.1–13","ot2b":null,"nt1":"Galatians 2.1–10","nt2":"John 3.22–end"},"W":{"ot1":"ASH WEDNESDAY","ot2a":"ASH WEDNESDAY","ot2b":null,"nt1":"ASH WEDNESDAY","nt2":"ASH WEDNESDAY"},"Th":{"ot1":"Genesis 39","ot2a":"Jeremiah 2.14–32","ot2b":null,"nt1":"Galatians 2.11–end","nt2":"John 4.1–26"},"F":{"ot1":"Genesis 40","ot2a":"Jeremiah 3.6–22","ot2b":null,"nt1":"Galatians 3.1–14","nt2":"John 4.27–42"},"S":{"ot1":"Genesis 41.1–24","ot2a":"Jeremiah 4.1–18","ot2b":null,"nt1":"Galatians 3.15–22","nt2":"John 4.43–end"}},"Lent 1":{"M":{"ot1":"Genesis 41.25–45","ot2a":"Jeremiah 4.19–end","ot2b":null,"nt1":"Galatians 3.23–4.7","nt2":"John 5.1–18"},"T":{"ot1":"Genesis 41.46–42.5","ot2a":"Jeremiah 5.1–19","ot2b":null,"nt1":"Galatians 4.8–20","nt2":"John 5.19–29"},"W":{"ot1":"Genesis 42.6–17","ot2a":"Jeremiah 5.20–end","ot2b":null,"nt1":"Galatians 4.21–5.1","nt2":"John 5.30–end"},"Th":{"ot1":"Genesis 42.18–28","ot2a":"Jeremiah 6.9–21","ot2b":null,"nt1":"Galatians 5.2–15","nt2":"John 6.1–15"},"F":{"ot1":"Genesis 42.29–end","ot2a":"Jeremiah 6.22–end","ot2b":null,"nt1":"Galatians 5.16–end","nt2":"John 6.16–27"},"S":{"ot1":"Genesis 43.1–15","ot2a":"Jeremiah 7.1–20","ot2b":null,"nt1":"Galatians 6","nt2":"John 6.27–40"}},"Lent 2":{"M":{"ot1":"Genesis 43.16–end","ot2a":"Jeremiah 7.21–end","ot2b":null,"nt1":"Hebrews 1","nt2":"John 6.41–51"},"T":{"ot1":"Genesis 44.1–17","ot2a":"Jeremiah 8.1–15","ot2b":null,"nt1":"Hebrews 2.1–9","nt2":"John 6.52–59"},"W":{"ot1":"Genesis 44.18–end","ot2a":"Jeremiah 8.18–9.11","ot2b":null,"nt1":"Hebrews 2.10–end","nt2":"John 6.60–end"},"Th":{"ot1":"Genesis 45.1–15","ot2a":"Jeremiah 9.12–24","ot2b":null,"nt1":"Hebrews 3.1–6","nt2":"John 7.1–13"},"F":{"ot1":"Genesis 45.16–end","ot2a":"Jeremiah 10.1–16","ot2b":null,"nt1":"Hebrews 3.7–end","nt2":"John 7.14–24"},"S":{"ot1":"Genesis 46.1–7, 28–end","ot2a":"Jeremiah 10.17–24","ot2b":null,"nt1":"Hebrews 4.1–13","nt2":"John 7.25–36"}},"Lent 3":{"M":{"ot1":"Genesis 47.1–27","ot2a":"Jeremiah 11.1–17","ot2b":null,"nt1":"Hebrews 4.14–5.10","nt2":"John 7.37–52"},"T":{"ot1":"Genesis 47.28–end of 48","ot2a":"Jeremiah 11.18–12.6","ot2b":null,"nt1":"Hebrews 5.11–6.12","nt2":"John 7.53–8.11"},"W":{"ot1":"Genesis 49.1–32","ot2a":"Jeremiah 13.1–11","ot2b":null,"nt1":"Hebrews 6.13–end","nt2":"John 8.12–30"},"Th":{"ot1":"Genesis 49.33–end of 50","ot2a":"Jeremiah 14","ot2b":null,"nt1":"Hebrews 7.1–10","nt2":"John 8.31–47"},"F":{"ot1":"Exodus 1.1–14","ot2a":"Jeremiah 15.10–end","ot2b":null,"nt1":"Hebrews 7.11–end","nt2":"John 8.48–end"},"S":{"ot1":"Exodus 1.22–2.10","ot2a":"Jeremiah 16.10–17.4","ot2b":null,"nt1":"Hebrews 8","nt2":"John 9.1–17"}},"Lent 4":{"M":{"ot1":"Exodus 2.11–22","ot2a":"Jeremiah 17.5–18","ot2b":null,"nt1":"Hebrews 9.1–14","nt2":"John 9.18–end"},"T":{"ot1":"Exodus 2.23–3.20","ot2a":"Jeremiah 18.1–12","ot2b":null,"nt1":"Hebrews 9.15–end","nt2":"John 10.1–10"},"W":{"ot1":"Exodus 4.1–23","ot2a":"Jeremiah 18.13–end","ot2b":null,"nt1":"Hebrews 10.1–18","nt2":"John 10.11–21"},"Th":{"ot1":"Exodus 4.27–6.1","ot2a":"Jeremiah 19.1–13","ot2b":null,"nt1":"Hebrews 10.19–25","nt2":"John 10.22–end"},"F":{"ot1":"Exodus 6.2–13","ot2a":"Jeremiah 19.14–20.6","ot2b":null,"nt1":"Hebrews 10.26–end","nt2":"John 11.1–16"},"S":{"ot1":"Exodus 7.8–end","ot2a":"Jeremiah 20.7–end","ot2b":null,"nt1":"Hebrews 11.1–16","nt2":"John 11.17–27"}},"Lent 5":{"M":{"ot1":"Exodus 8.1–19","ot2a":"Jeremiah 21.1–10","ot2b":null,"nt1":"Hebrews 11.17–31","nt2":"John 11.28–44"},"T":{"ot1":"Exodus 8.20–end","ot2a":"Jeremiah 22.1–5, 13–19","ot2b":null,"nt1":"Hebrews 11.32–12.2","nt2":"John 11.45–end"},"W":{"ot1":"Exodus 9.1–12","ot2a":"Jeremiah 22.20–23.8","ot2b":null,"nt1":"Hebrews 12.3–13","nt2":"John 12.1–11"},"Th":{"ot1":"Exodus 9.13–end","ot2a":"Jeremiah 23.9–32","ot2b":null,"nt1":"Hebrews 12.14–end","nt2":"John 12.12–19"},"F":{"ot1":"Exodus 10","ot2a":"Jeremiah 24","ot2b":null,"nt1":"Hebrews 13.1–16","nt2":"John 12.20–36a"},"S":{"ot1":"Exodus 11","ot2a":"Jeremiah 25.1–14","ot2b":null,"nt1":"Hebrews 13.17–end","nt2":"John 12.36b–end"}},"Easter":{"M":{"ot1":"Exodus 12.1–14","ot2a":"Song of Solomon 1.9–2.7","ot2b":null,"nt1":"1 Corinthians15.1–11","nt2":"Mark 16.1–8"},"T":{"ot1":"Exodus 12.14–36","ot2a":"Song of Solomon 2.8–end","ot2b":null,"nt1":"1 Corinthians 15.12–19","nt2":"Luke 24.1–12"},"W":{"ot1":"Exodus 12.37–end","ot2a":"Song of Solomon 3","ot2b":null,"nt1":"1 Corinthians 15.20–28","nt2":"Matthew 28.16–end"},"Th":{"ot1":"Exodus 13.1–16","ot2a":"Song of Solomon 5.2–6.3","ot2b":null,"nt1":"1 Corinthians 15.29–34","nt2":"Luke 7.11–17"},"F":{"ot1":"Exodus 13.17–14.14","ot2a":"Song of Solomon 7.10–8.4","ot2b":null,"nt1":"1 Corinthians 15.35–50","nt2":"Luke 8.41–end"},"S":{"ot1":"Exodus 14.15–end","ot2a":"Song of Solomon 8.5–7","ot2b":null,"nt1":"1 Corinthians 15.51–end","nt2":"John 11.17–44"}},"Easter 2":{"M":{"ot1":"Exodus 15.1–21","ot2a":"Deuteronomy 1.3–18","ot2b":null,"nt1":"Colossians 1.1–14","nt2":"John 20.1–10"},"T":{"ot1":"Exodus 15.22–16.10","ot2a":"Deuteronomy 1.19–40","ot2b":null,"nt1":"Colossians 1.15–end","nt2":"John 20.11–18"},"W":{"ot1":"Exodus 16.11–end","ot2a":"Deuteronomy 3.18–end","ot2b":null,"nt1":"Colossians 2.1–15","nt2":"John 20.19–end"},"Th":{"ot1":"Exodus 17","ot2a":"Deuteronomy 4.1–14","ot2b":null,"nt1":"Colossians 2.16–3.11","nt2":"John 21.1–14"},"F":{"ot1":"Exodus 18.1–12","ot2a":"Deuteronomy 4.15–31","ot2b":null,"nt1":"Colossians 3.12–4.1","nt2":"John 21.15–19"},"S":{"ot1":"Exodus 18.13–end","ot2a":"Deuteronomy 4.32–40","ot2b":null,"nt1":"Colossians 4.2–end","nt2":"John 21.20–end"}},"Easter 3":{"M":{"ot1":"Exodus 19","ot2a":"Deuteronomy 5.1–22","ot2b":null,"nt1":"Luke 1.1–25","nt2":"Ephesians 1.1–14"},"T":{"ot1":"Exodus 20.1–21","ot2a":"Deuteronomy 5.22–end","ot2b":null,"nt1":"Luke 1.26–38","nt2":"Ephesians 1.15–end"},"W":{"ot1":"Exodus 24","ot2a":"Deuteronomy 6","ot2b":null,"nt1":"Luke 1.39–56","nt2":"Ephesians 2.1–10"},"Th":{"ot1":"Exodus 25.1–22","ot2a":"Deuteronomy 7.1–11","ot2b":null,"nt1":"Luke 1.57–end","nt2":"Ephesians 2.11–end"},"F":{"ot1":"Exodus 28.1–4a, 29–38","ot2a":"Deuteronomy 7.12–end","ot2b":null,"nt1":"Luke 2.1–20","nt2":"Ephesians 3.1–13"},"S":{"ot1":"Exodus 29.1–9","ot2a":"Deuteronomy 8","ot2b":null,"nt1":"Luke 2.21–40","nt2":"Ephesians 3.14–end"}},"Easter 4":{"M":{"ot1":"Exodus 32.1–14","ot2a":"Deuteronomy 9.1–21","ot2b":null,"nt1":"Luke 2.41–end","nt2":"Ephesians 4.1–16"},"T":{"ot1":"Exodus 32.15–34","ot2a":"Deuteronomy 9.23–10.5","ot2b":null,"nt1":"Luke 3.1–14","nt2":"Ephesians 4.17–end"},"W":{"ot1":"Exodus 33","ot2a":"Deuteronomy 10.12–end","ot2b":null,"nt1":"Luke 3.15–22","nt2":"Ephesians 5.1–14"},"Th":{"ot1":"Exodus 34.1–10, 27–end","ot2a":"Deuteronomy 11.8–end","ot2b":null,"nt1":"Luke 4.1–13","nt2":"Ephesians 5.15–end"},"F":{"ot1":"Exodus 35.20–36.7","ot2a":"Deuteronomy 12.1–14","ot2b":null,"nt1":"Luke 4.14–30","nt2":"Ephesians 6.1–9"},"S":{"ot1":"Exodus 40.17–end","ot2a":"Deuteronomy 15.1–18","ot2b":null,"nt1":"Luke 4.31–37","nt2":"Ephesians 6.10–end"}},"Easter 5":{"M":{"ot1":"Numbers 9.15–end; 10.33–end","ot2a":"Deuteronomy 16.1–20","ot2b":null,"nt1":"Luke 4.38–end","nt2":"1 Peter 1.1–12"},"T":{"ot1":"Numbers 11.1–33","ot2a":"Deuteronomy 17.8–end","ot2b":null,"nt1":"Luke 5.1–11","nt2":"1 Peter 1.13–end"},"W":{"ot1":"Numbers 12","ot2a":"Deuteronomy 18.9–end","ot2b":null,"nt1":"Luke 5.12–26","nt2":"1 Peter 2.1–10"},"Th":{"ot1":"Numbers 13.1–3, 17–end","ot2a":"Deuteronomy 19","ot2b":null,"nt1":"Luke 5.27–end","nt2":"1 Peter 2.11–end"},"F":{"ot1":"Numbers 14.1–25","ot2a":"Deuteronomy 21.22–22.8","ot2b":null,"nt1":"Luke 6.1–11","nt2":"1 Peter 3.1–12"},"S":{"ot1":"Numbers 14.26–end","ot2a":"Deuteronomy 24.5–end","ot2b":null,"nt1":"Luke 6.12–26","nt2":"1 Peter 3.13–end"}},"Easter 6":{"M":{"ot1":"Numbers 16.1–35","ot2a":"Deuteronomy 26","ot2b":null,"nt1":"Luke 6.27–38","nt2":"1 Peter 4.1–11"},"T":{"ot1":"Numbers 16.36–end","ot2a":"Deuteronomy 28.1–14","ot2b":null,"nt1":"Luke 6.39–end","nt2":"1 Peter 4.12–end"},"W":{"ot1":"Numbers 17.1–11","ot2a":"Deuteronomy 28.58–end","ot2b":null,"nt1":"Luke 7.1–10","nt2":"1 Peter 5"},"Th":{"ot1":"ASCENSION DAY","ot2a":"ASCENSION DAY","ot2b":null,"nt1":"ASCENSION DAY","nt2":"ASCENSION DAY"},"F":{"ot1":"Numbers 20.1–13","ot2a":"Deuteronomy 29.2–15","ot2b":null,"nt1":"Luke 7.11–17","nt2":"1 John 1.1–2.6"},"S":{"ot1":"Numbers 21.4–9","ot2a":"Deuteronomy 30","ot2b":null,"nt1":"Luke 7.18–35","nt2":"1 John 2.7–17"}},"Easter 7":{"M":{"ot1":"Numbers 22.1–35","ot2a":"Deuteronomy 31.1–13","ot2b":null,"nt1":"Luke 7.36–end","nt2":"1 John 2.18–end"},"T":{"ot1":"Numbers 22.36–23.12","ot2a":"Deuteronomy 31.14–29","ot2b":null,"nt1":"Luke 8.1–15","nt2":"1 John 3.1–10"},"W":{"ot1":"Numbers 23.13–end","ot2a":"Deuteronomy 31.30–32.14","ot2b":null,"nt1":"Luke 8.16–25","nt2":"1 John 3.11–end"},"Th":{"ot1":"Numbers 24","ot2a":"Deuteronomy 32.15–47","ot2b":null,"nt1":"Luke 8.26–39","nt2":"1 John 4.1–6"},"F":{"ot1":"Numbers 27.12–end","ot2a":"Deuteronomy 33","ot2b":null,"nt1":"Luke 8.40–end","nt2":"1 John 4.7–end"},"S":{"ot1":"Numbers 32.1–27","ot2a":"Deuteronomy 32.48–end, 34","ot2b":null,"nt1":"Luke 9.1–17","nt2":"1 John 5"}},"Pentecost":{"M":{"ot1":"Joshua 1","ot2a":"2 Chr. 17.1–12","ot2b":"Job 1","nt1":"Luke 9.18–27","nt2":"Romans 1.1–17"},"T":{"ot1":"Joshua 2","ot2a":"2 Chr. 18.1–27","ot2b":"Job 2","nt1":"Luke 9.28–36","nt2":"Romans 1.18–end"},"W":{"ot1":"Joshua 3","ot2a":"2 Chr. 18.28–end of 19","ot2b":"Job 3","nt1":"Luke 9.37–50","nt2":"Romans 2.1–16"},"Th":{"ot1":"Joshua 4.1–5.1","ot2a":"2 Chr. 20.1–23","ot2b":"Job 4","nt1":"Luke 9.51–end","nt2":"Romans 2.17–end"},"F":{"ot1":"Joshua 5.2–end","ot2a":"2 Chr. 22.10–end of 23","ot2b":"Job 5","nt1":"Luke 10.1–16","nt2":"Romans 3.1–20"},"S":{"ot1":"Joshua 6.1–20","ot2a":"2 Chr. 24.1–22","ot2b":"Job 6","nt1":"Luke 10.17–24","nt2":"Romans 3.21–end"}},"Trinity":{"M":{"ot1":"Joshua 7.1–15","ot2a":"2 Chr. 26.1–21","ot2b":"Job 7","nt1":"Luke 10.25–37","nt2":"Romans 4.1–12"},"T":{"ot1":"Joshua 7.16–end","ot2a":"2 Chr. 28","ot2b":"Job 8","nt1":"Luke 10.38–end","nt2":"Romans 4.13–end"},"W":{"ot1":"Joshua 8.1–29","ot2a":"2 Chr. 29.1–19","ot2b":"Job 9","nt1":"Luke 11.1–13","nt2":"Romans 5.1–11"},"Th":{"ot1":"Joshua 8.30–end","ot2a":"2 Chr. 29.20–end","ot2b":"Job 10","nt1":"Luke 11.14–28","nt2":"Romans 5.12–end"},"F":{"ot1":"Joshua 9.3–26","ot2a":"2 Chr. 30","ot2b":"Job 11","nt1":"Luke 11.29–36","nt2":"Romans 6.1–14"},"S":{"ot1":"Joshua 10.1–15","ot2a":"2 Chr. 32.1–22","ot2b":"Job 12","nt1":"Luke 11.37–end","nt2":"Romans 6.15–end"}},"Trinity 1":{"M":{"ot1":"Joshua 14","ot2a":"2 Chr. 33.1–13","ot2b":"Job 13","nt1":"Luke 12.1–12","nt2":"Romans 7.1–6"},"T":{"ot1":"Joshua 21.43–22.8","ot2a":"2 Chr. 34.1–18","ot2b":"Job 14","nt1":"Luke 12.13–21","nt2":"Romans 7.7–end"},"W":{"ot1":"Joshua 22.9–end","ot2a":"2 Chr. 34.19–end","ot2b":"Job 15","nt1":"Luke 12.22–31","nt2":"Romans 8.1–11"},"Th":{"ot1":"Joshua 23","ot2a":"2 Chr. 35.1–19","ot2b":"Job 16.1–17.2","nt1":"Luke 12.32–40","nt2":"Romans 8.12–17"},"F":{"ot1":"Joshua 24.1–28","ot2a":"2 Chr. 35.20–36.10","ot2b":"Job 17.3–end","nt1":"Luke 12.41–48","nt2":"Romans 8.18–30"},"S":{"ot1":"Joshua 24.29–end","ot2a":"2 Chr. 36.11–end","ot2b":"Job 18","nt1":"Luke 12.49–end","nt2":"Romans 8.31–end"}},"Trinity 2":{"M":{"ot1":"Judges 2","ot2a":"Ezra 1","ot2b":"Job 19","nt1":"Luke 13.1–9","nt2":"Romans 9.1–18"},"T":{"ot1":"Judges 4.1–23","ot2a":"Ezra 3","ot2b":"Job 21","nt1":"Luke 13.10–21","nt2":"Romans 9.19–end"},"W":{"ot1":"Judges 5","ot2a":"Ezra 4.1–5","ot2b":"Job 22","nt1":"Luke 13.22–end","nt2":"Romans 10.1–10"},"Th":{"ot1":"Judges 6.1–24","ot2a":"Ezra 4.7–end","ot2b":"Job 23","nt1":"Luke 14.1–11","nt2":"Romans 10.11–end"},"F":{"ot1":"Judges 6.25–end","ot2a":"Ezra 5","ot2b":"Job 24","nt1":"Luke 14.12–24","nt2":"Romans 11.1–12"},"S":{"ot1":"Judges 7","ot2a":"Ezra 6","ot2b":"Job 25–26","nt1":"Luke 14.25–end","nt2":"Romans 11.13–24"}},"Trinity 3":{"M":{"ot1":"Judges 8.22–end","ot2a":"Ezra 7","ot2b":"Job 27","nt1":"Luke 15.1–10","nt2":"Romans 11.25–end"},"T":{"ot1":"Judges 9.1–21","ot2a":"Ezra 8.15–end","ot2b":"Job 28","nt1":"Luke 15.11–end","nt2":"Romans 12.1–8"},"W":{"ot1":"Judges 9.22–end","ot2a":"Ezra 9","ot2b":"Job 29","nt1":"Luke 16.1–18","nt2":"Romans 12.9–end"},"Th":{"ot1":"Judges 11.1–11","ot2a":"Ezra 10.1–17","ot2b":"Job 30","nt1":"Luke 16.19–end","nt2":"Romans 13.1–7"},"F":{"ot1":"Judges 11.29–end","ot2a":"Nehemiah 1","ot2b":"Job 31","nt1":"Luke 17.1–10","nt2":"Romans 13.8–end"},"S":{"ot1":"Judges 12.1–7","ot2a":"Nehemiah 2","ot2b":"Job 32","nt1":"Luke 17.11–19","nt2":"Romans 14.1–12"}},"Trinity 4":{"M":{"ot1":"Judges 13.1–24","ot2a":"Nehemiah 4","ot2b":"Job 33","nt1":"Luke 17.20–end","nt2":"Romans 14.13–end"},"T":{"ot1":"Judges 14","ot2a":"Nehemiah 5","ot2b":"Job 38","nt1":"Luke 18.1–14","nt2":"Romans 15.1–13"},"W":{"ot1":"Judges 15.1–16.3","ot2a":"Nehemiah 6.1–7.4","ot2b":"Job 39","nt1":"Luke 18.15–30","nt2":"Romans 15.14–21"},"Th":{"ot1":"Judges 16.4–end","ot2a":"Nehemiah 7.73b–end of 8","ot2b":"Job 40","nt1":"Luke 18.31–end","nt2":"Romans 15.22–end"},"F":{"ot1":"Judges 17","ot2a":"Nehemiah 9.1–23","ot2b":"Job 41","nt1":"Luke 19.1–10","nt2":"Romans 16.1–16"},"S":{"ot1":"Judges 18.1–20, 27–end","ot2a":"Nehemiah 9.24–end","ot2b":"Job 42","nt1":"Luke 19.11–27","nt2":"Romans 16.17–end"}},"Trinity 5":{"M":{"ot1":"1 Samuel 1.1–20","ot2a":"Nehemiah 12.27–47","ot2b":"Ezekiel 1.1–14","nt1":"Luke 19.28–40","nt2":"2 Corinthians 1.1–14"},"T":{"ot1":"1 Samuel 1.21–2.11","ot2a":"Nehemiah 13.1–14","ot2b":"Ezekiel 1.15–2.2","nt1":"Luke 19.41–end","nt2":"2 Corinthians 1.15–2.4"},"W":{"ot1":"1 Samuel 2.12–26","ot2a":"Nehemiah 13.15–end","ot2b":"Ezekiel 2.3–3.11","nt1":"Luke 20.1–8","nt2":"2 Corinthians 2.5–end"},"Th":{"ot1":"1 Samuel 2.27–end","ot2a":"Esther 1","ot2b":"Ezekiel 3.12–end","nt1":"Luke 20.9–19","nt2":"2 Corinthians 3"},"F":{"ot1":"1 Samuel 3.1–4.1a","ot2a":"Esther 2","ot2b":"Ezekiel 8","nt1":"Luke 20.20–26","nt2":"2 Corinthians 4"},"S":{"ot1":"1 Samuel 4.1b–end","ot2a":"Esther 3","ot2b":"Ezekiel 9","nt1":"Luke 20.27–40","nt2":"2 Corinthians 5"}},"Trinity 6":{"M":{"ot1":"1 Samuel 5","ot2a":"Esther 4","ot2b":"Ezekiel 10.1–19","nt1":"Luke 20.41–21.4","nt2":"2 Corinthians 6.1–7.1"},"T":{"ot1":"1 Samuel 6.1–16","ot2a":"Esther 5","ot2b":"Ezekiel 11.14–end","nt1":"Luke 21.5–19","nt2":"2 Corinthians 7.2–end"},"W":{"ot1":"1 Samuel 7","ot2a":"Esther 6.1–13","ot2b":"Ezekiel 12.1–16","nt1":"Luke 21.20–28","nt2":"2 Corinthians 8.1–15"},"Th":{"ot1":"1 Samuel 8","ot2a":"Esther 6.14–end of 7","ot2b":"Ezekiel 12.17–end","nt1":"Luke 21.29–end","nt2":"2 Corinthians 8.16–9.5"},"F":{"ot1":"1 Samuel 9.1–14","ot2a":"Esther 8","ot2b":"Ezekiel 13.1–16","nt1":"Luke 22.1–13","nt2":"2 Corinthians 9.6–end"},"S":{"ot1":"1 Samuel 9.15–10.1","ot2a":"Esther 9.20–28","ot2b":"Ezekiel 14.1–11","nt1":"Luke 22.14–23","nt2":"2 Corinthians 10"}},"Trinity 7":{"M":{"ot1":"1 Samuel 10.1–16","ot2a":"Jeremiah 26","ot2b":"Ezekiel 14.12–end","nt1":"Luke 22.24–30","nt2":"2 Corinthians 11.1–15"},"T":{"ot1":"1 Samuel 10.17–end","ot2a":"Jeremiah 28","ot2b":"Ezekiel 18.1–20","nt1":"Luke 22.31–38","nt2":"2 Corinthians 11.16–end"},"W":{"ot1":"1 Samuel 11","ot2a":"Jeremiah 29.1–14","ot2b":"Ezekiel 18.21–32","nt1":"Luke 22.39–46","nt2":"2 Corinthians 12"},"Th":{"ot1":"1 Samuel 12","ot2a":"Jeremiah 30.1–11","ot2b":"Ezekiel 20.1–20","nt1":"Luke 22.47–62","nt2":"2 Corinthians 13"},"F":{"ot1":"1 Samuel 13.5–18","ot2a":"Jeremiah 30.12–22","ot2b":"Ezekiel 20.21–38","nt1":"Luke 22.63–end","nt2":"James 1.1–11"},"S":{"ot1":"1 Samuel 13.19–14.15","ot2a":"Jeremiah 31.1–22","ot2b":"Ezekiel 24.15–end","nt1":"Luke 23.1–12","nt2":"James 1.12–end"}},"Trinity 8":{"M":{"ot1":"1 Samuel 14.24–46","ot2a":"Jeremiah 31.23–25, 27–37","ot2b":"Ezekiel 28.1–19","nt1":"Luke 23.13–25","nt2":"James 2.1–13"},"T":{"ot1":"1 Samuel 15.1–23","ot2a":"Jeremiah 32.1–15","ot2b":"Ezekiel 33.1–20","nt1":"Luke 23.26–43","nt2":"James 2.14–end"},"W":{"ot1":"1 Samuel 16","ot2a":"Jeremiah 33.1–13","ot2b":"Ezekiel 33.21–end","nt1":"Luke 23.44–56a","nt2":"James 3"},"Th":{"ot1":"1 Samuel 17.1–30","ot2a":"Jeremiah 33.14–end","ot2b":"Ezekiel 34.1–16","nt1":"Luke 23.56b–24.12","nt2":"James 4.1–12"},"F":{"ot1":"1 Samuel 17.31–54","ot2a":"Jeremiah 35","ot2b":"Ezekiel 34.17–end","nt1":"Luke 24.13–35","nt2":"James 4.13–5.6"},"S":{"ot1":"1 Samuel 17.55–18.16","ot2a":"Jeremiah 36.1–18","ot2b":"Ezekiel 36.16–36","nt1":"Luke 24.36–end","nt2":"James 5.7–end"}},"Trinity 9":{"M":{"ot1":"1 Samuel 19.1–18","ot2a":"Jeremiah 36.19–end","ot2b":"Ezekiel 37.1–14","nt1":"Acts 1.1–14","nt2":"Mark 1.1–13"},"T":{"ot1":"1 Samuel 20.1–17","ot2a":"Jeremiah 37","ot2b":"Ezekiel 37. 15–end","nt1":"Acts 1.15–end","nt2":"Mark 1.14–20"},"W":{"ot1":"1 Samuel 20.18–end","ot2a":"Jeremiah 38.1–13","ot2b":"Ezekiel 39.21–end","nt1":"Acts 2.1–21","nt2":"Mark 1.21–28"},"Th":{"ot1":"1 Samuel 21.1–22.5","ot2a":"Jeremiah 38.14–end","ot2b":"Ezekiel 43.1–12","nt1":"Acts 2.22–36","nt2":"Mark 1.29–end"},"F":{"ot1":"1 Samuel 22.6–end","ot2a":"Jeremiah 39","ot2b":"Ezekiel 44.4–16","nt1":"Acts 2.37–end","nt2":"Mark 2.1–12"},"S":{"ot1":"1 Samuel 23","ot2a":"Jeremiah 40","ot2b":"Ezekiel 47.1–12","nt1":"Acts 3.1–10","nt2":"Mark 2.13–22"}},"Trinity 10":{"M":{"ot1":"1 Samuel 24","ot2a":"Jeremiah 41","ot2b":"Proverbs 1.1–19","nt1":"Acts 3.11–end","nt2":"Mark 2.23–3.6"},"T":{"ot1":"1 Samuel 26","ot2a":"Jeremiah 42","ot2b":"Proverbs 1.20–end","nt1":"Acts 4.1–12","nt2":"Mark 3.7–19a"},"W":{"ot1":"1 Samuel 28.3–end","ot2a":"Jeremiah 43","ot2b":"Proverbs 2","nt1":"Acts 4.13–31","nt2":"Mark 3.19b–end"},"Th":{"ot1":"1 Samuel 31","ot2a":"Jeremiah 44.1–14","ot2b":"Proverbs 3.1–26","nt1":"Acts 4.32–5.11","nt2":"Mark 4.1–20"},"F":{"ot1":"2 Samuel 1","ot2a":"Jeremiah 44.15–end","ot2b":"Proverbs 3.27–4.19","nt1":"Acts 5.12–26","nt2":"Mark 4.21–34"},"S":{"ot1":"2 Samuel 2.1–11","ot2a":"Jeremiah 45","ot2b":"Proverbs 6.1–19","nt1":"Acts 5.27–end","nt2":"Mark 4.35–end"}},"Trinity 11":{"M":{"ot1":"2 Samuel 3.12–end","ot2a":"Micah 1.1–9","ot2b":"Proverbs 8.1–21","nt1":"Acts 6","nt2":"Mark 5.1–20"},"T":{"ot1":"2 Samuel 5.1–12","ot2a":"Micah 2","ot2b":"Proverbs 8.22–end","nt1":"Acts 7.1–16","nt2":"Mark 5.21–34"},"W":{"ot1":"2 Samuel 6.1–19","ot2a":"Micah 3","ot2b":"Proverbs 9","nt1":"Acts 7.17–43","nt2":"Mark 5.35–end"},"Th":{"ot1":"2 Samuel 7.1–17","ot2a":"Micah 4.1–5.1","ot2b":"Proverbs 10.1–12","nt1":"Acts 7.44–53","nt2":"Mark 6.1–13"},"F":{"ot1":"2 Samuel 7.18–end","ot2a":"Micah 5.2–end","ot2b":"Proverbs 11.1–12","nt1":"Acts 7.54–8.3","nt2":"Mark 6.14–29"},"S":{"ot1":"2 Samuel 9","ot2a":"Micah 6","ot2b":"Proverbs 12.10–end","nt1":"Acts 8.4–25","nt2":"Mark 6.30–44"}},"Trinity 12":{"M":{"ot1":"2 Samuel 11","ot2a":"Micah 7.1–7","ot2b":"Proverbs 14.31–15.17","nt1":"Acts 8.26–end","nt2":"Mark 6.45–end"},"T":{"ot1":"2 Samuel 12.1–25","ot2a":"Micah 7.8–end","ot2b":"Proverbs 15.18–end","nt1":"Acts 9.1–19a","nt2":"Mark 7.1–13"},"W":{"ot1":"2 Samuel 15.1–12","ot2a":"Habakkuk 1.1–11","ot2b":"Proverbs 18.10–end","nt1":"Acts 9.19b–31","nt2":"Mark 7.14–23"},"Th":{"ot1":"2 Samuel 15.13–end","ot2a":"Habakkuk 1.12–2.5","ot2b":"Proverbs 20.1–22","nt1":"Acts 9.32–end","nt2":"Mark 7.24–30"},"F":{"ot1":"2 Samuel 16.1–14","ot2a":"Habakkuk 2.6–end","ot2b":"Proverbs 22.1–16","nt1":"Acts 10.1–16","nt2":"Mark 7.31–end"},"S":{"ot1":"2 Samuel 17.1–23","ot2a":"Habakkuk 3.2–19a","ot2b":"Proverbs 24.23–end","nt1":"Acts 10.17–33","nt2":"Mark 8.1–10"}},"Trinity 13":{"M":{"ot1":"2 Samuel 18.1–18","ot2a":"Haggai 1.1–11","ot2b":"Proverbs 25.1–14","nt1":"Acts 10.34–end","nt2":"Mark 8.11–21"},"T":{"ot1":"2 Samuel 18.19–19.8a","ot2a":"Haggai 1.12–2.9","ot2b":"Proverbs 25.15–end","nt1":"Acts 11.1–18","nt2":"Mark 8.22–26"},"W":{"ot1":"2 Samuel 19.8b–23","ot2a":"Haggai 2.10–end","ot2b":"Proverbs 26.12–end","nt1":"Acts 11.19–end","nt2":"Mark 8.27–9.1"},"Th":{"ot1":"2 Samuel 19.24–end","ot2a":"Zechariah 1.1–17","ot2b":"Proverbs 27.1–22","nt1":"Acts 12.1–17","nt2":"Mark 9.2–13"},"F":{"ot1":"2 Samuel 23.1–7","ot2a":"Zechariah 1.18–end of 2","ot2b":"Proverbs 30.1–9, 24–31","nt1":"Acts 12.18–end","nt2":"Mark 9.14–29"},"S":{"ot1":"2 Samuel 24","ot2a":"Zechariah 3","ot2b":"Proverbs 31.10–end","nt1":"Acts 13.1–12","nt2":"Mark 9.30–37"}},"Trinity 14":{"M":{"ot1":"1 Kings 1.5–31","ot2a":"Zechariah 4","ot2b":"Wisdom 1 or 1 Chr. 10.1–11.9","nt1":"Acts 13.13–43","nt2":"Mark 9.38–end"},"T":{"ot1":"1 Kings 1.32–2.4; 2.10–12","ot2a":"Zechariah 6.9–end","ot2b":"Wisdom 2 or 1 Chr. 13","nt1":"Acts 13.44–14.7","nt2":"Mark 10.1–16"},"W":{"ot1":"1 Kings 3","ot2a":"Zechariah 7","ot2b":"Wisdom 3.1–9 or 1 Chr. 15.1–16.3","nt1":"Acts 14.8–end","nt2":"Mark 10.17–31"},"Th":{"ot1":"1 Kings 4.29–5.12","ot2a":"Zechariah 8.1–8","ot2b":"Wisdom 4.7–end or 1 Chr. 17","nt1":"Acts 15.1–21","nt2":"Mark 10.32–34"},"F":{"ot1":"1 Kings 6.1, 11–28","ot2a":"Zechariah 8.9–end","ot2b":"Wisdom 5.1–16 or 1 Chr. 21.1–22.1","nt1":"Acts 15.22–35","nt2":"Mark 10.35–45"},"S":{"ot1":"1 Kings 8.1–30","ot2a":"Zechariah 9.1–12","ot2b":"Wisdom 5.17–6.11 or 1 Chr. 22.2–end","nt1":"Acts 15.36–16.5","nt2":"Mark 10.46–end"}},"Trinity 15":{"M":{"ot1":"1 Kings 8.31–62","ot2a":"Zechariah 10","ot2b":"Wisdom 6.12–23 or 1 Chr. 28. 1–10","nt1":"Acts 16.6–24","nt2":"Mark 11.1–11"},"T":{"ot1":"1 Kings 8.63–9.9","ot2a":"Zechariah 11.4–end","ot2b":"Wisdom 7.1–14 or 1 Chr. 28.11–end","nt1":"Acts 16.25–end","nt2":"Mark 11.12–26"},"W":{"ot1":"1 Kings 10.1–25","ot2a":"Zechariah 12.1–10","ot2b":"Wisdom 7.15–8.4 or 1 Chr. 29.1–9","nt1":"Acts 17.1–15","nt2":"Mark 11.27–end"},"Th":{"ot1":"1 Kings 11.1–13","ot2a":"Zechariah 13","ot2b":"Wisdom 8.5–18 or 1 Chr. 29.10–20","nt1":"Acts 17.16–end","nt2":"Mark 12.1–12"},"F":{"ot1":"1 Kings 11.26–end","ot2a":"Zechariah 14.1–11","ot2b":"Wisdom 8.21–end of 9 or 1 Chr. 29.21–end","nt1":"Acts 18.1–21","nt2":"Mark 12.13–17"},"S":{"ot1":"1 Kings 12.1–24","ot2a":"Zechariah 14.12–end","ot2b":"Wisdom 10.15–11.10 or 2 Chr. 1.1–13","nt1":"Acts 18.22–19.7","nt2":"Mark 12.18–27"}},"Trinity 16":{"M":{"ot1":"1 Kings 12.25–13.10","ot2a":"Ecclus 1.1–10 or Ez. 1.1–14","ot2b":"Wisdom 11.21–12.2 or 2 Chr. 2.1–16","nt1":"Acts 19.8–20","nt2":"Mark 12.28–34"},"T":{"ot1":"1 Kings 13.11–end","ot2a":"Ecclus 1.11–end or Ez. 1.15–2.2","ot2b":"Wisdom 12.12–21 or 2 Chr. 3","nt1":"Acts 19.21–end","nt2":"Mark 12.35–end"},"W":{"ot1":"1 Kings 17","ot2a":"Ecclus 2 or Ez. 2.3–3.11","ot2b":"Wisdom 13.1–9 or 2 Chr. 5","nt1":"Acts 20.1–16","nt2":"Mark 13.1–13"},"Th":{"ot1":"1 Kings 18.1–20","ot2a":"Ecclus 3.17–29 or Ez. 3.12–end","ot2b":"Wisdom 16.15–17.1 or 2 Chr. 6.1–21","nt1":"Acts 20.17–end","nt2":"Mark 13.14–23"},"F":{"ot1":"1 Kings 18.21–end","ot2a":"Ecclus 4.11–28 or Ez. 8","ot2b":"Wisdom 18.6–19 or 2 Chr. 6.22–end","nt1":"Acts 21.1–16","nt2":"Mark.13–24–31"},"S":{"ot1":"1 Kings 19","ot2a":"Ecclus 4.29–6.1 or Ez. 9","ot2b":"Wisdom 19 or 2 Chr. 7","nt1":"Acts 21.17–36","nt2":"Mark 13.32–end"}},"Trinity 17":{"M":{"ot1":"1 Kings 21","ot2a":"Ecclus 6.14–end or Ez. 10.1–19","ot2b":"1 Macc 1.1–19or 2 Chr. 9.1–12","nt1":"Acts 21.37–22.21","nt2":"Mark 14.1–11"},"T":{"ot1":"1 Kings 22.1–28","ot2a":"Ecclus 7.27–end or Ez. 11.14–end","ot2b":"1 Macc 1.20–40 or 2 Chr. 10.1–11.4","nt1":"Acts 22.22–23.11","nt2":"Mark 14.12–25"},"W":{"ot1":"1 Kings 22.29–45","ot2a":"Ecclus 10.6–8, 12–24 or Ez. 12.1–16","ot2b":"1 Macc 1.41–end or 2 Chr. 12","nt1":"Acts 23.12–end","nt2":"Mark 14.26–42"},"Th":{"ot1":"2 Kings 1.2–17","ot2a":"Ecclus 11.7–28 or Ez. 12.17–end","ot2b":"1 Macc 2.1–28 or 2 Chr. 13.1–14.1","nt1":"Acts 24.1–23","nt2":"Mark 14.43–52"},"F":{"ot1":"2 Kings 2.1–18","ot2a":"Ecclus 14.20–15.10 or Ez. 13.1–16","ot2b":"1 Macc 2.29–48 or 2 Chr. 14.2–end","nt1":"Acts 24.24–25.12","nt2":"Mark 14.53–65"},"S":{"ot1":"2Kings 4.1–37","ot2a":"Ecclus 15.11–end or Ez. 14.1–11","ot2b":"1 Macc 2.49–end or 2 Chr. 15.1–15","nt1":"Acts 25.13–end","nt2":"Mark 14.66–end"}},"Trinity 18":{"M":{"ot1":"2 Kings 5","ot2a":"Ecclus 16.17–end or Ez. 14.12–end","ot2b":"1 Macc 3.1–26 or 2 Chr. 17.1–12","nt1":"Acts 26.1–23","nt2":"Mark 15.1–15"},"T":{"ot1":"2 Kings 6.1–23","ot2a":"Ecclus 17.1–24 or Ez 18.1–20","ot2b":"1 Macc 3.27–41 or 2 Chr. 18.1–27","nt1":"Acts 26.24–end","nt2":"Mark 15.16–32"},"W":{"ot1":"2 Kings 9.1–16","ot2a":"Ecclus 18.1–14 or Ez. 18.21–32","ot2b":"1 Macc 3.42–end or 2 Chr. 18.28–end of 19","nt1":"Acts 27.1–26","nt2":"Mark 15.33–41"},"Th":{"ot1":"2 Kings 9.17–end","ot2a":"Ecclus 19.4–17 or Ez. 20.1–20","ot2b":"1 Macc 4.1–25 or 2 Chr. 20.1–23","nt1":"Acts 27.27–end","nt2":"Mark 15.42–end"},"F":{"ot1":"2 Kings 12.1–19","ot2a":"Ecclus 19.20–end or Ez. 20.21–38","ot2b":"1 Macc 4.26–35 or 2 Chr. 22.10–end of 23","nt1":"Acts 28.1–16","nt2":"Mark 16.1–8"},"S":{"ot1":"2 Kings 17.1–23","ot2a":"Ecclus 21.1–17 or Ez. 24.15–end","ot2b":"1 Macc 4.36–end or 2 Chr. 24.1–22","nt1":"Acts 28.17–end","nt2":"Mark 16.9–end"}},"Trinity 19":{"M":{"ot1":"2 Kings 17.24–end","ot2a":"Ecclus 22.6–22 or Ez. 28.1–19","ot2b":"1 Macc 6.1–17 or 2 Chr. 26.1–21","nt1":"Philippians 1.1–11","nt2":"John 13.1–11"},"T":{"ot1":"2 Kings 18.1–12","ot2a":"Ecclus 22.27–23.15 or Ez. 33.1–20","ot2b":"1 Macc 6.18–47 or 2 Chr. 28","nt1":"Philippians 1.12–end","nt2":"John 13.12–20"},"W":{"ot1":"2 Kings 18.13–end","ot2a":"Ecclus 24.1–22 or Ez. 33.21–end","ot2b":"1 Macc 7.1–20 or 2 Chr. 29.1–19","nt1":"Philippians 2.1–13","nt2":"John 13.21–30"},"Th":{"ot1":"2 Kings 19.1–19","ot2a":"Ecclus 24.23–end or Ez 34.1–16","ot2b":"1 Macc 7.21–end or 2 Chr. 29.20–end","nt1":"Philippians 2.14–end","nt2":"John 13.31–end"},"F":{"ot1":"2 Kings 19.20–36","ot2a":"Ecclus 27.30–28.9 or Ez. 34.17–end","ot2b":"1 Macc 9.1–22 or 2 Chr. 30","nt1":"Philippians 3.1–4.1","nt2":"John 14.1–14"},"S":{"ot1":"2 Kings 20","ot2a":"Ecclus 28.14–end or Ez. 36.16–36","ot2b":"1 Macc 13.41–end, 14.4–15 or 2 Chr. 32.1–22","nt1":"Philippians 4.2–end","nt2":"John 14.15–end"}},"Trinity 20":{"M":{"ot1":"2 Kings 21.1–18","ot2a":"Ecclus 31.1–11 or Ez. 37.1–14","ot2b":"2 Macc 4.7–17 or 2 Chr. 33.1–13","nt1":"1 Timothy 1.1–17","nt2":"John 15.1–11"},"T":{"ot1":"2 Kings 22.1–23.3","ot2a":"Ecclus 34.9–end or Ez. 37.15–end","ot2b":"2 Macc 6.12–end or 2 Chr. 34.1–18","nt1":"1 Timothy 1.18–end of 2","nt2":"John 15.12–17"},"W":{"ot1":"2 Kings 23.4–25","ot2a":"Ecclus 35 or Ez. 39.21–end","ot2b":"2 Macc 7.1–19 or 2 Chr. 34.19–end","nt1":"1 Timothy 3","nt2":"John 15.18–end"},"Th":{"ot1":"2 Kings 23.36–24.17","ot2a":"Ecclus 37.7–24 or Ez. 43.1–12","ot2b":"2 Macc 7.20–41 or 2 Chr. 35.1–19","nt1":"1 Timothy 4","nt2":"John 16.1–15"},"F":{"ot1":"2 Kings 24.18–25.12","ot2a":"Ecclus 38.1–14 or Ez. 44.4–16","ot2b":"Tobit 1 or 2 Chr. 35.20–36.10","nt1":"1 Timothy 5.1–16","nt2":"John 16.16–22"},"S":{"ot1":"2 Kings 25.22–end","ot2a":"Ecclus 38.24–end or Ez. 47.1–12","ot2b":"Tobit 2 or 2 Chr. 36.11–end","nt1":"1 Timothy 5.17–end","nt2":"John 16.23–end"}},"Trinity 21":{"M":{"ot1":"Judith 4 or Ex. 22.21–27, 23.1–17","ot2a":"Ecclus 39.1–11 or Eccl. 1","ot2b":"Tobit 3 or Micah 1.1–9","nt1":"1 Timothy 6.1–10","nt2":"John 17.1–5"},"T":{"ot1":"Judith 5.1–6.4 or Ex. 29.38–30.16","ot2a":"Ecclus 39.13–end or Eccl. 2","ot2b":"Tobit 4 or Micah 2","nt1":"1 Timothy 6.11–end","nt2":"John 17.6–19"},"W":{"ot1":"Judith 6.10–7.7 or Lev 8","ot2a":"Ecclus 42.15–end or Eccl. 3.1–15","ot2b":"Tobit 5.1–6.1a or Micah 3","nt1":"2 Timothy 1.1–14","nt2":"John 17.20–end"},"Th":{"ot1":"Judith 7.19–end or Lev. 9","ot2a":"Ecclus 43.1–12 or Eccl. 3.16–end of 4","ot2b":"Tobit 6.1b–end or Micah 4.1–5.1","nt1":"2 Timothy 1.15–2.13","nt2":"John 18.1–11"},"F":{"ot1":"Judith 8.9–end or Lev. 16.2–24","ot2a":"Ecclus 43.13–end or Eccl. 5","ot2b":"Tobit 7 or Micah 5.2–end","nt1":"2 Timothy 2.14–end","nt2":"John 18.12–27"},"S":{"ot1":"Judith 9 or Lev. 17","ot2a":"Ecclus 44.1–15 or Eccl. 6","ot2b":"Tobit 8 or Micah 6","nt1":"2 Timothy 3","nt2":"John 18.28–end"}},"Trinity 22":{"M":{"ot1":"Judith 10 or Lev. 19.1–18, 30–end","ot2a":"Ecclus 44.19–45.5 or Eccl. 7.1–14","ot2b":"Tobit 9 or Micah 7.1–7","nt1":"2 Timothy 4.1–8","nt2":"John 19.1–16"},"T":{"ot1":"Judith 11 or Lev. 23.1–22","ot2a":"Ecclus 45.6–17 or Eccl. 7.15–end","ot2b":"Tobit 10 or Micah 7.8–end","nt1":"2 Timothy 4.9–end","nt2":"John 19.17–30"},"W":{"ot1":"Judith 12 or Lev. 23.23–end","ot2a":"Ecclus 46.1–10 or Eccl. 8","ot2b":"Tobit 11 or Hab 1.1–11","nt1":"Titus 1","nt2":"John 19.31–end"},"Th":{"ot1":"Judith 13 or Lev. 24.1–9","ot2a":"Ecclus 50.1–24 or Eccl. 9","ot2b":"Tobit 12 or Hab 1.12–2.5","nt1":"Titus 2","nt2":"John 20.1–10"},"F":{"ot1":"Judith 15.1–13 or Lev. 25.1–24","ot2a":"Ecclus 51.1–12 or Eccl. 11.1–8","ot2b":"Tobit 13.1–14.1 or Hab 2.6–end","nt1":"Titus 3","nt2":"John 20.11–18"},"S":{"ot1":"Judith 15.14–end of 16 or Num. 6.1–5, 21–end","ot2a":"Ecclus 51.13–end or Eccl. 11.9–end of 12","ot2b":"Tobit 14.2–end or Hab 3.2–19a","nt1":"Philemon","nt2":"John 20.19–end"}},"4 before Advent":{"M":{"ot1":"Daniel 1","ot2a":"Isaiah 1.1–20","ot2b":null,"nt1":"Revelation 1","nt2":"Matthew 1.18–end"},"T":{"ot1":"Daniel 2.1–24","ot2a":"Isaiah 1.21–end","ot2b":null,"nt1":"Revelation 2.1–11","nt2":"Matthew 2.1–15"},"W":{"ot1":"Daniel 2.25–end","ot2a":"Isaiah 2.1–11","ot2b":null,"nt1":"Revelation 2.12–end","nt2":"Matthew 2.16–end"},"Th":{"ot1":"Daniel 3.1–18","ot2a":"Isaiah 2.12–end","ot2b":null,"nt1":"Revelation 3.1–13","nt2":"Matthew 3"},"F":{"ot1":"Daniel 3.19–end","ot2a":"Isaiah 3.1–15","ot2b":null,"nt1":"Revelation 3.14–end","nt2":"Matthew 4.1–11"},"S":{"ot1":"Daniel 4.1–18","ot2a":"Isaiah 4.2–5.7","ot2b":null,"nt1":"Revelation 4","nt2":"Matthew 4.12–22"}},"3 before Advent":{"M":{"ot1":"Daniel 4.19–end","ot2a":"Isaiah 5.8–24","ot2b":null,"nt1":"Revelation 5","nt2":"Matthew 4.23–5.12"},"T":{"ot1":"Daniel 5.1–12","ot2a":"Isaiah 5.25–end","ot2b":null,"nt1":"Revelation 6","nt2":"Matthew 5.13–20"},"W":{"ot1":"Daniel 5.13–end","ot2a":"Isaiah 6","ot2b":null,"nt1":"Revelation 7.1–4, 9–end","nt2":"Matthew 5.21–37"},"Th":{"ot1":"Daniel 6","ot2a":"Isaiah 7.1–17","ot2b":null,"nt1":"Revelation 8","nt2":"Matthew 5.38–end"},"F":{"ot1":"Daniel 7.1–14","ot2a":"Isaiah 8.1–15","ot2b":null,"nt1":"Revelation 9.1–12","nt2":"Matthew 6.1–18"},"S":{"ot1":"Daniel 7.15–end","ot2a":"Isaiah 8.16–9.7","ot2b":null,"nt1":"Revelation 9.13–end","nt2":"Matthew 6.19–end"}},"2 before Advent":{"M":{"ot1":"Daniel 8.1–14","ot2a":"Isaiah 9.8–10.4","ot2b":null,"nt1":"Revelation 10","nt2":"Matthew 7.1–12"},"T":{"ot1":"Daniel 8.15–end","ot2a":"Isaiah 10.5–19","ot2b":null,"nt1":"Revelation 11.1–14","nt2":"Matthew 7.13–end"},"W":{"ot1":"Daniel 9.1–19","ot2a":"Isaiah 10.20–32","ot2b":null,"nt1":"Revelation 11.15–end","nt2":"Matthew 8.1–13"},"Th":{"ot1":"Daniel 9.20–end","ot2a":"Isaiah 10.33–11.9","ot2b":null,"nt1":"Revelation 12","nt2":"Matthew 8.14–22"},"F":{"ot1":"Daniel 10.1–11.1","ot2a":"Isaiah 11.10–end of 12","ot2b":null,"nt1":"Revelation 13.1–10","nt2":"Matthew 8.23–end"},"S":{"ot1":"Daniel 12","ot2a":"Isaiah 13.1–13","ot2b":null,"nt1":"Revelation 13.11–end","nt2":"Matthew 9.1–17"}},"1 before Advent":{"M":{"ot1":"Isaiah 40.1–11","ot2a":"Isaiah 14.3–20","ot2b":null,"nt1":"Revelation 14.1–13","nt2":"Matthew 9.18–34"},"T":{"ot1":"Isaiah 40.12–26","ot2a":"Isaiah 17","ot2b":null,"nt1":"Revelation 14.14–end of 15","nt2":"Matthew 9.35–10.15"},"W":{"ot1":"Isaiah 40.27–41.7","ot2a":"Isaiah 19","ot2b":null,"nt1":"Revelation 16.1–11","nt2":"Matthew 10.16–33"},"Th":{"ot1":"Isaiah 41.8–20","ot2a":"Isaiah 21.1–12","ot2b":null,"nt1":"Revelation 16.12–end","nt2":"Matthew 10.34–11.1"},"F":{"ot1":"Isaiah 41.21–42.9","ot2a":"Isaiah 22.1–14","ot2b":null,"nt1":"Revelation 17","nt2":"Matthew 11.2–19"},"S":{"ot1":"Isaiah 42.10–17","ot2a":"Isaiah 24","ot2b":null,"nt1":"Revelation 18","nt2":"Matthew 11.20–end"}}};
+
+function lectionaryReading(dateObj){
+  var r = weekForDate(dateObj);
+
+  var proper = properFor(dateObj);
+  if (proper && proper.third)
+    return {week:r.label, weekStart:r.weekStart, proper:proper.name,
+            ot:proper.third.ot, nt:proper.third.nt};
+
+  var dated = datedReadingFor(dateObj);
+  if (dated){
+    if (!YEAR_TABLE[r.churchYearStart])
+      return {week:r.label, weekStart:r.weekStart, outOfRange:true};
+    var yr = YEAR_TABLE[r.churchYearStart];
+    var dot = dated[yr.sea.toLowerCase()] || dated.ot1;
+    var dnt = dated[yr.seaNT.toLowerCase()] || dated.nt1;
+    return {week:r.label, weekStart:r.weekStart, byDate:true, ot:dot, nt:dnt};
+  }
+
+  if (!YEAR_TABLE[r.churchYearStart]) return {week:r.label, weekStart:r.weekStart, outOfRange:true};
+  var wk = READINGS[r.label];
+  if (!wk) return {week:r.label, weekStart:r.weekStart, noData:true};
+  var key = ["S","M","T","W","Th","F","S"][dateObj.getUTCDay()];
+  var dayData = wk[key];
+  if (!dayData) return {week:r.label, weekStart:r.weekStart, noData:true};
+  var picked = pickReading(dayData, r.label, r.churchYearStart);
+  return {week:r.label, weekStart:r.weekStart, ot:(picked?picked.ot:dayData.ot1), nt:(picked?picked.nt:dayData.nt1)};
+}
+
+/* The source tables occasionally run two references together with no space
+   after the semicolon ("1 Kings 1.32-2.4;2.10-12"). That gives the column no
+   break point, so the whole thing overflows instead of wrapping cleanly onto
+   the next line. Two entries were fixed in the tables themselves; this catches
+   any others. Only touches a semicolon that sits between two references. */
+function tidyRef(v){
+  return String(v||"")
+    .replace(/;(?=\S)/g, "; ")
+    .replace(/(\d)-(\d|end\b)/g, "$1\u2013$2")   // psalm table prints hyphens; readings use en dashes
+    .replace(/\s+/g," ").trim();
+}
+/* ============================================================
+   Festivals, and the days the tables set by date rather than by week.
+
+   Three things live here, all transcribed from the published
+   Common Worship Weekday Lectionary booklet:
+
+   FESTIVALS      Third Service readings and Morning Psalms for the
+                  festivals that displace the weekday provision.
+   DATED_READINGS Table 2 rows given by date: 29-31 December,
+                  2-5 January and 7-12 January.
+   DATED_PSALMS   Table 3 Morning psalms given by date: 19 December
+                  through 12 January.
+
+   Table 3 has no "Week of Advent 4" at all -- it switches to psalms
+   by date from 19 December -- which is why that week used to come
+   back blank.
+   ============================================================ */
+
+var FESTIVALS = {
+  "01-01": {name:"The Naming and Circumcision of Jesus",
+            third:{psalm:"Psalms 103, 150", ot:"Genesis 17.1\u201313", nt:"Romans 2.17\u201329"}},
+  "01-25": {name:"The Conversion of Paul",
+            third:{psalm:"Psalms 66, 147.13\u201321", ot:"Ezekiel 3.22\u201327", nt:"Philippians 3.1\u201314"}},
+  "03-19": {name:"Joseph of Nazareth",
+            third:{psalm:"Psalms 25, 147.1\u201312", ot:"Isaiah 11.1\u201310", nt:"Matthew 13.54\u201358"}},
+  "04-23": {name:"George, Martyr, Patron of England",
+            third:{psalm:"Psalms 5, 146", ot:"Joshua 1.1\u20139", nt:"Ephesians 6.10\u201320"}},
+  "04-25": {name:"Mark the Evangelist",
+            third:{psalm:"Psalms 37.23\u201341, 148", ot:"Isaiah 62.6\u201310 or Ecclesiasticus 51.13\u201330", nt:"Acts 12.25\u201313.13"}},
+  "05-01": {name:"Philip and James, Apostles",
+            third:{psalm:"Psalms 139, 146", ot:"Proverbs 4.10\u201318", nt:"James 1.1\u201312"}},
+  "05-14": {name:"Matthias the Apostle",
+            third:{psalm:"Psalms 16, 147.1\u201312", ot:"1 Samuel 2.27\u201335", nt:"Acts 2.37\u201347"}},
+  "05-31": {name:"The Visit of the Blessed Virgin Mary to Elizabeth",
+            third:{psalm:"Psalms 85, 150", ot:"1 Samuel 2.1\u201310", nt:"Mark 3.31\u201335"}},
+  "06-11": {name:"Barnabas the Apostle",
+            third:{psalm:"Psalms 100, 101, 117", ot:"Jeremiah 9.23, 24", nt:"Acts 4.32\u201337"}},
+  "06-24": {name:"The Birth of John the Baptist",
+            third:{psalm:"Psalms 50, 149", ot:"Ecclesiasticus 48.1\u201310 or Malachi 3.1\u20136", nt:"Luke 3.1\u201317"}},
+  "06-29": {name:"Peter and Paul, Apostles",
+            third:{psalm:"Psalms 71, 113", ot:"Isaiah 49.1\u20136", nt:"Acts 11.1\u201318"}},
+  "07-03": {name:"Thomas the Apostle",
+            third:{psalm:"Psalms 92, 146", ot:"2 Samuel 15.17\u201321 or Ecclesiasticus 2", nt:"John 11.1\u201316"}},
+  "07-22": {name:"Mary Magdalene",
+            third:{psalm:"Psalms 30, 32, 150", ot:"1 Samuel 16.14\u201323", nt:"Luke 8.1\u20133"}},
+  "07-25": {name:"James the Apostle",
+            third:{psalm:"Psalms 7, 29, 117", ot:"2 Kings 1.9\u201315", nt:"Luke 9.46\u201356"}},
+  "08-06": {name:"The Transfiguration of Our Lord",
+            third:{psalm:"Psalms 27, 150", ot:"Ecclesiasticus 48.1\u201310 or 1 Kings 19.1\u201316", nt:"1 John 3.1\u20133"}},
+  "08-15": {name:"The Blessed Virgin Mary",
+            third:{psalm:"Psalms 98, 138, 147.1\u201312", ot:"Isaiah 7.10\u201315", nt:"Luke 11.27, 28"}},
+  "08-24": {name:"Bartholomew the Apostle",
+            third:{psalm:"Psalms 86, 117", ot:"Genesis 28.10\u201317", nt:"John 1.43\u201351"}},
+  "09-14": {name:"Holy Cross Day",
+            third:{psalm:"Psalms 2, 8, 146", ot:"Genesis 3.1\u201315", nt:"John 12.27\u201336a"}},
+  "09-21": {name:"Matthew, Apostle and Evangelist",
+            third:{psalm:"Psalms 49, 117", ot:"1 Kings 19.15\u201321", nt:"2 Timothy 3.14\u201317"}},
+  "09-29": {name:"Michael and All Angels",
+            third:{psalm:"Psalms 34, 150", ot:"Tobit 12.6\u201322 or Daniel 12.1\u20134", nt:"Acts 12.1\u201311"}},
+  "10-18": {name:"Luke the Evangelist",
+            third:{psalm:"Psalms 145, 146", ot:"Isaiah 55", nt:"Luke 1.1\u20134"}},
+  "10-28": {name:"Simon and Jude, Apostles",
+            third:{psalm:"Psalms 116, 117", ot:"Wisdom 5.1\u201316 or Isaiah 45.18\u201326", nt:"Luke 6.12\u201316"}},
+  "11-30": {name:"Andrew the Apostle",
+            third:{psalm:"Psalms 47, 147.1\u201312", ot:"Ezekiel 47.1\u201312 or Ecclesiasticus 14.20\u201327", nt:"John 12.20\u201332"}},
+  "12-26": {name:"Stephen, Deacon, First Martyr",
+            third:{psalm:"Psalms 13, 31.1\u20138, 150", ot:"Jeremiah 26.12\u201315", nt:"Acts 6"}},
+  "12-27": {name:"John, Apostle and Evangelist",
+            third:{psalm:"Psalms 21, 147.13\u201321", ot:"Exodus 33.12\u201323", nt:"1 John 2.1\u201311"}},
+  "12-28": {name:"The Holy Innocents",
+            third:{psalm:"Psalms 36, 146", ot:"Baruch 4.21\u201327 or Genesis 37.13\u201320", nt:"Matthew 18.1\u201310"}}
+};
+
+/* Table 2, the rows given by date. Old Testament 2b is blank throughout
+   this stretch in the published table, so OT1 is the fallback, which is
+   what pickReading already does. */
+var DATED_READINGS = {
+  "12-29": {ot1:"Jonah 1",       ot2a:"Isaiah 57.15\u2013end",  nt1:"Colossians 1.1\u201314",    nt2:"John 1.1\u201318"},
+  "12-30": {ot1:"Jonah 2",       ot2a:"Isaiah 59.1\u201315a",   nt1:"Colossians 1.15\u201323",   nt2:"John 1.19\u201328"},
+  "12-31": {ot1:"Jonah 3\u20134",     ot2a:"Isaiah 59.15b\u2013end", nt1:"Colossians 1.24\u20132.7",  nt2:"John 1.29\u201334"},
+  "01-02": {ot1:"Ruth 1",        ot2a:"Isaiah 60.1\u201312",    nt1:"Colossians 2.8\u2013end",   nt2:"John 1.35\u201342"},
+  "01-03": {ot1:"Ruth 2",        ot2a:"Isaiah 60.13\u2013end",  nt1:"Colossians 3.1\u201311",    nt2:"John 1.43\u2013end"},
+  "01-04": {ot1:"Ruth 3",        ot2a:"Isaiah 61",         nt1:"Colossians 3.12\u20134.1",  nt2:"John 2.1\u201312"},
+  "01-05": {ot1:"Ruth 4.1\u201317",   ot2a:"Isaiah 62",         nt1:"Colossians 4.2\u2013end",   nt2:"John 2.13\u2013end"},
+  "01-07": {ot1:"Baruch 1.15\u20132.10 or Jeremiah 23.1\u20138",        ot2a:"Isaiah 63.7\u2013end",  nt1:"Matthew 20.1\u201316",   nt2:"1 John 3"},
+  "01-08": {ot1:"Baruch 2.11\u2013end or Jeremiah 30.1\u201317",        ot2a:"Isaiah 64",        nt1:"Matthew 20.17\u201328",  nt2:"1 John 4.7\u2013end"},
+  "01-09": {ot1:"Baruch 3.1\u20138 or Jeremiah 30.18\u201331.9",        ot2a:"Isaiah 65.1\u201316",   nt1:"Matthew 20.29\u2013end", nt2:"1 John 5.1\u201312"},
+  "01-10": {ot1:"Baruch 3.9\u20134.4 or Jeremiah 31.10\u201317",        ot2a:"Isaiah 65.17\u2013end", nt1:"Matthew 23.1\u201312",   nt2:"1 John 5.13\u2013end"},
+  "01-11": {ot1:"Baruch 4.21\u201330 or Jeremiah 33.14\u2013end",       ot2a:"Isaiah 66.1\u201311",   nt1:"Matthew 23.13\u201328",  nt2:"2 John"},
+  "01-12": {ot1:"Baruch 4.36\u2013end of 5 or Micah 5.2\u2013end",      ot2a:"Isaiah 66.12\u201323", nt1:"Matthew 23.29\u2013end", nt2:"3 John"}
+};
+
+/* Table 3, the Morning psalms given by date. */
+var DATED_PSALMS = {
+  "12-19":"144, 146", "12-20":"46, 95", "12-21":"121, 122, 123",
+  "12-22":"124, 125, 126, 127", "12-23":"128, 129, 130, 131", "12-24":"45, 113",
+  "12-25":"110, 117", "12-26":"13, 31.1-8, 150", "12-27":"21, 147.13-end",
+  "12-28":"36, 146", "12-29":"19, 20", "12-30":"111, 112, 113", "12-31":"102",
+  "01-01":"103, 150", "01-02":"18.1-30", "01-03":"127, 128, 131",
+  "01-04":"89.1-37", "01-05":"8, 48",
+  "01-06":"132, 113", "01-07":"99, 147.1-12", "01-08":"46, 147.13-end",
+  "01-09":"2, 148", "01-10":"97, 149", "01-11":"98, 150", "01-12":"96, 145"
+};
+
+/* Days whose date moves with Easter. Ash Wednesday, Holy Week and
+   Ascension Day are marked in Tables 2 and 3 but carry no entries there:
+   their provision sits with the Principal Feasts and Holy Days. Holy Week
+   is set out as Morning and Evening rather than Second and Third Service,
+   so the Morning column is the one taken here.
+   Offsets are days from Easter Day. */
+var MOVABLE_DAYS = {
+  "-46": {name:"Ash Wednesday",
+          third:{psalm:"Psalm 38", ot:"Daniel 9.3\u20136, 17\u201319", nt:"1 Timothy 6.6\u201319"}},
+  "-6":  {name:"Monday of Holy Week",
+          third:{psalm:"Psalm 41", ot:"Lamentations 1.1\u201312a", nt:"Luke 22.1\u201323"}},
+  "-5":  {name:"Tuesday of Holy Week",
+          third:{psalm:"Psalm 27", ot:"Lamentations 3.1\u201318", nt:"Luke 22.[24\u201338] 39\u201353"}},
+  "-4":  {name:"Wednesday of Holy Week",
+          third:{psalm:"Psalm 102", ot:"Wisdom 1.16\u20132.1; 2.12\u201322 or Jeremiah 11.18\u201320", nt:"Luke 22.54\u201371"}},
+  "-3":  {name:"Maundy Thursday",
+          third:{psalm:"Psalms 42, 43", ot:"Leviticus 16.2\u201324", nt:"Luke 23.1\u201325"}},
+  "-2":  {name:"Good Friday",
+          third:{psalm:"Psalm 69", ot:"Genesis 22.1\u201318", nt:"A part of John 18\u201319, if not used at the principal service, or Hebrews 10.1\u201310"}},
+  "-1":  {name:"Easter Eve",
+          third:{psalm:"Psalm 142", ot:"Hosea 6.1\u20136", nt:"John 2.18\u201322"}},
+  "39":  {name:"Ascension Day",
+          third:{psalm:"Psalm 110", ot:"Isaiah 52.7\u201315", nt:"Hebrews 7.[11\u201325] 26\u201328"}}
+};
+function movableFor(d){
+  var e = easterSunday(d.getUTCFullYear());
+  var off = Math.round((d - e)/86400000);
+  return MOVABLE_DAYS[String(off)] || null;
+}
+
+/* Christmas Day and the Epiphany are Principal Feasts with their own
+   provision; the weekday tables give psalms for them but not readings. */
+var PRINCIPAL_FEASTS = {
+  "12-25": {name:"Christmas Day",
+            third:{psalm:"Psalms 110, 117", ot:"Isaiah 62.1\u20135", nt:"Matthew 1.18\u201325"}},
+  "01-06": {name:"The Epiphany",
+            third:{psalm:"Psalms 132, 113", ot:"Jeremiah 31.7\u201314", nt:"John 1.29\u201334"}}
+};
+
+function pad2(n){ return (n<10?"0":"")+n; }
+function mdKey(d){ return pad2(d.getUTCMonth()+1)+"-"+pad2(d.getUTCDate()); }
+
+/* The 7-12 January entries "are not used beyond the Saturday after
+   6 January", so in years where Epiphany 1 starts early they stop short. */
+function datedJanuaryApplies(d){
+  var k = mdKey(d);
+  if (!(k >= "01-07" && k <= "01-12")) return true;
+  var epiph = new Date(Date.UTC(d.getUTCFullYear(), 0, 6));
+  var sat = addDays(epiph, (6 - epiph.getUTCDay() + 7) % 7 || 7);
+  return d <= sat;
+}
+function datedReadingFor(d){
+  var r = DATED_READINGS[mdKey(d)];
+  return (r && datedJanuaryApplies(d)) ? r : null;
+}
+function datedPsalmFor(d){
+  var p = DATED_PSALMS[mdKey(d)];
+  return (p && datedJanuaryApplies(d)) ? p : null;
+}
+function festivalFor(d){ return FESTIVALS[mdKey(d)] || null; }
+function principalFeastFor(d){ return PRINCIPAL_FEASTS[mdKey(d)] || null; }
+
+/* One lookup for every day that displaces the weekday tables. */
+function properFor(d){
+  return FESTIVALS[mdKey(d)] || PRINCIPAL_FEASTS[mdKey(d)] || movableFor(d) || null;
+}
+
+/* A handful of cells in the weekday table are festival markers rather than
+   references -- ASH WEDNESDAY, ASCENSION DAY. Printing those as a reading
+   would be worse than leaving the day blank. */
+function isFestivalMarker(v){
+  return !!v && /^[A-Z][A-Z ]{3,}$/.test(String(v).trim());
+}
+
+/* Why a given day cannot be filled from the weekday tables. Returns null when
+   the day is fine. Shared by the fill button and by the note under the table,
+   so the two can never disagree. */
+function lectDayStatus(utc){
+  var proper = properFor(utc);
+  if(proper) return proper.third ? null : proper.name + " \u2014 its readings are set separately";
+  if(datedReadingFor(utc) && datedPsalmFor(utc)) return null;
+  var got = lectionaryReading(utc);
+  if(got.outOfRange) return "outside the years the tables cover (2020\u20132044)";
+  if(got.weekStart && got.weekStart.getTime() !== mondayOf(utc).getTime())
+    return "falls between two blocks of the tables";
+  /* Ash Wednesday and Ascension Day appear in the table as capitalised
+     markers rather than references. Name them rather than saying nothing. */
+  if(isFestivalMarker(got.ot) || isFestivalMarker(got.nt)){
+    var marker = isFestivalMarker(got.ot) ? got.ot : got.nt;
+    marker = String(marker).trim().toLowerCase().replace(/\b[a-z]/g,function(c){return c.toUpperCase();});
+    return marker + " \u2014 its readings are set separately";
+  }
+  if(got.noData || !got.ot){
+    /* Table 2 runs out at Trinity 22. In a year with a very early Easter
+       there is one more week than the book provides for. */
+    if(/^Trinity 2[3-9]/.test(got.week||""))
+      return "a "+(got.week||"").toLowerCase()+" week, which Table 2 does not provide for";
+    return "not in the weekday tables";
+  }
+  return null;
+}
+
+function lectFill(){
+  var filled=0, outside=0, psalmGaps=0, skipped=[];
+  var SHORTD=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  function label(utc){ return SHORTD[utc.getUTCDay()]+" "+utc.getUTCDate(); }
+
+  S.readings.forEach(function(r){
+    var d = D(r.date);
+    if(!d){ outside++; return; }
+    var utc = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+
+    var proper = properFor(utc);
+    if(proper && proper.third){
+      if(!r.psalm){ r.psalm=tidyRef(proper.third.psalm); }
+      if(!r.ot){ r.ot=tidyRef(proper.third.ot); }
+      if(!r.nt){ r.nt=tidyRef(proper.third.nt); }
+      filled++; return;
+    }
+
+    var why = lectDayStatus(utc);
+    if(why){
+      if(/outside the years/.test(why)) outside++; else skipped.push(label(utc));
+      return;
+    }
+    var got = lectionaryReading(utc);
+
+    var did=false;
+    if(!r.ot && got.ot){ r.ot=tidyRef(got.ot); did=true; }
+    if(!r.nt && got.nt){ r.nt=tidyRef(got.nt); did=true; }
+    var ps = getPsalm(utc, got.week);
+    if(!r.psalm){
+      if(ps && ps.psalm){ r.psalm=tidyRef(ps.psalm); did=true; }
+      else psalmGaps++;
+    }
+    if(did) filled++;
+  });
+
+  save(); renderStep(); renderSteps(); renderOut();
+
+  var msg = "Filled "+filled+" day(s) from the Lectionary";
+  if(psalmGaps) msg += ". Psalm not available for "+psalmGaps+" day"+(psalmGaps===1?"":"s");
+  if(outside) msg += ". "+outside+" day"+(outside===1?"":"s")+" outside 2020\u20132044";
+  if(skipped.length) msg += ". Left blank on purpose: "+skipped.join(", ")+" \u2014 see the note under the table";
+  toast(msg);
+}
+
+/* A one-line fingerprint of the current running order, used to decide whether
+   the services list actually needs rebuilding. */
+function svcOrder(){
+  var g=groupedServices(), o=[];
+  CH.forEach(function(c){ (g[c.k]||[]).forEach(function(s){ o.push(c.k+":"+S.services.indexOf(s)); }); });
+  return o.join("|");
+}
+var orderWas="";
+function groupedServices(){
+  var g={}; CH.forEach(function(c){ g[c.k]=[]; });
+  S.services.forEach(function(s){ if(!g[s.church]) g[s.church]=[]; g[s.church].push(s); });
+  Object.keys(g).forEach(function(k){
+    g[k].sort(function(a,b){ return (a.time||"99:99").localeCompare(b.time||"99:99"); });
+  });
+  return g;
+}
+function rotaFill(){
+  var d=D(S.sunday); if(!d){ toast("Set the Sunday date first"); return; }
+  var n=ordinal(d), list=ROTA[n]||[];
+  S.services=list.map(function(x){ return {church:x.c,title:x.s,time:x.t,endTime:"",note:x.n||""}; });
+  save(); renderStep(); renderOut();
+  if(n===5) toast("5th Sunday \u2014 no time is published anywhere for this; check the newsletter and fill it in.");
+  else toast("Filled from the published pattern \u2014 the "+ORD[n]+" Sunday, "+list.length+" service"+(list.length===1?"":"s"));
+}
+
+function lastSession(n){ var s=D(n.start); if(!s||!n.weeks) return null;
+  var e=new Date(s); e.setDate(e.getDate()+(parseInt(n.weeks,10)-1)*7); return e; }
+function whenText(n){
+  if(n.mode==="once"){ var d=D(n.date), t=timeRange(n.time,n.endTime); return d? longDate(d)+(t?", "+t:"") : t; }
+  if(n.mode==="series"){ var s=D(n.start); if(!s) return ""; var t2=timeRange(n.time,n.endTime);
+    return DAYS[s.getDay()]+"s"+(t2?", "+t2:"")+" \u2014 "+(n.weeks? n.weeks+" weeks from "+medDate(s):"from "+medDate(s)); }
+  if(n.mode==="ongoing"){ var t3=timeRange(n.time,n.endTime);
+    var head=(n.day!==""&&n.day!=null)?DAYS[parseInt(n.day,10)]+"s":"";
+    var o=[head,t3].filter(Boolean).join(", "); if(n.qualifier) o+=(o?", ":"")+n.qualifier; return o; }
+  return "";
+}
+function status(n){
+  var t=today(), su=D(n.signUpBy);
+  if(n.mode==="series"){ var s=D(n.start), e=lastSession(n);
+    if(e&&t>e) return {k:"done",txt:"Finished"};
+    if(s&&t>=s) return {k:"run",txt:"Running now"};
+    if(su) return t>su?{k:"shut",txt:"Sign-up closed"}:{k:"open",txt:"Sign-up open"};
+    return s?{k:"open",txt:"Starts "+medDate(s)}:null; }
+  if(n.mode==="once"){ var d=D(n.date);
+    if(d&&t>d) return {k:"done",txt:"Been and gone"};
+    if(su) return t>su?{k:"shut",txt:"Sign-up closed"}:{k:"open",txt:"Sign-up open"};
+    return null; }
+  return null;
+}
+function nudge(n){
+  var st=status(n); if(!st) return null;
+  if(st.k==="run"&&n.section==="Coming up") return {to:"This week",txt:"It's running now \u2014 move to This week"};
+  if(st.k==="shut"&&n.section==="Coming up"&&n.mode==="once") return {to:"This week",txt:"Booking closed \u2014 move to This week"};
+  if(st.k==="done") return {remove:true,txt:"Finished \u2014 remove it"};
+  return null;
+}
+function carry(n){
+  var st=status(n);
+  if(st&&st.k==="done") return {keep:false,why:"finished"};
+  if(n.section==="Every week"||n.mode==="ongoing") return {keep:true,why:"runs every week"};
+  if(n.mode==="none") return {keep:true,why:"no end date"};
+  return {keep:true,why:"still to come"};
+}
+function labelFor(n){
+  if(n.church==="cw"&&n.cwFull) return CW_FULL;
+  if(n.church==="ink"&&n.inkLabel) return n.inkLabel;
+  return (BY[n.church]||BY.ink).label;
+}
+function linkText(n){ return (n.linkText||"").trim(); }
+function isEmail(s){ return /@/.test(s||""); }
+function slug(s){ return String(s||"").toLowerCase().replace(/['\u2019]/g,"")
+  .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60); }
+
+/* Font stacks -- primary webfont first, print-safe fallback second, per the
+   brand guide. Marcellus/Source Sans are webfonts, so clients that don't
+   fetch them (Gmail app chief among them) land on Georgia/Helvetica instead;
+   the metrics are close enough that layouts hold either way. */
+var M="Marcellus,Georgia,'Times New Roman',serif";
+var SS="'Source Sans 3',Helvetica,Arial,sans-serif";
+/* One type scale for the whole email, so a change here carries through the
+   notices, the services, the readings, the diocese list and the footer.
+   Sized for readers in their seventies and eighties reading on a phone:
+   nothing carrying real information sits below 15px, and the small-caps
+   labels are 13px with the tracking eased -- at 1.76px the words start to
+   come apart once the label grows. Notice body copy stays in the muted grey
+   on purpose; it is what separates the detail from the title and date above
+   it, and without it a card of this size reads as one block of text. */
+var F={
+  eyebrow:"600 13px/1.45", track:"1.3px",   /* section heads, church labels, JOIN US */
+  title:"400 21px/1.25",                    /* notice and service titles, Marcellus */
+  meta:"600 16px/1.5",                      /* dates, times, places */
+  body:"400 16px/1.6",                      /* notice body copy */
+  link:"600 16px/1.5",                      /* calls to action */
+  contact:"400 15px/1.5",                   /* who to contact */
+  small:"400 15px/1.6"                      /* readings cells, footer detail */
+};
+
+function noticeCard(n){
+  var ch=(BY[n.church]||BY.ink), c=ch.c, lab=labelFor(n).toUpperCase();
+  /* A cancelled notice keeps its place in the running order but loses its
+     church colour. Bar, label and title all go to the muted grey, so a
+     two-second scan separates it from everything still happening. */
+  var off=!!n.cancelled;
+  var bar=off?"#8A918D":c, key=off?"#5C6660":c;
+  /* Every colour below is an inline style, which a media query cannot reach.
+     These class hooks are what the dark-mode block in the head selects on.
+     A cancelled card opts out: its grey reads correctly on both grounds. */
+  var kk=off?"off":(BY[n.church]?n.church:"ink");
+  var meta=[], w=whenText(n);
+  if(w) meta.push(esc(w));
+  if(n.place) meta.push(esc(n.place));
+  var su=D(n.signUpBy), showSu=su&&today()<=su&&!off, url=(n.url||"").trim();
+  var inner=[];
+  inner.push('<div class="k-'+kk+'" style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:'+key+';">'+esc(lab)+'</div>');
+  if(off){
+    inner.push('<div style="font:600 12px/1.4 '+SS+';letter-spacing:1.2px;text-transform:uppercase;color:#FFFFFF;background:#8A918D;padding:3px 8px;display:inline-block;margin:6px 0 2px 0;">Cancelled</div>');
+    inner.push('<div class="t-mut" style="font:'+F.title+' '+M+';color:#5C6660;text-decoration:line-through;padding:2px 0 3px 0;">'+esc(n.title)+'</div>');
+  } else {
+    inner.push('<div class="t-ink" style="font:'+F.title+' '+M+';color:#16211F;padding:4px 0 3px 0;">'+esc(n.title)+'</div>');
+  }
+  if(meta.length) inner.push('<div class="'+(off?"t-mut":"t-ink")+'" style="font:'+F.meta+' '+SS+';color:'+(off?"#5C6660":"#16211F")+';'+(off?"text-decoration:line-through;":"")+'">'+meta.join(' &nbsp;&middot;&nbsp; ')+'</div>');
+  if(showSu) inner.push('<div class="k-'+kk+'" style="font:'+F.meta+' '+SS+';color:'+c+';padding-top:3px;">Sign up by '+esc(longDate(su))+'</div>');
+  /* Line breaks typed into "Anything else" are kept. */
+  if(n.body) inner.push('<div class="t-mut" style="font:'+F.body+' '+SS+';color:#5C6660;padding-top:3px;">'+esc(n.body).replace(/\r?\n/g,"<br>")+'</div>');
+  /* The call to action is a real anchor with the underline on it, instead of
+     the whole card being wrapped in a link and the underline faked on a span.
+     A screen reader now reads the wording of the link rather than announcing
+     the entire card as one unnamed target. A cancelled notice drops it. */
+  if(url&&linkText(n)&&!off) inner.push('<div style="padding-top:8px;"><a class="k-'+kk+'" href="'+esc(url)+'" style="font:'+F.link+' '+SS+';color:'+c+';text-decoration:underline;">'+esc(linkText(n))+'</a><span class="k-'+kk+'" style="font:'+F.link+' '+SS+';color:'+c+';"> &rarr;</span></div>');
+  var block=inner.join("");
+  var contact="";
+  if(n.how){
+    if(isEmail(n.how)) contact=(n.who?esc(n.who)+" &mdash; ":"")+'<a class="k-'+kk+'" href="mailto:'+esc(n.how)+'" style="color:'+key+';text-decoration:underline;">'+esc(n.how)+'</a>';
+    else contact=(n.who?esc(n.who)+" &mdash; ":"")+'<a class="k-'+kk+'" href="tel:'+esc(n.how.replace(/\s+/g,""))+'" style="color:'+key+';text-decoration:underline;">'+esc(n.how)+'</a>';
+  } else if(n.who) contact=esc(n.who);
+  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 9px 0;"><tr>'
+    +'<td class="card b-'+kk+'" style="border-left:5px solid '+bar+';background:#FFFFFF;padding:14px 17px;">'+block
+    +(contact?'<div class="t-mut" style="font:'+F.contact+' '+SS+';color:#5C6660;padding-top:6px;">'+contact+'</div>':'')
+    +'</td></tr></table>';
+}
+function heading(t){
+  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:26px 0 12px 0;">'
+    +'<tr><td class="sec" style="border-bottom:2px solid #16211F;padding-bottom:6px;font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#16211F;">'
+    +esc(t.toUpperCase())+'</td></tr></table>';
+}
+function serviceCards(){
+  var g=groupedServices(), out="";
+  var any=false; CH.forEach(function(c){ if(g[c.k]&&g[c.k].length) any=true; });
+  /* Small-caps eyebrow above the service times, matching "Watch this week"
+     over the video. */
+  if(any) out+='<div class="t-mut" style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#5C6660;padding-bottom:8px;">JOIN US</div>';
+  CH.forEach(function(ch){
+    var list=g[ch.k]; if(!list||!list.length) return;
+    var c=ch.c, lab=((ch.k==="cw"&&S.cwFullSvc)?CW_FULL:ch.label).toUpperCase();
+    var rows=list.map(function(s,i){
+      var t=timeRange(s.time,s.endTime) || "Time to be confirmed";
+      return '<div'+(i>0?' class="rule"':'')+' style="'+(i>0?'padding-top:10px;margin-top:10px;border-top:1px solid #E3E0D8;':'')+'">'
+        +'<div class="t-ink" style="font:'+F.title+' '+M+';color:#16211F;padding:'+(i===0?'4px 0 4px 0':'0 0 4px 0')+';">'+esc(s.title||"Service")+'</div>'
+        +'<div class="t-ink" style="font:'+F.meta+' '+SS+';color:#16211F;">'+esc(t)+(s.note?' &nbsp;<span class="t-mut" style="font-weight:400;color:#5C6660;">'+esc(s.note)+'</span>':'')+'</div>'
+        +'</div>';
+    }).join("");
+    out+='<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 10px 0;"><tr>'
+      +'<td class="card-alt b-'+ch.k+'" style="border-left:5px solid '+c+';background:#F7F8F6;padding:13px 17px;">'
+      +'<div class="k-'+ch.k+'" style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:'+c+';">'+esc(lab)+'</div>'
+      +rows+'</td></tr></table>';
+  });
+  return out;
+}
+
+/* Psalm references are short and predictable ("Psalm 119.105-112"), so the
+   column is measured against the week's actual entries rather than given a
+   fixed share. Whatever it doesn't need goes to the two testament columns,
+   which carry the long book names. Day stays fixed at 16%.
+   Measured with canvas at the real font; if that isn't available the fallback
+   is the flat 16/22/31/31 split. Percentages, so the table still fills its
+   container and still collapses on mobile. */
+var _mc=null;
+function textW(t,font){
+  try{
+    if(!_mc){ _mc=document.createElement("canvas").getContext("2d"); }
+    _mc.font=font; return _mc.measureText(String(t||"")).width;
+  }catch(e){ return -1; }
+}
+function readingCols(rows){
+  var DAY=16, MIN=18, MAX=28, fb={day:DAY,ps:22,ot:31,nt:31};
+  var w=textW("Psalm","600 12px "+SS);
+  if(w>0) w+=5*1.6;                        // canvas ignores the header's letter-spacing
+  if(w<0) return fb;
+  rows.forEach(function(r){ var x=textW(r.psalm,"400 15px "+SS); if(x>w) w=x; });
+  if(!w) return fb;
+  var pct=((w+11)/520)*100;                 // the column's own 11px right padding, so
+                                            // the reference never crowds Old Testament
+  var ps=Math.round(Math.min(MAX,Math.max(MIN,pct)));
+  var rest=100-DAY-ps, ot=Math.round(rest/2);
+  return {day:DAY, ps:ps, ot:ot, nt:rest-ot};
+}
+function readingsBlock(){
+  var rows=S.readings.filter(function(r){ return r.psalm||r.ot||r.nt; });
+  if(!rows.length) return "";
+  var cell='padding:9px 11px 9px 0;vertical-align:top;font:'+F.small+' '+SS+';color:#16211F;border-top:1px solid #D5D8D3;';
+  var day='padding:9px 11px 9px 0;vertical-align:top;white-space:nowrap;font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#5C6660;border-top:1px solid #D5D8D3;';
+  var h=heading("Readings for the week");
+  var w=readingCols(rows);
+  h+='<table role="presentation" class="rtable" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;table-layout:fixed;width:100%;">';
+  h+='<tr class="rhead"><td width="'+w.day+'%" style="width:'+w.day+'%;padding:10px 11px 6px 0;font:600 12px/1.4 '+SS+';letter-spacing:1.2px;text-transform:uppercase;color:#5C6660;">&nbsp;</td>'
+    +'<td width="'+w.ps+'%" style="width:'+w.ps+'%;padding:10px 11px 6px 0;font:600 12px/1.4 '+SS+';letter-spacing:1.2px;text-transform:uppercase;color:#5C6660;" class="rh">Psalm</td>'
+    +'<td width="'+w.ot+'%" style="width:'+w.ot+'%;padding:10px 11px 6px 0;font:600 12px/1.4 '+SS+';letter-spacing:1.2px;text-transform:uppercase;color:#5C6660;" class="rh">Old Testament</td>'
+    +'<td width="'+w.nt+'%" style="width:'+w.nt+'%;padding:10px 0 6px 0;font:600 12px/1.4 '+SS+';letter-spacing:1.2px;text-transform:uppercase;color:#5C6660;" class="rh">New Testament</td></tr>';
+  rows.forEach(function(r,i){
+    var d=D(r.date), last=(i===rows.length-1);
+    var bb=last?'border-bottom:1px solid #D5D8D3;':'';
+    h+='<tr><td class="rday" style="'+day+bb+'">'+(d?SHORT[d.getDay()]+" "+d.getDate():"")+'</td>'
+      +'<td class="rref" style="'+cell+bb+'">'+esc(r.psalm)+'</td>'
+      +'<td class="rref" style="'+cell+bb+'">'+esc(r.ot)+'</td>'
+      +'<td class="rref rlast" style="'+cell.replace("padding:9px 11px 9px 0","padding:9px 0")+bb+'">'+esc(r.nt)+'</td></tr>';
+  });
+  return h+'</table>';
+}
+function dioBlock(){
+  if(!S.dio.length) return "";
+  var h=heading("Across the Diocese");
+  h+='<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 9px 0;background:#EFF1EF;"><tr><td class="card-grey" style="padding:13px 17px 15px 17px;">';
+  h+='<div class="t-mut" style="font:'+F.small+' '+SS+';color:#5C6660;padding-bottom:4px;">News and invitations from the Diocese of Lichfield and the deanery &mdash; from beyond our four churches.</div>';
+  S.dio.forEach(function(d){
+    var u=(d.url||"").trim();
+    h+='<div class="rule" style="border-top:1px solid #D5D8D3;padding:9px 0 0 0;margin-top:9px;">';
+    h+= u? '<a class="t-ink" href="'+esc(u)+'" style="font:'+F.meta+' '+SS+';color:#16211F;text-decoration:underline;">'+esc(d.title)+'</a>'
+         : '<span class="t-ink" style="font:'+F.meta+' '+SS+';color:#16211F;">'+esc(d.title)+'</span>';
+    if(d.line) h+='<div class="t-mut" style="font:'+F.small+' '+SS+';color:#5C6660;padding-top:2px;">'+esc(d.line)+'</div>';
+    h+='</div>';
+  });
+  return h+'</td></tr></table>';
+}
+function videoBlock(){
+  var v=S.video;
+  if(!v.url&&!v.caption&&!v.thumb) return "";
+  var out='<div class="t-mut" style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#5C6660;padding-bottom:8px;">'+esc(v.label||"WATCH THIS WEEK")+'</div>';
+  if(v.thumb) out+= (v.url?'<a href="'+esc(v.url)+'" style="text-decoration:none;">':'')
+    +'<img src="'+esc(v.thumb)+'" alt="'+esc(v.caption||"Watch this week\u2019s video")+'" width="520" style="width:100%;max-width:520px;display:block;">'
+    +(v.url?'</a>':'');
+  if(v.caption) out+='<div class="t-mut" style="font:'+F.small+' '+SS+';color:#5C6660;padding-top:8px;">'+esc(v.caption)+'</div>';
+  if(v.url) out+='<div style="font:'+F.link+' '+SS+';padding-top:6px;"><a class="k-fz" href="'+esc(v.url)+'" style="color:#1F5F6B;font-weight:600;text-decoration:underline;">Watch it here</a> &rarr;</div>';
+  return out;
+}
+
+function buildEmail(){
+  var d=D(S.sunday);
+  var notices="";
+  SECTIONS.forEach(function(sec){
+    var g=S.notices.filter(function(n){ return n.section===sec; });
+    if(!g.length) return;
+    notices+=heading(sec);
+    g.forEach(function(n){ notices+=noticeCard(n); });
+  });
+  notices+=dioBlock();
+
+  var svc=serviceCards();
+  var th=S.theme, themeHTML="";
+  if(th.title) themeHTML+='<div class="t-ink" style="font:400 26px/1.3 '+M+';color:#16211F;padding-bottom:12px;">'+esc(th.title)+'</div>';
+  if(th.image) themeHTML+='<img src="'+esc(th.image)+'" alt="" width="520" style="width:100%;max-width:520px;display:block;margin-bottom:14px;">';
+  if(th.body) themeHTML+='<p class="t-ink" style="margin:0 0 20px 0;font:400 17px/1.6 '+SS+';color:#16211F;">'+esc(th.body).replace(/\n+/g,'</p><p class="t-ink" style="margin:0 0 20px 0;font:400 17px/1.6 '+SS+';color:#16211F;">')+'</p>';
+
+  var v=videoBlock();
+
+  return ['<!DOCTYPE html>','<html lang="en-GB"><head><meta charset="utf-8">',
+'<meta name="viewport" content="width=device-width, initial-scale=1">',
+/* Dark mode. The email is not locked to light: Apple Mail honours the block
+   below and gets a proper dark rendering, and Gmail and Outlook.com run their
+   own inversion regardless, which nothing can opt out of.
+   color-scheme is declared as light dark so the clients that read it know both
+   are handled. The <meta> form is required: Apple Mail will not honour the
+   dark media query on delivery without it, and the CSS :root form alone is not
+   enough -- removing the metas made the delivered email render light.
+   The cost is that Apple Mail keeps <meta> but strips the whole <style> block
+   when a message is forwarded, so a forwarded copy still claims to handle dark
+   mode while carrying none of the rules that do it. That is covered instead by
+   giving the page and card real bgcolor attributes below, so the light
+   rendering holds up on its own when no stylesheet survives. */
+'<meta name="color-scheme" content="light dark">',
+'<meta name="supported-color-schemes" content="light dark">',
+'<style type="text/css">',
+'  @import url(\'https://fonts.googleapis.com/css2?family=Marcellus&display=swap\');',
+'  :root{ color-scheme:light dark; supported-color-schemes:light dark; }',
+/* One media query carries the whole dark rendering. Every colour in the email
+   body is an inline style, which a media query cannot reach, so the generator
+   tags each coloured element with a class -- .pg, .card, .t-ink, .t-mut,
+   .k-<church>, .b-<church> -- and these rules select on those. !important is
+   what lets a stylesheet rule beat an inline one.
+   Layout, type scale and running order are untouched; only the palette
+   changes, so there is one template to maintain rather than two.
+   The masthead and footer stay ink in both, which in dark mode leaves them
+   almost flush with the page and lets the mark carry the top of the email. */
+'  @media (prefers-color-scheme: dark){',
+'    .pg{ color-scheme:dark !important; background-color:#0B100F !important; }',
+'    .wrap{ background-color:#1E2A27 !important; }',
+'    .card{ background-color:#1E2A27 !important; }',
+'    .card-alt{ background-color:#1A2422 !important; }',
+'    .card-grey{ background-color:#18211F !important; }',
+'    .t-ink{ color:#F7F8F6 !important; }',
+'    .t-mut{ color:#A9B2AD !important; }',
+'    .sec{ color:#F7F8F6 !important; border-bottom-color:#F7F8F6 !important; }',
+'    .rule{ border-top-color:#33403C !important; }',
+'    .rday, .rref, .rh{ color:#A9B2AD !important; border-top-color:#33403C !important; border-bottom-color:#33403C !important; }',
+'    .rref{ color:#F7F8F6 !important; }',
+'    a{ color:#0E8C9E !important; }',
+/* The Bright register. Heritage falls to 3.29, 2.29, 2.75 and 1.83 against
+   ink; Bright clears 3:1 on all four. Fazeley is teal in both registers --
+   the swap signals background, never identity. */
+'    .k-db{ color:#D4A24C !important; } .b-db{ border-left-color:#D4A24C !important; }',
+'    .k-fz{ color:#0E8C9E !important; } .b-fz{ border-left-color:#0E8C9E !important; }',
+'    .k-mo{ color:#D9392B !important; } .b-mo{ border-left-color:#D9392B !important; }',
+'    .k-cw{ color:#9457C4 !important; } .b-cw{ border-left-color:#9457C4 !important; }',
+'    .k-ink{ color:#F7F8F6 !important; } .b-ink{ border-left-color:#F7F8F6 !important; }',
+/* Cancelled opts out of the swap: the grey reads correctly on both grounds. */
+'    .k-off{ color:#A9B2AD !important; } .b-off{ border-left-color:#8A918D !important; }',
+'  }',
+'  body,table,td,a{ -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }',
+'  table,td{ mso-table-lspace:0pt; mso-table-rspace:0pt; }',
+'  img{ -ms-interpolation-mode:bicubic; border:0; height:auto; line-height:100%; outline:none; text-decoration:none; }',
+'  body{ margin:0 !important; padding:0 !important; width:100% !important; }',
+'  a{ color:#1F5F6B; }',
+'  img{ max-width:100%; }',
+'  td{ word-break:break-word; }',
+/* Mailchimp appends its own required footer bar after our closing table. Its
+   three links are separated by non-breaking spaces, so on a phone that row
+   cannot wrap and forces the whole message wider than the screen -- which is
+   what leaves a band of background down one side. Mailchimp only breaks it up
+   below 480px; these rules make it wrap at any width. */
+'  #canspamBarWrapper{ max-width:100% !important; }',
+'  #canspamBar{ width:100% !important; max-width:100% !important; }',
+'  #canspamBar td{ word-break:break-word !important; }',
+'  @media screen and (max-width:620px){',
+'    #canspamBar td{ font-size:12px !important; }',
+'    #canspamBar td a{ display:block !important; margin-top:8px !important; }',
+'  }',
+'  @media screen and (max-width:620px){',
+'    .wrap{ width:100% !important; max-width:100% !important; }',
+'    .pad{ padding-left:20px !important; padding-right:20px !important; }',
+'    .rday, .rref{ display:block !important; width:100% !important; border-top:0 !important; border-bottom:0 !important; }',
+'    .rday{ padding:12px 0 2px 0 !important; }',
+'    .rref{ padding:1px 0 !important; }',
+'    .rlast{ padding-bottom:11px !important; border-bottom:1px solid #D5D8D3 !important; }',
+'    .rhead{ display:none !important; }',
+'    .rtable{ table-layout:auto !important; }',
+'  }',
+'  /* Masthead. Horizontal (D) by default. Below 420px "Peel Parishes" would',
+'     start to wrap beside the 64px mark, so the centred layout (C2) takes over.',
+'     Outlook desktop ignores media queries and keeps the horizontal one. */',
+'  .mh-v{ display:none; max-height:0; overflow:hidden; mso-hide:all; }',
+'  @media screen and (max-width:420px){',
+'    .mh-h{ display:none !important; max-height:0 !important; overflow:hidden !important; }',
+'    .mh-v{ display:block !important; max-height:none !important; overflow:visible !important; }',
+'  }',
+'  .hbr{ display:none; }',
+'  @media screen and (max-width:521px){ .hbr{ display:inline !important; } }',
+'  @media screen and (max-width:380px){ .strap{ font-size:12px !important; } }',
+'</style></head>',
+/* color-scheme is declared light INLINE here and on the page table, and is
+   lifted back to dark by the media query below, which carries !important.
+   The asymmetry is deliberate and is the only lever that works: Apple Mail
+   keeps inline styles and <meta> when a message is forwarded but strips the
+   whole <style> block. The <meta> cannot do this job -- it is what enables
+   dark mode on delivery, so it has to stay light dark, and it survives the
+   forward, which is what left forwarded copies half-adapted and unreadable.
+   Declaring light inline pins a forwarded copy to light no matter what the
+   meta claims, while a stylesheet rule with !important still beats an inline
+   declaration on delivery, so dark mode in the inbox is untouched. */
+'<body class="pg" style="margin:0;padding:0;color-scheme:light;background-color:#EFF1EF;">',
+'<div style="display:none;font-size:1px;color:#EFF1EF;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">'+esc(S.preheader)+'</div>',
+'<table role="presentation" class="pg" width="100%" bgcolor="#EFF1EF" cellpadding="0" cellspacing="0" border="0" style="color-scheme:light;background-color:#EFF1EF;">',
+'<tr><td align="center" style="padding:24px 10px;">',
+/* Fluid, not a fixed 600px. Clients that strip the <style> block -- Gmail with
+   a non-Gmail account, some Android clients -- never see the media query, so a
+   hard 600px plus 40px padding each side made the document wider than the
+   phone and everything shrank to the left.
+   The width attribute is gone for the same reason. It existed only for Outlook
+   desktop, which ignores max-width, but Apple Mail resolves the used width when
+   a message is forwarded and writes it back as a literal width:600px -- which
+   re-pinned the table and overflowed the screen on a phone. Outlook now gets
+   its fixed 600px from the conditional ghost table instead, which no other
+   client reads, so the real table stays fluid everywhere else. */
+'<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td><![endif]-->',
+'<table role="presentation" class="wrap" width="100%" bgcolor="#FFFFFF" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;margin:0 auto;text-align:left;background-color:#FFFFFF;border-collapse:collapse;">',
+'  <tr><td style="background-color:#16211F;padding:0;">',
+'    <div class="mh-h">',
+'      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">',
+'      <tr><td class="pad" style="padding:25px 40px 25px 40px;">',
+'        <a href="https://peelparishes.church" style="text-decoration:none;">',
+'        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>',
+'          <td width="64" style="width:64px;vertical-align:middle;"><img src="'+esc(S.logo)+'" width="64" height="64" alt="Peel Parishes \u2014 Drayton Bassett, Fazeley, Mile Oak, Canwell" style="display:block;border:0;"></td>',
+'          <td style="width:31px;font-size:1px;line-height:1px;">&nbsp;</td>',
+'          <td style="vertical-align:middle;">',
+'            <div style="font:600 12px/1.5 '+SS+';letter-spacing:1.4px;text-transform:uppercase;color:#8A918D;padding:0 0 3px 0;">Weekly newsletter</div>',
+'            <div style="font:400 32px/1.15 '+M+';color:#F7F8F6;">Peel Parishes</div>',
+'            <div class="strap" style="font:400 14px/1.5 '+SS+';color:#B9C0BC;padding-top:6px;">Going deeper with God, each other <br class="hbr" style="display:none;">and the local community</div>',
+'          </td>',
+'        </tr></table>',
+'        </a>',
+'      </td></tr></table>',
+'    </div>',
+'    <div class="mh-v" style="display:none;max-height:0;overflow:hidden;mso-hide:all;">',
+'      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">',
+'      <tr><td align="center" style="padding:23px 20px 23px 20px;">',
+'        <a href="https://peelparishes.church" style="text-decoration:none;">',
+'          <img src="'+esc(S.logo)+'" width="58" height="58" alt="Peel Parishes \u2014 Drayton Bassett, Fazeley, Mile Oak, Canwell" style="display:block;margin:0 auto 17px auto;border:0;">',
+'          <div style="font:400 29px/1.15 '+M+';color:#F7F8F6;">Peel Parishes</div>',
+'          <div class="strap" style="font:400 14px/1.5 '+SS+';color:#B9C0BC;padding-top:7px;">Going deeper with God, each other <br>and the local community</div>',
+'          <div style="font:600 12px/1.5 '+SS+';letter-spacing:1.4px;text-transform:uppercase;color:#8A918D;padding:10px 0 0 0;">Weekly newsletter</div>',
+'        </a>',
+'      </td></tr></table>',
+'    </div>',
+'  </td></tr>',
+'  <tr><td class="pad" style="padding:30px 40px 0 40px;">',
+'    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 4px 0;"><tr>',
+'      <td class="sec" style="border-bottom:2px solid #16211F;padding-bottom:6px;font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#16211F;">THIS SUNDAY</td>',
+'    </tr></table>',
+'    <div class="t-ink" style="font:'+F.meta+' '+SS+';color:#5C6660;padding:8px 0 14px 0;">'+esc(d?medDate(d):"")+(S.season?' &nbsp;&middot;&nbsp; '+esc(S.season):'')+'</div>',
+     themeHTML, svc,
+'  </td></tr>',
+'  <tr><td class="pad" style="padding:6px 40px 0 40px;">'+notices+'</td></tr>',
+'  <tr><td class="pad" style="padding:26px 40px 0 40px;">'+readingsBlock()+'</td></tr>',
+ (v?'  <tr><td class="pad" style="padding:24px 40px 0 40px;">'+v+'</td></tr>':''),
+'  <tr><td class="pad" style="padding:26px 40px 26px 40px;">',
+'    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;background-color:#EFF1EF;"><tr><td class="card-grey" style="padding:18px 20px;">',
+'      <div class="t-mut" style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#5C6660;padding-bottom:6px;">PARISH OFFICE</div>',
+'      <div class="t-ink" style="font:400 16px/1.6 '+SS+';color:#16211F;">St Paul&rsquo;s Church, Coleshill Street, Fazeley, Tamworth B78 3RQ<br>',
+'      <a class="k-fz" href="tel:01827289414" style="color:#1F5F6B;font-weight:600;">01827 289414</a> &nbsp;&middot;&nbsp; <a class="k-fz" href="mailto:admin@peelparishes.church" style="color:#1F5F6B;">admin@peelparishes.church</a></div>',
+'      <div class="t-mut" style="font:'+F.small+' '+SS+';color:#5C6660;padding-top:10px;">Mon, Tue, Thu, Fri <span class="t-ink" style="font-weight:600;color:#16211F;">9.00am&ndash;12noon</span> &nbsp;&middot;&nbsp; Wed <span class="t-ink" style="font-weight:600;color:#16211F;">2.00&ndash;4.00pm</span></div>',
+'    </td></tr></table>',
+'  </td></tr>',
+'  <tr><td class="pad" style="padding:0 40px 28px 40px;">',
+'    <div class="t-mut" style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#5C6660;padding-bottom:6px;">SAFEGUARDING</div>',
+'    <div class="t-mut" style="font:'+F.small+' '+SS+';color:#5C6660;">Drayton Bassett, Fazeley &amp; Mile Oak &mdash; <span class="t-ink" style="color:#16211F;font-weight:600;">Hazel Plant</span><br>',
+'    Canwell &mdash; <span class="t-ink" style="color:#16211F;font-weight:600;">Paul Newbold</span><br>Both via the parish office. If someone is in immediate danger, call 999.</div>',
+'  </td></tr>',
+'  <tr><td align="center" style="background-color:#16211F;padding:24px 40px;">',
+'    <div style="font:400 14px/1.7 '+SS+';color:#B9C0BC;">Peel Parishes &mdash; St Peter&rsquo;s Drayton Bassett, St Paul&rsquo;s Fazeley, St Barnabas Mile Oak and Canwell. Diocese of Lichfield.<br>DFM Parish PCC &nbsp;&middot;&nbsp; Canwell PCC<br><br>',
+'    <a href="*|UNSUB|*" style="color:#B9C0BC;text-decoration:underline;">Unsubscribe</a> &nbsp;&middot;&nbsp; <a href="*|UPDATE_PROFILE|*" style="color:#B9C0BC;text-decoration:underline;">Update your details</a><br><br>',
+'    <span style="color:#8A918D;">*|LIST:ADDRESSLINE|*</span></div>',
+'  </td></tr>',
+'</table>',
+'<!--[if mso]></td></tr></table><![endif]-->',
+'</td></tr></table></body></html>'].join("\n");
+}
+
+function buildPlain(){
+  var d=D(S.sunday), o=[];
+  o.push("PEEL PARISHES");
+  o.push("Going deeper with God, each other and the local community");
+  if(d) o.push(longDate(d)+(S.season?" \u00b7 "+S.season:""));
+  o.push("");
+  /* Same running order as the email: the section head and date, then the
+     theme, then the service times. */
+  var g=groupedServices(), any=false;
+  CH.forEach(function(ch){ if(g[ch.k]&&g[ch.k].length) any=true; });
+  if(any || S.theme.title){
+    o.push("THIS SUNDAY"); o.push("-----------"); o.push("");
+  }
+  if(S.theme.title){ o.push(S.theme.title.toUpperCase()); o.push(""); if(S.theme.body) o.push(S.theme.body); o.push(""); }
+  if(any){
+    o.push("JOIN US"); o.push("");
+    CH.forEach(function(ch){
+      var list=g[ch.k]; if(!list||!list.length) return;
+      o.push((ch.k==="cw"&&S.cwFullSvc)?CW_FULL:ch.label);
+      list.forEach(function(s){ o.push("  "+(s.title||"Service")+"  "+(timeRange(s.time,s.endTime)||"time to be confirmed")+(s.note?" ("+s.note+")":"")); });
+      o.push("");
+    });
+  }
+  SECTIONS.forEach(function(sec){
+    var gg=S.notices.filter(function(n){ return n.section===sec; });
+    if(!gg.length) return;
+    o.push(sec.toUpperCase()); o.push("-".repeat(sec.length)); o.push("");
+    gg.forEach(function(n){
+      o.push(labelFor(n)); o.push((n.cancelled?"CANCELLED: ":"")+n.title);
+      var m=[], w=whenText(n);
+      if(w) m.push(w); if(n.place) m.push(n.place);
+      if(m.length) o.push(m.join(" \u00b7 "));
+      var su=D(n.signUpBy); if(su&&today()<=su&&!n.cancelled) o.push("Sign up by "+longDate(su));
+      if(n.body) o.push(n.body);
+      if((n.url||"").trim()&&!n.cancelled) o.push((linkText(n)?linkText(n)+": ":"")+n.url.trim());
+      var c=(n.who&&n.how)?n.who+" \u2014 "+n.how:(n.how||n.who||"");
+      if(c) o.push("Contact: "+c);
+      o.push("");
+    });
+  });
+  if(S.dio.length){
+    o.push("ACROSS THE DIOCESE"); o.push("------------------"); o.push("");
+    S.dio.forEach(function(x){ o.push(x.title); if(x.line) o.push(x.line); if(x.url) o.push(x.url); o.push(""); });
+  }
+  var rr=S.readings.filter(function(r){ return r.psalm||r.ot||r.nt; });
+  if(rr.length){
+    o.push("READINGS FOR THE WEEK"); o.push("---------------------"); o.push("");
+    rr.forEach(function(r){ var dd=D(r.date);
+      o.push((dd?SHORT[dd.getDay()]+" "+dd.getDate()+"  ":"")+[r.psalm,r.ot,r.nt].filter(Boolean).join(" \u00b7 ")); });
+    o.push("");
+  }
+  if(S.video.url){ o.push((S.video.label||"WATCH THIS WEEK")); if(S.video.caption) o.push(S.video.caption); o.push(S.video.url); o.push(""); }
+  o.push("PARISH OFFICE");
+  o.push("St Paul's Church, Coleshill Street, Fazeley, Tamworth B78 3RQ");
+  o.push("01827 289414 \u00b7 admin@peelparishes.church");
+  return o.join("\n").trim();
+}
+
+var STEPS=[
+  {n:"Start here", sub:"how this works"},
+  {n:"Sunday",  sub:"services & theme"},
+  {n:"Notices", sub:"the week"},
+  {n:"Diocese", sub:"beyond us"},
+  {n:"Readings",sub:"& video"},
+  {n:"Send",    sub:"check & copy"}
+];
+function renderSteps(){
+  var w=$("steps"); w.innerHTML="";
+  STEPS.forEach(function(s,i){
+    var b=document.createElement("button");
+    b.setAttribute("role","tab");
+    b.setAttribute("aria-selected", i===step?"true":"false");
+    var count="";
+    if(i===0) count=S.sunday? medDate(D(S.sunday)) : "";
+    if(i===1) count=S.services.length?S.services.length+" services":"not set";
+    if(i===2) count=S.notices.length?S.notices.length+" items":"none yet";
+    if(i===3) count=S.dio.length?S.dio.length+" items":"none";
+    if(i===4){ var f=S.readings.filter(function(r){return r.psalm||r.ot||r.nt;}).length;
+      count=(f?f+"/6 days":"empty")+(S.video.url?" + video":""); }
+    b.innerHTML=s.n+'<span class="dot">'+(count||s.sub)+'</span>';
+    b.onclick=function(){
+      var same=(i===step);
+      step=i; renderSteps(); renderStep();
+      /* Pressing the tab you're already on takes you back to the top of it. */
+      if(same || window.innerWidth<=1000) scrollToSteps();
+    };
+    w.appendChild(b);
+  });
+}
+function renderStep(){
+  var b=$("stepbody"); b.innerHTML="";
+  if(step===0) stepStart(b);
+  if(step===1) stepSunday(b);
+  if(step===2) stepNotices(b);
+  if(step===3) stepDiocese(b);
+  if(step===4) stepReadings(b);
+  if(step===5) stepSend(b);
+}
+
+function stepStart(b){
+  b.innerHTML=''
+   +'<span class="lab">Start here</span>'
+   +'<h3 style="font-size:1.3rem;margin-bottom:10px">How this works</h3>'
+   +'<p>Six tabs along the top. Work through them in order the first time; after that, jump to whichever needs changing. Everything on the right is the actual email, building itself as you go.</p>'
+   +'<ol class="brief">'
+     +'<li><strong>Sunday</strong> \u2014 the date, the services at each church, and the theme.</li>'
+     +'<li><strong>Notices</strong> \u2014 what\u2019s happening this week.</li>'
+     +'<li><strong>Diocese</strong> \u2014 anything from beyond the parishes.</li>'
+     +'<li><strong>Readings</strong> \u2014 the week\u2019s Bible readings, and the video if there is one.</li>'
+     +'<li><strong>Send</strong> \u2014 a final check, then copy the finished email into Mailchimp.</li>'
+   +'</ol>'
+   +'<fieldset><legend>Begin this week\u2019s email</legend>'
+     +'<div class="row" style="margin-top:10px">'
+       +'<button class="btn" id="st-roll">Start from last week</button>'
+     +'</div>'
+     +'<p class="hint">Moves the date on by seven days, clears the services, theme, readings and video, and lets you choose which notices and diocese items carry forward. Nothing is deleted until you confirm.</p>'
+   +'</fieldset>'
+   + (prev ? '<div class="row"><button class="btn ghost sm" id="st-undo">Undo the last rollover</button></div>' : '')
+   +'<fieldset><legend>Handing over to someone else</legend>'
+     +'<div class="row" style="margin-top:10px">'
+       +'<button class="btn ghost" id="st-save">Save this week to a file</button>'
+       +'<button class="btn ghost" id="st-open">Open a week file</button>'
+     +'</div>'
+     +'<p class="hint">The week you\u2019re building is saved automatically, but only on this computer. If someone else is picking up next week \u2014 or you\u2019re moving to a different machine \u2014 save it to a file and put it in the shared drive. They open it here and carry on exactly where you left off.</p>'
+   +'</fieldset>'
+   +'<fieldset><legend>Masthead mark address</legend>'+'<input type="url" id="s-logo" style="margin-top:12px" aria-label="Masthead mark address" value="'+esc(S.logo)+'">'+'<p class="hint">Upload the square woven mark to Mailchimp once (exported at 180px so it stays sharp on retina screens), then paste its address here. It won\u2019t change week to week, so there\u2019s no need to revisit this.</p>'+'</fieldset>'
+   +'<div class="note"><b>Everything saves as you go</b>Close this tab and come back \u2014 the week you\u2019re building is still here. Nothing is sent until you paste it into Mailchimp yourself.</div>';
+  $("st-roll").onclick=openReview;
+  if($("st-undo")) $("st-undo").onclick=doUndo;
+  $("s-logo").oninput=function(){ S.logo=this.value; save(); renderOut(); };
+  $("st-save").onclick=saveWeekFile;
+  $("st-open").onclick=openWeekFile;
+}
+
+function stepSunday(b){
+  b.innerHTML=''
+   +'<span class="lab">Which Sunday is this email for?</span>'
+   +'<div class="grid2"><div><label for="s-date">Date</label><input type="date" id="s-date" value="'+esc(S.sunday)+'"></div>'
+   +'<div><label for="s-season">Season <span class="opt">— optional</span></label><input type="text" id="s-season" maxlength="60" value="'+esc(S.season)+'" placeholder="Thirteenth Sunday after Trinity"></div></div>'
+   +'<p class="hint" id="s-datehint"></p>'
+   +'<fieldset><legend>Services</legend>'
+   +'<div class="row" style="margin-top:12px"><button class="btn ghost sm" id="s-rota">Fill from the published pattern</button></div>'
+   +'<div id="svclist" style="margin-top:14px"></div>'
+   +'</fieldset>'
+   +'<fieldset><legend>The theme</legend>'
+   +'<label for="s-th">Title <span class="count" id="c-th"></span></label><input type="text" id="s-th" maxlength="80" value="'+esc(S.theme.title)+'" placeholder="Heroes of the Bible — Rahab">'
+   +'<label for="s-tb">A few sentences <span class="count" id="c-tb"></span></label><textarea id="s-tb" maxlength="900" placeholder="Four or five sentences on the theme.">'+esc(S.theme.body)+'</textarea>'
+   +'<label for="s-ti">Image address <span class="opt">— optional</span></label><input type="url" id="s-ti" value="'+esc(S.theme.image)+'" placeholder="https://...">'
+   +'<p class="hint">Upload the picture to Mailchimp first, then paste the address it gives you. Never put words inside the picture.</p>'
+   +'</fieldset>'
+   +'<label for="s-pre">Preview line <span class="opt">— what shows under the subject in the inbox</span> <span class="count" id="c-pre"></span></label>'
+   +'<input type="text" id="s-pre" maxlength="150" value="'+esc(S.preheader)+'" placeholder="Going deeper with God, each other and the local community. Coming up this Sunday and next week.">'
+   +'<p class="hint">Write it here and leave Mailchimp\u2019s own preview text box empty. Both do the same job, so filling in both shows the two lines run together in the inbox. Left empty, Mailchimp uses this one.</p>';
+
+  $("s-date").oninput=function(){ S.sunday=this.value; sundayHint(); buildReadings(); save(); renderSteps(); renderStep(); renderOut(); };
+  $("s-season").oninput=function(){ S.season=this.value; save(); renderOut(); };
+  $("s-pre").oninput=function(){ S.preheader=this.value; cnt("s-pre","c-pre",120); save(); renderOut(); };
+  $("s-th").oninput=function(){ S.theme.title=this.value; cnt("s-th","c-th",60); save(); renderOut(); };
+  $("s-tb").oninput=function(){ S.theme.body=this.value; cnt("s-tb","c-tb",700); save(); renderOut(); };
+  $("s-ti").oninput=function(){ S.theme.image=this.value; save(); renderOut(); };
+  $("s-rota").onclick=rotaFill;
+  cnt("s-th","c-th",60); cnt("s-tb","c-tb",700); cnt("s-pre","c-pre",120);
+  sundayHint(); renderServices();
+}
+function sundayHint(){
+  var h=$("s-datehint"); if(!h) return;
+  var d=D(S.sunday);
+  if(!d){ h.textContent=""; return; }
+  if(d.getDay()!==0){ h.textContent="That is a "+DAYS[d.getDay()]+", not a Sunday."; h.className="hint warn"; return; }
+  h.textContent=longDate(d)+" \u2014 the "+ORD[ordinal(d)]+" Sunday of the month.";
+  h.className="hint good";
+}
+function renderServices(){
+  var w=$("svclist"); if(!w) return; w.innerHTML="";
+  var g=groupedServices();
+  orderWas=svcOrder();
+  CH.forEach(function(ch){
+    var list=g[ch.k]||[];
+    var sec=document.createElement("div"); sec.className="svcsec";
+    var head=document.createElement("div"); head.className="svchead";
+    head.innerHTML='<span class="key" style="background:'+ch.c+'"></span><span class="nm">'+ch.pick+(ch.k==="ink"?" (combined)":"")+'</span>';
+    sec.appendChild(head);
+    if(ch.k==="cw"){
+      var cwl=document.createElement("label");
+      cwl.className="cwfull";
+      cwl.innerHTML='<input type="checkbox"'+(S.cwFullSvc?' checked':'')+'>'
+        +'<span>Use the full dedication<br><small>\u201c'+esc(CW_FULL)+'\u201d</small></span>';
+      cwl.querySelector("input").onchange=function(){
+        S.cwFullSvc=this.checked; save(); renderOut();
+      };
+      sec.appendChild(cwl);
+    }
+    if(!list.length){
+      var em=document.createElement("div"); em.className="svcnone"; em.textContent="No service listed.";
+      sec.appendChild(em);
+    }
+    list.forEach(function(s){
+      var i=S.services.indexOf(s);
+      var d=document.createElement("div"); d.className="svc"; d.style.setProperty("--c",ch.c);
+      d.innerHTML='<div class="top"><span class="swatch"></span>'
+        +'<input type="text" class="ti" placeholder="Holy Communion" value="'+esc(s.title)+'">'
+        +'<button type="button" class="x" title="Remove">&times;</button></div>'
+        +'<div class="grid3" style="margin-top:6px"><input type="time" class="tm" value="'+esc(s.time)+'">'
+        +'<input type="time" class="te" value="'+esc(s.endTime)+'">'
+        +'<input type="text" class="nt" placeholder="with Kingdom Kids" value="'+esc(s.note)+'"></div>';
+      d.querySelector(".ti").oninput=function(){ s.title=this.value; save(); renderOut(); };
+      /* Only the preview updates while a time is being typed. Re-sorting the
+         list rebuilds every field, which snatched focus mid-entry -- so that
+         waits until the field is left, and only happens if the order really
+         changed. */
+      var tm=d.querySelector(".tm");
+      tm.oninput=function(){ s.time=this.value; save(); renderOut(); };
+      tm.onblur=function(){ if(svcOrder()!==orderWas) renderServices(); };
+      d.querySelector(".te").oninput=function(){ s.endTime=this.value; save(); renderOut(); };
+      d.querySelector(".nt").oninput=function(){ s.note=this.value; save(); renderOut(); };
+      d.querySelector(".x").onclick=function(){ S.services.splice(i,1); save(); renderStep(); renderOut(); };
+      sec.appendChild(d);
+    });
+    var add=document.createElement("button");
+    add.type="button"; add.className="btn ghost sm svcadd"; add.textContent="+ Add a service";
+    add.onclick=function(e){ if(e&&e.preventDefault) e.preventDefault();
+      S.services.push({church:ch.k,title:"",time:"",endTime:"",note:""}); save(); renderStep(); renderOut(); };
+    sec.appendChild(add);
+    w.appendChild(sec);
+  });
+  var n=document.createElement("div"); n.className="note";
+  n.innerHTML='<b>Always check these</b>These are filled from the pattern published on each church\u2019s own page, not a live '
+    +'calendar feed \u2014 the ChurchSuite "What\u2019s on?" embed on those pages does not currently work. A swap, a one-off '
+    +'change, or anything the wardens have since altered will not show up here automatically.';
+  w.appendChild(n);
+}
+
+function stepNotices(b){
+  b.innerHTML=''
+   +'<span class="lab" id="formstep">Add a notice</span>'
+   +'<label for="f-title">What\'s happening? <span class="count" id="c-title">0/60</span></label>'
+   +'<input type="text" id="f-title" maxlength="80" placeholder="Kintsugi Hope wellbeing course">'
+   +'<label>Which church?</label><div class="pick" id="pick"></div><div id="extra"></div>'
+   +'<fieldset><legend>When</legend><div class="when" id="whenmode">'
+   +'<button type="button" data-m="once" aria-pressed="true">One date</button>'
+   +'<button type="button" data-m="series">A course or series</button>'
+   +'<button type="button" data-m="ongoing">Every week</button>'
+   +'<button type="button" data-m="none">No set time</button></div>'
+   +'<div id="whenfields"></div><p class="hint" id="whenhint"></p></fieldset>'
+   +'<label for="f-place">Where? <span class="opt">— optional</span></label><input type="text" id="f-place" maxlength="70">'
+   +'<fieldset><legend>Where the card takes people</legend>'
+   +'<label for="f-url" style="margin-top:10px">Web address</label><input type="url" id="f-url" placeholder="https://peelparishes.church/whats-on/...">'
+   +'<div class="chips"><button type="button" id="suggesturl">Suggest a parish page</button></div>'
+   +'<label for="f-linktext">Words on the link</label><input type="text" id="f-linktext" maxlength="40" placeholder="Sign up">'
+   +'<div class="chips" id="ctachips"></div><p class="hint" id="linkhint"></p></fieldset>'
+   +'<fieldset><legend>Booking deadline</legend><label for="f-signup" style="margin-top:10px">Sign up by <span class="opt">— optional</span></label>'
+   +'<input type="date" id="f-signup"><p class="hint" id="signuphint">The card stops showing this once the date passes.</p></fieldset>'
+   +'<fieldset><legend>Cancelled</legend>'
+   +'<label style="display:flex;gap:9px;align-items:flex-start;font-weight:400;margin-top:10px"><input type="checkbox" id="f-cancelled" style="width:16px;height:16px;margin-top:4px">'
+   +'<span>This one is cancelled &mdash; show it, but greyed out</span></label>'
+   +'<p class="hint" id="cancelhint">The card keeps its place in the running order, drops its church colour and its link, and gets a CANCELLED flag. Say in "Anything else?" when it returns.</p></fieldset>'
+   +'<label for="f-body">Anything else? <span class="count" id="c-body">0/220</span></label><textarea id="f-body" maxlength="300"></textarea>'
+   +'<div class="grid2"><div><label for="f-who">Who to contact</label><input type="text" id="f-who" maxlength="50"></div>'
+   +'<div><label for="f-how">Email or phone</label><input type="text" id="f-how" maxlength="120"></div></div>'
+   +'<label for="f-sec">Where should it sit?</label><select id="f-sec">'
+   +SECTIONS.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join("")+'</select>'
+   +'<div class="row"><button class="btn" id="add">Add notice</button><button class="btn ghost" id="clear">Clear</button></div>'
+   +'<div id="formerr"></div><div id="editnote"></div>'
+   +'<div style="margin-top:26px"><span class="lab">This week <span id="qcount" style="letter-spacing:0;text-transform:none"></span></span>'
+   +'<p class="hint" style="margin:0 0 4px">Click a notice to edit it.</p><div class="queue" id="queue"></div></div>';
+  buildPicker(); buildCtas(); setChurch("ink"); setWhen("once");
+  wireNotice(); renderQueue();
+}
+function buildPicker(){
+  var p=$("pick"); if(!p) return; p.innerHTML="";
+  CH.forEach(function(c){
+    var b=document.createElement("button"); b.type="button"; b.dataset.k=c.k;
+    b.style.setProperty("--c",c.c);
+    b.setAttribute("aria-pressed", c.k===church?"true":"false");
+    b.innerHTML='<span class="bar"></span><span class="nm">'+c.pick+'</span>';
+    b.onclick=function(){ setChurch(c.k); };
+    p.appendChild(b);
+  });
+}
+function setChurch(k){
+  church=k;
+  [].forEach.call(document.querySelectorAll("#pick button"),function(b){ b.setAttribute("aria-pressed", b.dataset.k===k?"true":"false"); });
+  var box=$("extra"); if(!box) return;
+  if(k==="ink") box.innerHTML='<label for="f-ink">How should the card be labelled? <span class="opt">— optional</span></label>'
+    +'<input type="text" id="f-ink" maxlength="60" placeholder="Peel Parishes"><p class="hint">Blank gives "Peel Parishes". The bar stays ink either way.</p>';
+  else if(k==="cw") box.innerHTML='<label style="display:flex;gap:9px;align-items:flex-start;font-weight:400"><input type="checkbox" id="f-cwfull" style="width:16px;height:16px;margin-top:4px">'
+    +'<span style="font-size:.88rem">Use the full dedication<br><small style="color:var(--muted)">"'+CW_FULL+'"</small></span></label>';
+  else box.innerHTML="";
+}
+function buildCtas(){
+  var w=$("ctachips"); if(!w) return; w.innerHTML="";
+  CTAS.forEach(function(c){ var b=document.createElement("button"); b.type="button"; b.textContent=c;
+    b.onclick=function(){ $("f-linktext").value=c; linkHint(); }; w.appendChild(b); });
+}
+function setWhen(m){
+  whenMode=m;
+  [].forEach.call(document.querySelectorAll("#whenmode button"),function(b){ b.setAttribute("aria-pressed", b.dataset.m===m?"true":"false"); });
+  var f=$("whenfields"); if(!f) return;
+  if(m==="once") f.innerHTML='<label for="w-date">Date</label><input type="date" id="w-date">'
+    +'<div class="grid2"><div><label for="w-time">Start</label><input type="time" id="w-time"></div><div><label for="w-end">End</label><input type="time" id="w-end"></div></div>';
+  else if(m==="series") f.innerHTML='<label for="w-start">First session</label><input type="date" id="w-start">'
+    +'<div class="grid3"><div><label for="w-time">Start</label><input type="time" id="w-time"></div><div><label for="w-end">End</label><input type="time" id="w-end"></div>'
+    +'<div><label for="w-weeks">Weeks</label><input type="number" id="w-weeks" min="2" max="52" placeholder="6"></div></div>';
+  else if(m==="ongoing") f.innerHTML='<label for="w-day">Which day?</label><select id="w-day">'
+    +DAYS.map(function(d,i){ return '<option value="'+i+'">'+d+'s</option>'; }).join("")+'</select>'
+    +'<div class="grid2"><div><label for="w-time">Start</label><input type="time" id="w-time"></div><div><label for="w-end">End</label><input type="time" id="w-end"></div></div>'
+    +'<label for="w-qual">Qualifier <span class="opt">— optional</span></label><input type="text" id="w-qual" maxlength="40" placeholder="in term time">';
+  else f.innerHTML="";
+  [].forEach.call(f.querySelectorAll("input,select"),function(el){ el.addEventListener("input",whenHint); el.addEventListener("change",whenHint); });
+  whenHint();
+}
+function readWhen(){ var g=function(id){ var e=$(id); return e?e.value:""; };
+  return {mode:whenMode,date:g("w-date"),start:g("w-start"),time:g("w-time"),endTime:g("w-end"),
+          weeks:g("w-weeks"),day:g("w-day"),qualifier:(g("w-qual")||"").trim()}; }
+function whenHint(){
+  var h=$("whenhint"); if(!h) return;
+  var n=readWhen(), t=today(), txt=whenText(n);
+  if(!txt){ h.textContent=""; h.className="hint"; return; }
+  var extra="";
+  if(n.mode==="series"){ var e=lastSession(n); if(e) extra=" Last session "+longDate(e)+".";
+    var s=D(n.start); if(s&&t>s){ h.textContent='Reads: "'+txt+'".'+extra+" That start date has passed."; h.className="hint warn"; return; } }
+  if(n.mode==="once"){ var d=D(n.date); if(d&&t>d){ h.textContent='Reads: "'+txt+'". That date has passed.'; h.className="hint warn"; return; } }
+  h.textContent='Reads: "'+txt+'".'+extra; h.className="hint good";
+}
+function linkHint(){
+  var h=$("linkhint"); if(!h) return;
+  var u=($("f-url").value||"").trim();
+  if(!u){ h.textContent='No link yet. The card still works \u2014 it gets tagged "no link" so you can come back to it.'; h.className="hint"; return; }
+  if(!/^https?:\/\//i.test(u)){ h.textContent="That needs to start with https:// to work in an email."; h.className="hint warn"; return; }
+  var lt=($("f-linktext").value||"").trim();
+  if(!lt){ h.textContent="A link with no wording will not appear at all. Add a few words below."; h.className="hint warn"; return; }
+  h.textContent='The card will show "'+lt+'" as an underlined link to this page.'; h.className="hint good";
+}
+function cnt(id,cid,max){ var i=$(id),c=$(cid); if(!i||!c) return;
+  c.textContent=i.value.length+"/"+max; c.className="count"+(i.value.length>max?" over":""); }
+function readNotice(){
+  var w=readWhen();
+  return {title:$("f-title").value.trim(),church:church,
+    inkLabel:(church==="ink"&&$("f-ink"))?$("f-ink").value.trim():"",
+    cwFull:(church==="cw"&&$("f-cwfull"))?$("f-cwfull").checked:false,
+    mode:w.mode,date:w.date,start:w.start,time:w.time,endTime:w.endTime,weeks:w.weeks,day:w.day,qualifier:w.qualifier,
+    place:$("f-place").value.trim(),url:$("f-url").value.trim(),linkText:$("f-linktext").value.trim(),
+    signUpBy:$("f-signup").value,body:$("f-body").value.trim(),
+    cancelled:$("f-cancelled")?$("f-cancelled").checked:false,
+    who:$("f-who").value.trim(),how:$("f-how").value.trim(),section:$("f-sec").value};
+}
+function writeNotice(n){
+  $("f-title").value=n.title||""; setChurch(n.church||"ink");
+  if($("f-ink")) $("f-ink").value=n.inkLabel||"";
+  if($("f-cwfull")) $("f-cwfull").checked=!!n.cwFull;
+  setWhen(n.mode||"once");
+  var set=function(id,v){ var e=$(id); if(e) e.value=v||""; };
+  set("w-date",n.date); set("w-start",n.start); set("w-time",n.time); set("w-end",n.endTime);
+  set("w-weeks",n.weeks); set("w-qual",n.qualifier);
+  if($("w-day")&&n.day!==undefined&&n.day!=="") $("w-day").value=n.day;
+  $("f-place").value=n.place||""; $("f-url").value=n.url||""; $("f-linktext").value=n.linkText||"";
+  $("f-signup").value=n.signUpBy||""; $("f-body").value=n.body||"";
+  if($("f-cancelled")) $("f-cancelled").checked=!!n.cancelled;
+  $("f-who").value=n.who||""; $("f-how").value=n.how||""; $("f-sec").value=n.section||"This week";
+  cnt("f-title","c-title",60); cnt("f-body","c-body",220); whenHint(); linkHint();
+}
+function clearNotice(){ writeNotice({section:$("f-sec").value,church:"ink",mode:"once"}); $("formerr").innerHTML=""; }
+function wireNotice(){
+  ["f-title","f-body"].forEach(function(id){ $(id).addEventListener("input",function(){ cnt("f-title","c-title",60); cnt("f-body","c-body",220); }); });
+  $("f-url").addEventListener("input",linkHint); $("f-linktext").addEventListener("input",linkHint);
+  $("suggesturl").onclick=function(){ var t=$("f-title").value.trim();
+    if(!t){ toast("Give it a title first"); return; } $("f-url").value=SITE+slug(t); linkHint(); };
+  [].forEach.call(document.querySelectorAll("#whenmode button"),function(b){ b.onclick=function(){ setWhen(b.dataset.m); }; });
+  $("f-signup").addEventListener("change",function(){
+    var su=D(this.value), h=$("signuphint");
+    if(!su){ h.textContent="The card stops showing this once the date passes."; h.className="hint"; return; }
+    if(today()>su){ h.textContent="That has already passed, so the line will not appear."; h.className="hint warn"; }
+    else { h.textContent="Card will read: Sign up by "+longDate(su)+"."; h.className="hint good"; }
+  });
+  $("add").onclick=function(){
+    var n=readNotice();
+    if(!n.title){ $("formerr").innerHTML='<div class="err">Give it a title.</div>'; $("f-title").focus(); return; }
+    if(editIndex>=0){ S.notices[editIndex]=n; toast("Saved"); editIndex=-1; $("add").textContent="Add notice";
+      $("formstep").textContent="Add a notice"; $("editnote").innerHTML=""; }
+    else { S.notices.push(n); toast("Added \u2014 "+S.notices.length+" notices"); }
+    save(); clearNotice(); renderQueue(); renderSteps(); renderOut();
+  };
+  $("clear").onclick=function(){ editIndex=-1; $("add").textContent="Add notice"; $("formstep").textContent="Add a notice";
+    $("editnote").innerHTML=""; clearNotice(); renderQueue(); };
+  $("f-title").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); $("add").click(); } });
+  linkHint();
+}
+function renderQueue(){
+  var q=$("queue"); if(!q) return; q.innerHTML="";
+  $("qcount").textContent=S.notices.length?"("+S.notices.length+")":"";
+  if(!S.notices.length){ q.innerHTML='<div class="empty" style="border:0;padding:14px 0;text-align:left">No notices yet.</div>'; return; }
+  SECTIONS.forEach(function(sec){
+    var items=S.notices.map(function(n,i){ return {n:n,i:i}; }).filter(function(x){ return x.n.section===sec; });
+    if(!items.length) return;
+    var h=document.createElement("div"); h.className="qsec"; h.textContent=sec; q.appendChild(h);
+    items.forEach(function(x){
+      var n=x.n,i=x.i, row=document.createElement("div");
+      row.className="qitem"+(i===editIndex?" on":"");
+      var bar=document.createElement("span"); bar.className="bar"; bar.style.background=(BY[n.church]||BY.ink).c;
+      var t=document.createElement("div"); t.className="t"; t.title="Click to edit";
+      var b2=document.createElement("b"); b2.textContent=n.title;
+      var s2=document.createElement("small"); s2.textContent=whenText(n)||n.place||"no set time";
+      t.appendChild(b2); t.appendChild(s2);
+      if(n.cancelled){ var cx=document.createElement("span"); cx.className="tag off"; cx.textContent="cancelled"; t.appendChild(cx);
+        b2.style.textDecoration="line-through"; bar.style.background="#8A918D"; }
+      var st=status(n);
+      if(st){ var c1=document.createElement("span"); c1.className="tag "+st.k; c1.textContent=st.txt; t.appendChild(c1); }
+      if(!(n.url||"").trim()){ var c2=document.createElement("span"); c2.className="tag nolink"; c2.textContent="no link"; t.appendChild(c2); }
+      else if(!linkText(n)){ var c3=document.createElement("span"); c3.className="tag nolink"; c3.textContent="link, no wording"; t.appendChild(c3); }
+      t.onclick=function(){ editIndex=i; writeNotice(n); $("add").textContent="Save changes";
+        $("formstep").textContent="Editing a notice";
+        $("editnote").innerHTML='<div class="note"><b>Editing</b>Change what you need, then press Save changes.</div>';
+        renderQueue(); $("f-title").focus(); };
+      var nd=nudge(n);
+      if(nd){ var nb=document.createElement("button"); nb.className="nudge"; nb.textContent=nd.txt;
+        nb.onclick=function(e){ e.stopPropagation();
+          if(nd.remove){ S.notices.splice(i,1); toast("Removed"); } else { S.notices[i].section=nd.to; toast("Moved to "+nd.to); }
+          save(); renderQueue(); renderSteps(); renderOut(); }; t.appendChild(nb); }
+      var acts=document.createElement("div"); acts.className="acts";
+      var up=document.createElement("button"); up.textContent="\u2191";
+      var dn=document.createElement("button"); dn.textContent="\u2193";
+      var rm=document.createElement("button"); rm.textContent="\u00d7";
+      up.onclick=function(){ if(i>0){ var z=S.notices[i-1]; S.notices[i-1]=S.notices[i]; S.notices[i]=z; save(); renderQueue(); renderOut(); } };
+      dn.onclick=function(){ if(i<S.notices.length-1){ var z=S.notices[i+1]; S.notices[i+1]=S.notices[i]; S.notices[i]=z; save(); renderQueue(); renderOut(); } };
+      rm.onclick=function(){ S.notices.splice(i,1); if(editIndex===i){ editIndex=-1; clearNotice(); } save(); renderQueue(); renderSteps(); renderOut(); };
+      acts.appendChild(up); acts.appendChild(dn); acts.appendChild(rm);
+      row.appendChild(bar); row.appendChild(t); row.appendChild(acts);
+      q.appendChild(row);
+    });
+  });
+}
+
+function stepDiocese(b){
+  b.innerHTML='<span class="lab">Across the Diocese</span>'
+   +'<p class="hint" style="margin:-6px 0 0">Anything from beyond the parishes. A headline and a link, not an article.</p>'
+   +'<label for="d-title">Headline <span class="count" id="c-dt">0/70</span></label><input type="text" id="d-title" maxlength="90">'
+   +'<label for="d-line">One line <span class="opt">— optional</span> <span class="count" id="c-dl">0/110</span></label><input type="text" id="d-line" maxlength="140">'
+   +'<label for="d-url">Web address <span class="opt">— optional</span></label><input type="url" id="d-url">'
+   +'<div class="row"><button class="btn" id="dadd">Add</button><button class="btn ghost" id="dclear">Clear</button></div>'
+   +'<div id="dioerr"></div><div class="queue" id="dqueue"></div>';
+  var upd=function(){ cnt("d-title","c-dt",70); cnt("d-line","c-dl",110); };
+  ["d-title","d-line"].forEach(function(id){ $(id).addEventListener("input",upd); }); upd();
+  $("dadd").onclick=function(){
+    var t=$("d-title").value.trim();
+    if(!t){ $("dioerr").innerHTML='<div class="err">Give it a headline.</div>'; return; }
+    var item={title:t,line:$("d-line").value.trim(),url:$("d-url").value.trim()};
+    if(dioIndex>=0){ S.dio[dioIndex]=item; dioIndex=-1; $("dadd").textContent="Add"; toast("Saved"); }
+    else { S.dio.push(item); toast("Added"); }
+    save(); $("d-title").value=""; $("d-line").value=""; $("d-url").value=""; upd();
+    renderDio(); renderSteps(); renderOut();
+  };
+  $("dclear").onclick=function(){ dioIndex=-1; $("dadd").textContent="Add";
+    $("d-title").value=""; $("d-line").value=""; $("d-url").value=""; upd(); renderDio(); };
+  renderDio();
+}
+function renderDio(){
+  var q=$("dqueue"); if(!q) return; q.innerHTML="";
+  if(!S.dio.length){ q.innerHTML='<div class="empty" style="border:0;padding:14px 0;text-align:left">Nothing from the diocese this week.</div>'; return; }
+  S.dio.forEach(function(d,i){
+    var row=document.createElement("div"); row.className="qitem"+(i===dioIndex?" on":"");
+    var t=document.createElement("div"); t.className="t"; t.title="Click to edit";
+    var b=document.createElement("b"); b.textContent=d.title;
+    var s=document.createElement("small"); s.textContent=d.line||((d.url||"").trim()?"links out":"no link");
+    t.appendChild(b); t.appendChild(s);
+    if(!(d.url||"").trim()){ var tag=document.createElement("span"); tag.className="tag nolink"; tag.textContent="no link"; t.appendChild(tag); }
+    t.onclick=function(){ dioIndex=i; $("d-title").value=d.title; $("d-line").value=d.line||""; $("d-url").value=d.url||"";
+      $("dadd").textContent="Save changes"; renderDio(); };
+    var acts=document.createElement("div"); acts.className="acts";
+    var up=document.createElement("button"); up.textContent="\u2191";
+    var dn=document.createElement("button"); dn.textContent="\u2193";
+    var rm=document.createElement("button"); rm.textContent="\u00d7";
+    up.onclick=function(){ if(i>0){ var z=S.dio[i-1]; S.dio[i-1]=S.dio[i]; S.dio[i]=z; save(); renderDio(); renderOut(); } };
+    dn.onclick=function(){ if(i<S.dio.length-1){ var z=S.dio[i+1]; S.dio[i+1]=S.dio[i]; S.dio[i]=z; save(); renderDio(); renderOut(); } };
+    rm.onclick=function(){ S.dio.splice(i,1); if(dioIndex===i) dioIndex=-1; save(); renderDio(); renderSteps(); renderOut(); };
+    acts.appendChild(up); acts.appendChild(dn); acts.appendChild(rm);
+    row.appendChild(t); row.appendChild(acts); q.appendChild(row);
+  });
+  if(S.dio.length>5){ var w=document.createElement("p"); w.className="hint warn";
+    w.textContent="That's "+S.dio.length+" diocesan items."; q.appendChild(w); }
+}
+
+function stepReadings(b){
+  var head='<div class="rdhead"><span></span><span>Psalm</span><span>Old Testament</span><span>New Testament</span></div>';
+  var rows=S.readings.map(function(r,i){
+    var d=D(r.date);
+    return '<div class="rd"><span class="d">'+(d?SHORT[d.getDay()]+" "+d.getDate():"")+'</span>'
+      +'<input type="text" data-i="'+i+'" data-f="psalm" value="'+esc(r.psalm)+'" placeholder="Psalm 1">'
+      +'<input type="text" data-i="'+i+'" data-f="ot" value="'+esc(r.ot)+'" placeholder="2 Samuel 15">'
+      +'<input type="text" data-i="'+i+'" data-f="nt" value="'+esc(r.nt)+'" placeholder="Acts 9"></div>';
+  }).join("");
+
+  /* Days the Lectionary deliberately will not fill. Spelled out under the
+     table so a blank row reads as a decision rather than a bug. */
+  var gaps=[];
+  S.readings.forEach(function(r){
+    if(r.psalm||r.ot||r.nt) return;
+    var d=D(r.date); if(!d) return;
+    var utc=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+    var why=lectDayStatus(utc);
+    if(why) gaps.push("<b>"+SHORT[d.getDay()]+" "+d.getDate()+"</b> \u2014 "+esc(why));
+  });
+  var gapNote = gaps.length
+    ? '<div class="rdgap"><b>Not an error \u2014 these days are left blank on purpose</b>'
+      + '<ul><li>'+gaps.join("</li><li>")+'</li></ul>'
+      + 'Look these up in the published lectionary and type them in by hand.</div>'
+    : "";
+
+  var v=S.video;
+  b.innerHTML='<span class="lab">Readings for the week</span>'
+    +'<p class="hint" style="margin:-6px 0 12px">The seven days after this Sunday. Leave blank and it drops out of the email.</p>'
+    +'<fieldset><legend>Readings</legend>'
+      +'<p class="hint" style="margin-top:10px">Fills the Psalm and the Old and New Testament readings for each day, straight from the Common Worship Weekday Lectionary \u2014 built in, nothing to import. Covers 2020\u20132044.</p>'
+      +'<div class="row" style="margin-top:0"><button class="btn ghost sm" id="lect-fill">Fill from the Lectionary</button></div>'
+      +'<p class="hint">Fills the Psalm, Old Testament and New Testament columns for whichever days are left blank \u2014 anything typed by hand stays untouched.</p>'
+    +'</fieldset>'
+    +head+rows+gapNote
+    +'<div class="row">'
+    +'<button class="btn ghost sm" id="r-clear">Clear all</button></div>'
+    +'<fieldset style="margin-top:24px"><legend>This week\u2019s video</legend>'
+    +'<p class="hint" style="margin-top:10px">Usually a book overview to go with the readings above. Leave it all blank and this section disappears from the email.</p>'
+    +'<label for="v-label">Section heading</label><input type="text" id="v-label" maxlength="40" value="'+esc(v.label)+'">'
+    +'<label for="v-url">Link to the video</label><input type="url" id="v-url" value="'+esc(v.url)+'" placeholder="https://www.youtube.com/watch?v=...">'
+    +'<label for="v-thumb">Still image address <span class="opt">— optional</span></label><input type="url" id="v-thumb" value="'+esc(v.thumb)+'">'
+    +'<label for="v-cap">Caption</label><input type="text" id="v-cap" maxlength="140" value="'+esc(v.caption)+'" placeholder="An overview of 2 Samuel, the book we\u2019re reading this week.">'
+    +'<div class="note warn"><b>Before you use someone else\u2019s thumbnail</b>Check the publisher allows it. If in doubt, '
+    +'take a plain frame or make a simple card with the book name on it. Email cannot play video, so this is only ever a still that links out.</div>'
+    +'</fieldset>';
+
+  [].forEach.call(b.querySelectorAll(".rd input"),function(el){
+    el.oninput=function(){ S.readings[+el.dataset.i][el.dataset.f]=el.value; save(); renderSteps(); renderOut(); };
+  });
+  $("r-clear").onclick=function(){ S.readings.forEach(function(r){ r.psalm=r.ot=r.nt=""; }); save(); renderStep(); renderSteps(); renderOut(); };
+  $("lect-fill").onclick=lectFill;
+
+  ["label","url","thumb","cap"].forEach(function(f){
+    var id="v-"+f, key=(f==="cap"?"caption":f);
+    $(id).oninput=function(){ S.video[key]=this.value; save(); renderSteps(); renderOut(); };
+  });
+}
+
+function stepSend(b){
+  var d=D(S.sunday), issues=[];
+  if(!S.services.length) issues.push("No services set for this Sunday.");
+  if(!S.theme.title) issues.push("No theme title.");
+  if(!S.notices.length) issues.push("No notices.");
+  if(!S.preheader) issues.push("No preview line \u2014 the inbox will show the first words of the email instead.");
+  var noLink=S.notices.filter(function(n){ return !(n.url||"").trim(); }).length;
+  if(noLink) issues.push(noLink+" notice"+(noLink===1?"":"s")+" without a link.");
+  var rr=S.readings.filter(function(r){ return r.psalm||r.ot||r.nt; }).length;
+  if(!rr) issues.push("No readings.");
+
+  b.innerHTML='<span class="lab">Before you send</span>'
+   +'<h3 style="font-size:1.25rem;margin-bottom:10px">'+(d?longDate(d):"Set the Sunday first")+'</h3>'
+   +(issues.length
+     ? '<div class="note warn"><b>Worth a look</b><ul style="margin:6px 0 0;padding-left:18px">'
+       +issues.map(function(i){ return "<li>"+esc(i)+"</li>"; }).join("")+'</ul></div>'
+     : '<div class="note"><b>All present</b>Everything the email needs is filled in.</div>')
+   +'<fieldset><legend>Into Mailchimp</legend>'
+   +'<div class="row" style="margin-top:10px">'
+   +'<button class="btn" id="send-copy">Copy the whole email</button>'
+   +'<button class="btn ghost" id="send-copyplain">Copy plain text</button>'
+   +'<button class="btn ghost" id="send-dl">Download</button>'
+   +'</div>'
+   +'<p class="hint">In Mailchimp, create a campaign, choose <strong>Code your own \u2192 Paste in code</strong>, and paste. '
+   +'Upload the masthead and any pictures to Mailchimp first and paste their addresses into the Sunday step, or they will not show.</p>'
+   +'</fieldset>'
+   +'<div class="note"><b>Then check</b>Send yourself a test. Read the plain-text tab. Look at it on a phone.</div>';
+  $("send-copy").onclick=function(){ copyText(buildEmail(),"Copied \u2014 paste into Mailchimp"); };
+  $("send-copyplain").onclick=function(){ copyText(buildPlain(),"Plain text copied"); };
+  $("send-dl").onclick=doDownload;
+}
+
+function openReview(){
+  var r=$("review"); r.hidden=false; r.innerHTML="";
+  var d=D(S.sunday), nx=d?new Date(d):today(); if(d) nx.setDate(nx.getDate()+7);
+  var head=document.createElement("div");
+  head.innerHTML='<span class="lab">Starting next week</span><h3 style="font-size:1.25rem;margin-bottom:8px">'
+    +longDate(nx)+'</h3><p style="font-size:.9rem;color:var(--muted)">Ticked items carry over. Anything finished is '
+    +'unticked already. Services, theme, readings and the video all reset.</p>';
+  r.appendChild(head);
+  var list=document.createElement("div"); list.style.marginTop="12px";
+  S.notices.forEach(function(n,i){
+    var c=carry(n), row=document.createElement("div"); row.className="rv";
+    var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=c.keep; cb.dataset.i=i;
+    var bar=document.createElement("span"); bar.className="bar"; bar.style.background=(BY[n.church]||BY.ink).c;
+    var t=document.createElement("div"); t.className="t";
+    var b=document.createElement("b"); b.textContent=n.title;
+    var s=document.createElement("small"); s.textContent=n.section+" \u00b7 "+(whenText(n)||"no set time");
+    var wy=document.createElement("span"); wy.className="why"+(c.keep?"":" drop"); wy.textContent=c.why;
+    t.appendChild(b); t.appendChild(s); t.appendChild(wy);
+    row.appendChild(cb); row.appendChild(bar); row.appendChild(t); list.appendChild(row);
+  });
+  r.appendChild(list);
+  var dlist=document.createElement("div");
+  if(S.dio.length){
+    var dh=document.createElement("div");
+    dh.innerHTML='<span class="lab" style="margin-top:20px">Across the Diocese</span>'
+      +'<p style="font-size:.85rem;color:var(--muted);margin:-4px 0 8px">Unticked by default \u2014 most run once.</p>';
+    r.appendChild(dh);
+    S.dio.forEach(function(x,i){
+      var row=document.createElement("div"); row.className="rv";
+      var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=false; cb.dataset.d=i;
+      var t=document.createElement("div"); t.className="t";
+      var b=document.createElement("b"); b.textContent=x.title;
+      var s=document.createElement("small"); s.textContent=x.line||"";
+      var wy=document.createElement("span"); wy.className="why drop"; wy.textContent="ran last week";
+      t.appendChild(b); t.appendChild(s); t.appendChild(wy);
+      row.appendChild(cb); row.appendChild(t); dlist.appendChild(row);
+    });
+    r.appendChild(dlist);
+  }
+  var foot=document.createElement("div"); foot.className="row";
+  var go=document.createElement("button"); go.className="btn"; go.textContent="Start the week";
+  var no=document.createElement("button"); no.className="btn ghost"; no.textContent="Cancel";
+  go.onclick=function(){
+    prev=JSON.stringify(S);
+    var keep=[]; [].forEach.call(list.querySelectorAll("input"),function(cb){ if(cb.checked) keep.push(S.notices[+cb.dataset.i]); });
+    var dk=[]; [].forEach.call(dlist.querySelectorAll("input"),function(cb){ if(cb.checked) dk.push(S.dio[+cb.dataset.d]); });
+    S.sunday=iso(nx); S.season=""; S.services=[]; S.theme={title:"",body:"",image:""};
+    S.notices=keep; S.dio=dk; S.video={label:"WATCH THIS WEEK",caption:"",url:"",thumb:""};
+    buildReadings(); editIndex=-1; dioIndex=-1; save();
+    r.hidden=true; step=1; renderSteps(); renderStep(); renderOut();
+    toast("New week started \u2014 "+keep.length+" notices carried over");
+  };
+  no.onclick=function(){ r.hidden=true; };
+  foot.appendChild(go); foot.appendChild(no); r.appendChild(foot);
+  r.scrollTop=0;
+}
+function doUndo(){
+  if(!prev) return;
+  S=JSON.parse(prev); prev=null; save();
+  step=0; renderSteps(); renderStep(); renderOut(); toast("Put back");
+}
+
+/* The preview iframe is its own viewport. At 600px it sits below the email's
+   620px breakpoint, so the desktop preview was showing the phone layout of the
+   readings table. Render at 700px -- wider than the breakpoint, as a real
+   desktop client is -- then scale the frame down to fit the stage. */
+var PREV_W=700;
+function resizePreview(){
+  var f=$("previewFrame"), inner=f.parentNode, phone=$("stage").classList.contains("phone");
+  var w = phone ? 375 : PREV_W;
+  var k = phone ? 1 : Math.min(1, inner.clientWidth / PREV_W);
+  f.style.width = w+"px";
+  f.style.transform = k===1 ? "none" : "scale("+k+")";
+  var h;
+  try{ h = f.contentWindow.document.documentElement.scrollHeight+16; }
+  catch(e){ h = 1400; }
+  f.style.height = h+"px";
+  inner.style.height = Math.round(h*k)+"px";
+}
+window.addEventListener("resize", resizePreview);
+function renderOut(){
+  var html=buildEmail();
+  var f=$("previewFrame");
+  f.srcdoc=html;
+  f.onload=resizePreview;
+  $("code").textContent=html;
+  $("plain").textContent=buildPlain();
+  var bytes=new Blob([html]).size, kb=bytes/1024, pct=Math.min(100,(kb/102)*100);
+  $("kb").textContent=kb<1?Math.round(bytes)+" bytes":kb.toFixed(1)+" KB";
+  var v=$("verdict");
+  v.className=pct>85?"bad":(pct>60?"warn":"");
+  if(pct<60) v.textContent="Comfortable.";
+  else if(pct<85) v.textContent="Getting full \u2014 move the longest notices onto the website and link to them.";
+  else v.textContent="Too long \u2014 Gmail will cut this off.";
+}
+
+/* Stacked-view navigation helpers. Both are no-ops on desktop, where nothing
+   scrolls out of view in the first place. */
+function scrollToSteps(){
+  if(window.innerWidth>1000) return;
+  /* Wait a frame: the step body has just been re-rendered, so measure after
+     the new content has been laid out. The tabs bar is sticky, so its own
+     rect is useless once it is stuck -- measure the panel below it instead
+     and subtract the bar's height so the top of the panel clears it. */
+  requestAnimationFrame(function(){
+    var bar=$("steps"), body=$("stepbody");
+    var top = window.pageYOffset + body.getBoundingClientRect().top - bar.offsetHeight;
+    window.scrollTo({ top: Math.max(0, top), behavior:"smooth" });
+  });
+}
+(function jumpToPreview(){
+  var btn=$("jump"), target=$("stage");
+  btn.onclick=function(){
+    target.scrollIntoView({ behavior:"smooth", block:"start" });
+  };
+  function check(){
+    if(window.innerWidth>1000){ btn.classList.remove("on"); return; }
+    var r=target.getBoundingClientRect();
+    var out = r.bottom < 120 || r.top > window.innerHeight;
+    btn.classList.toggle("on", out);
+  }
+  window.addEventListener("scroll", check, {passive:true});
+  window.addEventListener("resize", check);
+  check();
+})();
+
+function view(w){ ["prev","plain","code"].forEach(function(x){
+  $("t-"+x).setAttribute("aria-pressed", x===w?"true":"false"); $("v-"+x).hidden=x!==w; }); }
+$("t-prev").onclick=function(){ view("prev"); };
+$("t-plain").onclick=function(){ view("plain"); };
+$("t-code").onclick=function(){ view("code"); };
+$("t-wide").onclick=function(){ $("stage").classList.remove("phone");
+  $("t-wide").setAttribute("aria-pressed","true"); $("t-phone").setAttribute("aria-pressed","false");
+  setTimeout(resizePreview, 60); };
+$("t-phone").onclick=function(){ $("stage").classList.add("phone");
+  $("t-wide").setAttribute("aria-pressed","false"); $("t-phone").setAttribute("aria-pressed","true");
+  setTimeout(resizePreview, 60); };
+
+function copyText(t,ok){
+  if(!t){ toast("Nothing to copy"); return; }
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(function(){ toast(ok); }).catch(function(){ fb(t); });
+  else fb(t);
+}
+function fb(t){ var ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); toast("Copied"); }catch(e){ toast("Select the code and copy it"); }
+  document.body.removeChild(ta); }
+$("copy").onclick=function(){ copyText(buildEmail(),"Copied \u2014 paste into Mailchimp"); };
+$("copyplain").onclick=function(){ copyText(buildPlain(),"Plain text copied"); };
+function doDownload(){
+  var blob=new Blob([buildEmail()],{type:"text/html"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="peel-newsletter-"+(S.sunday||"week")+".html";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); },1000);
+}
+$("dl").onclick=doDownload;
+
+/* ----------------------------------------------------------------
+   Week file: save/open the whole working state as a small JSON file.
+   For two volunteers alternating weeks -- localStorage lives on one
+   machine only, so this is how a week hands over to someone else's
+   computer. Complements localStorage rather than replacing it: the
+   autosave still protects you against a closed tab; this is the
+   deliberate handover.
+---------------------------------------------------------------- */
+function saveWeekFile(){
+  var payload = JSON.stringify({peelWeekFile:1, saved:new Date().toISOString(), S:S}, null, 1);
+  var blob = new Blob([payload], {type:"application/json"});
+  var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "peel-week-"+(S.sunday||"draft")+".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); },1000);
+  toast("Saved \u2014 hand this file to whoever's building next");
+}
+function openWeekFile(){ $("weekFile").click(); }
+$("weekFile").addEventListener("change", function(e){
+  var f = e.target.files && e.target.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(ev){
+    var data;
+    try{ data = JSON.parse(String(ev.target.result)); }
+    catch(err){ toast("That doesn't look like a week file"); return; }
+    if(!data || !data.S){ toast("That doesn't look like a week file"); return; }
+    if(!confirm("Open "+(data.S.sunday||"this week")+"? This replaces what's currently open here.")) return;
+    S = Object.assign({sunday:"",season:"",preheader:"Going deeper with God, each other and the local community. Coming up this Sunday and next week.",logo:S.logo,cwFullSvc:false,services:[],
+      theme:{title:"",body:"",image:""},notices:[],dio:[],readings:[],
+      video:{label:"WATCH THIS WEEK",caption:"",url:"",thumb:""}}, data.S);
+    editIndex=-1; dioIndex=-1; save();
+    step=1; renderSteps(); renderStep(); renderOut();
+    toast("Opened "+(data.saved ? "a week saved "+new Date(data.saved).toLocaleDateString("en-GB") : "the week file"));
+  };
+  r.readAsText(f);
+  e.target.value = "";   // allow opening the same filename again later
+});
+load();
+})();
+</script>
+</body>
+</html>
