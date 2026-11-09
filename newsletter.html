@@ -1121,7 +1121,10 @@ function serviceCards(){
     var list=g[ch.k]; if(!list||!list.length) return;
     var c=ch.c, lab=((ch.k==="cw"&&S.cwFullSvc)?CW_FULL:ch.label).toUpperCase();
     var rows=list.map(function(s,i){
-      var t=timeRange(s.time,s.endTime) || "Time to be confirmed";
+      var t=timeRange(s.time,s.endTime);
+      /* No time = no service, shown as on the website's Sunday cards. */
+      if(!t) return '<div'+(i>0?' class="rule"':'')+' style="'+(i>0?'padding-top:10px;margin-top:10px;border-top:1px solid #E3E0D8;':'padding-top:4px;')+'">'
+        +'<div class="t-mut" style="font:italic 400 16px/1.5 '+SS+';color:#5C6660;">No service this Sunday</div></div>';
       return '<div'+(i>0?' class="rule"':'')+' style="'+(i>0?'padding-top:10px;margin-top:10px;border-top:1px solid #E3E0D8;':'')+'">'
         +'<div class="t-ink" style="font:'+F.title+' '+M+';color:#16211F;padding:'+(i===0?'4px 0 4px 0':'0 0 4px 0')+';">'+esc(s.title||"Service")+'</div>'
         +'<div class="t-ink" style="font:'+F.meta+' '+SS+';color:#16211F;">'+esc(t)+(s.note?' &nbsp;<span class="t-mut" style="font-weight:400;color:#5C6660;">'+esc(s.note)+'</span>':'')+'</div>'
@@ -1441,7 +1444,7 @@ function buildPlain(){
     CH.forEach(function(ch){
       var list=g[ch.k]; if(!list||!list.length) return;
       o.push((ch.k==="cw"&&S.cwFullSvc)?CW_FULL:ch.label);
-      list.forEach(function(s){ o.push("  "+(s.title||"Service")+"  "+(timeRange(s.time,s.endTime)||"time to be confirmed")+(s.note?" ("+s.note+")":"")); });
+      list.forEach(function(s){ var tt=timeRange(s.time,s.endTime); o.push(tt?"  "+(s.title||"Service")+"  "+tt+(s.note?" ("+s.note+")":""):"  No service this Sunday"); });
       o.push("");
     });
   }
