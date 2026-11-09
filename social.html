@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Peel Parishes — Post Studio</title>
+<title>Peel Parishes — Social Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
@@ -141,7 +141,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   </svg>
   <div>
     <span class="eyebrow">Peel Parishes · Social media</span>
-    <h1>Post Studio</h1>
+    <h1>Social Studio</h1>
     <p>Makes a finished square post in about a minute.<br>Four of the five templates need no photograph at all.</p>
   </div>
 </header>
@@ -220,7 +220,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   var CW_FULL = "St Mary, St Giles & All Saints, Canwell";
   /* The name that goes on the card for a given service row. */
   function churchName(k){
-    if (k === "cw" && cwFull) return CW_FULL;
+    if (k === "cw" && cwFull && church === "cw") return CW_FULL;
     return (CH[k] || CH.all).f;
   }
   var ORDER = ["db","fz","mo","cw"];
@@ -319,13 +319,115 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     sunday: [],
     event: [],
     words: [
-      {k:"quote", t:"The words", ph:"Do not be anxious about anything, but in every situation, by prayer and petition, present your requests to God.", area:true, big:true},
-      {k:"src",   t:"Where they're from", ph:"Philippians 4.6"},
-      {k:"foot",  t:"Anything to add", ph:"Praying together this week", area:true}
+      {k:"quote", t:"The words", area:true, big:true},
+      {k:"src",   t:"Where they're from"},
+      {k:"foot",  t:"Anything to add", area:true}
     ],
   };
 
+  /* ---------- live service times from ChurchSuite ----------
+     The same four calendars and rules as the newsletter builder and the
+     homepage Sunday cards: Service category, confirmed, timed events, and
+     "Name (Tag)" becomes the name with the tag as the note. A church whose
+     calendar fails falls back to the usual pattern for that church only. */
+  var FEED_HOST = "https://peelparishes.churchsuite.com/-/calendar/";
+  var FEEDS = {db:"c33fc748-c022-47fe-9410-c40c51dfb0cf", fz:"05aaaf61-4faa-4267-bb25-86fab056c47f",
+               mo:"527630ba-b8bc-467c-8506-2e6480bdf205", cw:"b2eb6e2f-1e12-47e1-ae25-f52f2cddc518"};
+  var SERVICE_CATEGORIES = [2], FEED_TIMEOUT = 8000, FEED_MAXPAGES = 10;
+  var HOME_PLACE = {db:/drayton|st peter/i, fz:/fazeley|st paul/i, mo:/mile oak|st barnabas/i, cw:/canwell/i};
+  function pad2(n){ return (n < 10 ? "0" : "") + n; }
+  var LDN = null;
+  try { LDN = new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/London",year:"numeric",month:"2-digit",
+          day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}); } catch (e){}
+  function ldn(isoStr){
+    var d = new Date(isoStr), p = {};
+    if (!LDN || isNaN(d.getTime())) return null;
+    LDN.formatToParts(d).forEach(function(x){ p[x.type] = x.value; });
+    return {key: p.year + "-" + p.month + "-" + p.day, hm: pad2((+p.hour) % 24) + ":" + p.minute};
+  }
+  function feedTidy(name){
+    var s = String(name || "").replace(/\s+/g," ").trim(), tag = "", m;
+    s = s.replace(/^\d{1,2}([.:]\d{2})?\s*(am|pm)\s*[-\u2013\u2014:]?\s*/i, "");
+    m = /^(.*\S)\s*\(([^()]+)\)$/.exec(s); if (m){ s = m[1]; tag = m[2].trim(); }
+    return [s, tag];
+  }
+  function feedPlace(ev){
+    var l = ev && ev.location; if (!l) return "";
+    return String(typeof l === "string" ? l : (l.name || "")).trim();
+  }
+  function feedJSON(url){
+    return new Promise(function(ok, no){
+      var done = false;
+      var tm = setTimeout(function(){ if (!done){ done = true; no(new Error("timed out")); } }, FEED_TIMEOUT);
+      fetch(url, {credentials:"omit"})
+        .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+        .then(function(j){ if (!done){ done = true; clearTimeout(tm); ok(j); } },
+              function(e){ if (!done){ done = true; clearTimeout(tm); no(e); } });
+    });
+  }
+  function feedFor(k, dayKey){
+    var out = [], page = 1;
+    function step(){
+      return feedJSON(FEED_HOST + encodeURIComponent(FEEDS[k]) + "/json" + (page > 1 ? "?page=" + page : ""))
+        .then(function(j){
+          if (!j || !Array.isArray(j.events)) throw new Error("unexpected data");
+          var past = false;
+          j.events.forEach(function(ev){
+            if (!ev || ev.all_day || ev.status !== "confirmed") return;
+            if (SERVICE_CATEGORIES.indexOf(ev.category_id) < 0) return;
+            var st = ldn(ev.starts_at); if (!st) return;
+            if (st.key > dayKey) past = true;
+            if (st.key !== dayKey) return;
+            var nm = feedTidy(ev.name); if (!nm[0]) return;
+            var place = feedPlace(ev), note = nm[1];
+            if (place && !HOME_PLACE[k].test(place)) note = (note ? note + " \u00b7 " : "") + "at " + place;
+            out.push({ch: k, title: nm[0], time: st.hm, note: note});
+          });
+          var np = j.pagination && +j.pagination.next_page;
+          if (!past && np && np > page && np <= FEED_MAXPAGES){ page = np; return step(); }
+        });
+    }
+    return step().then(function(){ return out; });
+  }
+  var PICK = {db:"Drayton Bassett", fz:"Fazeley", mo:"Mile Oak", cw:"Canwell"};
+  var loading = false;
+  function liveFill(){
+    var d = D(data.date);
+    if (!d){ toast("Set the Sunday date first"); return; }
+    if (loading) return;
+    loading = true; buildFields();
+    var dayKey = data.date, keys = Object.keys(FEEDS), n = ordinal(d), failed = [], got = [];
+    Promise.all(keys.map(function(k){
+      return feedFor(k, dayKey).then(function(list){ got = got.concat(list); }, function(){
+        failed.push(k);
+        (ROTA[n] || []).forEach(function(x){
+          if (x.c === k) got.push({ch: k, title: x.s, time: x.t, note: x.n || ""});
+        });
+      });
+    })).then(function(){
+      loading = false;
+      if (failed.length === keys.length){
+        rotaFill();
+        toast("ChurchSuite didn\u2019t load \u2014 filled from the usual pattern instead. Check every time.");
+        return;
+      }
+      got.sort(function(a, b){
+        return (ORDER.indexOf(a.ch) - ORDER.indexOf(b.ch)) || (a.time || "99:99").localeCompare(b.time || "99:99");
+      });
+      services = got;
+      buildFields(); draw();
+      var none = keys.filter(function(k){
+        return failed.indexOf(k) < 0 && !got.some(function(s){ return s.ch === k; });
+      });
+      var msg = "Filled from ChurchSuite \u2014 " + got.length + " service" + (got.length === 1 ? "" : "s");
+      if (failed.length) msg += ". Couldn\u2019t reach " + failed.map(function(k){ return PICK[k]; }).join(", ") + " \u2014 used the usual pattern there";
+      if (none.length) msg += ". No service listed at " + none.map(function(k){ return PICK[k]; }).join(", ");
+      toast(msg, 4200);
+    });
+  }
+
   /* ---------- fields ---------- */
+  /* Fallback only: the usual pattern, used when ChurchSuite can't be reached. */
   function rotaFill(){
     var d = D(data.date);
     if (!d){ toast("Set the Sunday date first"); return; }
@@ -334,8 +436,6 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
       return {ch: svcKey(x.c), title: x.s, time: x.t, note: x.n || ""};
     });
     buildFields(); draw();
-    if (n === 5) toast("Fifth Sunday \u2014 no times are published; fill them in yourself");
-    else toast("Filled from the published pattern \u2014 the " + ORD[n] + " Sunday");
   }
 
   function serviceEditor(wrap){
@@ -345,7 +445,6 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     wrap.appendChild(hl);
     var hi = document.createElement("input");
     hi.type = "text"; hi.id = "fld-head";
-    hi.placeholder = "Join Us This Sunday";
     if (data.head === undefined) data.head = "Join Us This Sunday";
     hi.value = data.head;
     hi.addEventListener("input", function(){ data.head = hi.value; draw(); });
@@ -368,19 +467,26 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     var rowb = document.createElement("div");
     rowb.className = "row"; rowb.style.marginTop = "10px";
     var fill = document.createElement("button");
-    fill.type = "button"; fill.className = "btn ghost"; fill.textContent = "Fill from the published pattern";
-    fill.onclick = rotaFill;
+    fill.type = "button"; fill.className = "btn ghost";
+    fill.textContent = loading ? "Loading from ChurchSuite\u2026" : "Fill from ChurchSuite";
+    fill.disabled = loading;
+    fill.onclick = liveFill;
     rowb.appendChild(fill);
     wrap.appendChild(rowb);
 
     var h = document.createElement("p");
     h.className = "hint";
-    h.textContent = "The same pattern the newsletter builder uses. Always check it against the notices \u2014 it is a published pattern, not a live feed.";
+    h.textContent = "Reads each church\u2019s ChurchSuite calendar, the same source as the newsletter and the website. " +
+      "If a calendar can\u2019t be reached, that church falls back to its usual pattern. Always check the times before posting.";
     wrap.appendChild(h);
 
     var head = document.createElement("label");
     head.textContent = "Services";
     wrap.appendChild(head);
+    var hs = document.createElement("p");
+    hs.className = "hint"; hs.style.marginTop = "0";
+    hs.textContent = "Each row: church, service name and time, with an optional note underneath.";
+    wrap.appendChild(hs);
 
     var list = document.createElement("div");
     list.className = "svcs";
@@ -400,17 +506,17 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
       sel.onchange = function(){ sv.ch = sel.value; buildFields(); draw(); };
 
       var ti = document.createElement("input");
-      ti.type = "text"; ti.className = "svc-t"; ti.placeholder = "Holy Communion";
+      ti.type = "text"; ti.className = "svc-t"; ti.setAttribute("aria-label","Service name");
       ti.value = sv.title;
       ti.oninput = function(){ sv.title = ti.value; draw(); };
 
       var tm = document.createElement("input");
-      tm.type = "time"; tm.className = "svc-tm";
+      tm.type = "time"; tm.className = "svc-tm"; tm.setAttribute("aria-label","Time");
       tm.value = sv.time;
       tm.onchange = function(){ sv.time = tm.value; draw(); };
 
       var nt = document.createElement("input");
-      nt.type = "text"; nt.className = "svc-n"; nt.placeholder = "with Kingdom Kids (optional)";
+      nt.type = "text"; nt.className = "svc-n"; nt.setAttribute("aria-label","Note (optional)");
       nt.value = sv.note;
       nt.oninput = function(){ sv.note = nt.value; draw(); };
 
@@ -454,7 +560,6 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
         wrap.appendChild(p2);
       }
     }
-    canwellOpt(wrap);
     check("Dark version", "darkCard",
       "Ink background with the Bright colours, for posting alongside the light one.");
   }
@@ -466,7 +571,6 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
 
   function opt(wrap, labelText, key, hint, defaultOn){
     if (data[key] === undefined && defaultOn) data[key] = true;
-    if (key === "cwFull") cwFull = !!data[key];
     var l = document.createElement("label");
     l.className = "chk";
     var b = document.createElement("input");
@@ -475,7 +579,6 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     b.checked = !!data[key];
     b.addEventListener("change", function(){
       data[key] = b.checked;
-      if (key === "cwFull") cwFull = b.checked;
       touched(); buildFields(); draw();
     });
     l.appendChild(b);
@@ -525,7 +628,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   /* The notice form from the newsletter builder, minus the fields that only
      mean something in an email or on the website (link, link text, section). */
   /* The newsletter builder keeps its working state under this key. If both
-     tools are opened from the same place in the same browser, the post studio
+     tools are opened from the same place in the same browser, Social Studio
      can read the notices the volunteer has already typed rather than making
      them type everything twice. */
   var NEWSLETTER_KEY = "peel:newsletter:v2";
@@ -559,7 +662,6 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     hex.id = "bg-hex-" + key;
     hex.value = data[key];
     hex.spellcheck = false;
-    hex.placeholder = "#16211F";
 
     function apply(v, from){
       if (!/^#?[0-9a-fA-F]{6}$/.test(v.trim())) return;
@@ -602,24 +704,24 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
 
   var EVENT_SCHEMA = [
     {sec: "The event"},
-    {k:"title",    t:"What is it?",              type:"text", ph:"Saturday Breakfast"},
+    {k:"title",    t:"What is it?",              type:"text"},
 
     {sec: "When"},
     {k:"mode",     t:"How often",                type:"select", opts: MODES},
     {k:"date",     t:"Date",                     type:"date",   when: function(d){ return d.mode === "once"; }},
     {k:"start",    t:"Starting on",              type:"date",   when: function(d){ return d.mode === "series"; },
      hint:"The day of the week comes from this date."},
-    {k:"weeks",    t:"How many weeks",           type:"number", ph:"10",
+    {k:"weeks",    t:"How many weeks",           type:"number",
      when: function(d){ return d.mode === "series"; }},
     {k:"day",      t:"Day of the week",          type:"day",    when: function(d){ return d.mode === "ongoing"; }},
-    {k:"qualifier",t:"Anything to qualify it",   type:"text", ph:"term time only",
+    {k:"qualifier",t:"Anything to qualify it",   type:"text",
      when: function(d){ return d.mode === "ongoing"; }},
     {k:"time",     t:"Start time",               type:"time", when: dated},
     {k:"endTime",  t:"End time",                 type:"time", when: dated},
 
     {sec: "The details"},
-    {k:"place",    t:"Where",                    type:"text", ph:"St Paul's Church Hall, Fazeley"},
-    {k:"body",     t:"Say a bit more",           type:"area", ph:"Cooked breakfast, \u00a35 on the door.", count:220},
+    {k:"place",    t:"Where",                    type:"text"},
+    {k:"body",     t:"Say a bit more",           type:"area", count:220},
     {k:"signUpBy", t:"Sign up by",               type:"date",
      hint:"Leave it empty if there is nothing to book."}
   ];
@@ -633,7 +735,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   function blankEvent(keepLook){
     var look = {};
     if (keepLook){
-      ["usePhoto","washOn","washSize","wash","washHex","markStyle","textStyle","darkCard","cwFull"].forEach(function(k){
+      ["usePhoto","washOn","washSize","wash","washHex","markStyle","textStyle","darkCard","washOpacity"].forEach(function(k){
         if (data[k] !== undefined) look[k] = data[k];
       });
     }
@@ -673,7 +775,6 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
           "An ink layer sits under whichever you pick, so the words stay readable on a busy photograph.");
       }
     }
-    canwellOpt(wrap);
     if (church === "all"){
       sel(wrap, "Logo version", "markStyle", [
         ["auto",    "Choose for me"],
@@ -705,10 +806,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     var e = document.createElement(f.type === "area" ? "textarea" : "input");
     e.id = "ev-" + f.k;
     if (f.type === "area") e.rows = 3; else e.type = f.type || "text";
-    /* The placeholder shows the kind of thing that goes here. It is never the
-       value -- an event that has not been filled in must come out empty, not
-       come out as somebody else's breakfast with the office phone number. */
-    if (f.ph) e.placeholder = f.ph;
+    /* An event that has not been filled in comes out empty. */
     e.value = (data[f.k] === undefined || data[f.k] === null) ? "" : data[f.k];
     wrap.appendChild(e);
 
@@ -856,8 +954,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
       var el = document.createElement(f.area ? "textarea" : "input");
       if (!f.area) el.type = "text";
       el.id = "fld-"+f.k;
-      el.placeholder = f.ph;
-      el.value = (data[f.k] !== undefined) ? data[f.k] : f.ph;
+      el.value = (data[f.k] !== undefined) ? data[f.k] : "";
       if (f.area) el.rows = f.big ? 4 : 3;
       el.addEventListener("input", function(){ data[f.k] = el.value; draw(); });
       data[f.k] = el.value;
@@ -893,8 +990,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
       if (tpl === "words"){
         opt(wrap, "Show quotation marks", "quotes", null, true);
       }
-      canwellOpt(wrap);
-      if (!data.usePhoto){
+        if (!data.usePhoto){
         /* A church card used to be locked to its own Heritage colour. It can
            now take the Bright register, ink, limewash or a colour of its own,
            the same way a wash can -- still one church colour per card. */
@@ -1049,7 +1145,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     return {w: Math.round(w),
             h: Math.round(nm.ded.length * dedSize * 1.14 + (nm.pl ? plSize * 1.75 : 0))};
   }
-  function drawCornerName(W, H, pad, fgCol, mutedCol){
+  function drawCornerName(W, H, pad, fgCol, mutedCol, plCol){
     var nm = cornerName();
     var dedSize = Math.round(W * (nm.two ? 0.034 : 0.046));
     var plSize = Math.round(W * 0.021);
@@ -1066,7 +1162,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     });
     if (nm.pl){
       ctx.font = "600 " + plSize + "px " + LABEL;
-      ctx.fillStyle = mutedCol;
+      ctx.fillStyle = plCol || mutedCol;
       ctx.save();
       ctx.letterSpacing = Math.round(plSize * 0.16) + "px";
       ctx.fillText(nm.pl.toUpperCase(), W - pad, bottom);
@@ -1117,30 +1213,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
       var scl = Math.max(W/photo.width, H/photo.height);
       ctx.drawImage(photo, (W - photo.width*scl)/2, (H - photo.height*scl)/2,
                     photo.width*scl, photo.height*scl);
-      if (data.washOn !== false){
-        var full = (data.washSize === "full");
-        if (full){ ctx.fillStyle = "rgba(22,33,31,0.62)"; }
-        else {
-          var gi = ctx.createLinearGradient(0, H*0.30, 0, H);
-          gi.addColorStop(0, "rgba(22,33,31,0)");
-          gi.addColorStop(0.55, "rgba(22,33,31,0.55)");
-          gi.addColorStop(1, "rgba(22,33,31,0.80)");
-          ctx.fillStyle = gi;
-        }
-        ctx.fillRect(0,0,W,H);
-        var wh = toneHex(data.wash, c, "washHex");
-        if (data.wash !== "ink"){
-          if (full){ ctx.fillStyle = hexRgba(wh, 0.45); }
-          else {
-            var gc = ctx.createLinearGradient(0, H*0.30, 0, H);
-            gc.addColorStop(0, hexRgba(wh, 0));
-            gc.addColorStop(0.55, hexRgba(wh, 0.42));
-            gc.addColorStop(1, hexRgba(wh, 0.62));
-            ctx.fillStyle = gc;
-          }
-          ctx.fillRect(0,0,W,H);
-        }
-      }
+      paintWash(W, H, c);
     } else {
       ctx.fillStyle = dark ? INK : LIME;
       ctx.fillRect(0, 0, W, H);
@@ -1280,7 +1353,10 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
       fl.forEach(function(l,i){ ctx.fillText(l, left, H - pad - (fl.length-1-i)*fLh); });
     }
     if (single){
-      drawCornerName(W, H, pad, fg, mutedCol);
+      /* The place line takes the church colour: Heritage on the light card,
+         Bright on the dark version. Over a photograph it matches the church
+         name, as a colour gets lost in the picture. */
+      drawCornerName(W, H, pad, fg, mutedCol, onPhoto ? fg : (dark ? c.b : c.c));
     } else {
       var evAuto = light ? BRIGHT : HERITAGE;
       drawMark(W - pad - markSize, H - pad - markSize, markSize,
@@ -1347,7 +1423,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     var corner = single ? cornerNameSize(W) : {w: markSize, h: markSize};
     var cornerH = corner.h;
     if (single){
-      drawCornerName(W, H, pad, fgCol, mutedCol);
+      drawCornerName(W, H, pad, fgCol, mutedCol, dark ? c.b : c.c);
     } else {
       drawMark(W - pad - markSize, H - pad - markSize, markSize, dark ? BRIGHT : HERITAGE);
     }
@@ -1448,10 +1524,6 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
         ry = drawRow(list[idx], m.rows[idx], left, ry, W, innerW, sc);
         if (j < fit.length - 1) ry += gap;
       });
-    } else {
-      ctx.font = "400 " + Math.round(W * 0.040) + "px " + LABEL;
-      ctx.fillStyle = mutedCol; ctx.textAlign = "left";
-      ctx.fillText("Add the services on the left.", left, headBottom + minBuf + Math.round(W * 0.04));
     }
   }
 
@@ -1632,35 +1704,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
       var pw = photo.width*sc, ph = photo.height*sc;
       ctx.drawImage(photo, (W-pw)/2, (H-ph)/2, pw, ph);
 
-      /* Ink underneath guarantees the contrast; the colour sits on top of it,
-         so a pale church colour still tints without making the words unreadable.
-         "Whole picture" is an even wash; "lower half" fades in from the middle. */
-      if (data.washOn !== false){
-        var full = (data.washSize === "full");
-        var gi = full ? null : ctx.createLinearGradient(0, H*0.30, 0, H);
-        if (full){ ctx.fillStyle = "rgba(22,33,31,0.62)"; }
-        else {
-          gi.addColorStop(0, "rgba(22,33,31,0)");
-          gi.addColorStop(0.55, "rgba(22,33,31,0.55)");
-          gi.addColorStop(1, "rgba(22,33,31,0.80)");
-          ctx.fillStyle = gi;
-        }
-        ctx.fillRect(0,0,W,H);
-
-        var washHex = (data.wash === "ink") ? "#16211F"
-                    : (data.wash === "bright") ? c.b : c.c;
-        if (data.wash !== "ink"){
-          if (full){ ctx.fillStyle = hexRgba(washHex, 0.45); }
-          else {
-            var gc = ctx.createLinearGradient(0, H*0.30, 0, H);
-            gc.addColorStop(0, hexRgba(washHex, 0));
-            gc.addColorStop(0.55, hexRgba(washHex, 0.42));
-            gc.addColorStop(1, hexRgba(washHex, 0.62));
-            ctx.fillStyle = gc;
-          }
-          ctx.fillRect(0,0,W,H);
-        }
-      }
+      paintWash(W, H, c);
     } else if (tpl === "words"){
       var bgKey = (church === "all") ? (data.bg || "ink") : (data.bg || "church");
       ctx.fillStyle = bgKey === "custom" ? (data.bgHex || INK)
@@ -1839,18 +1883,20 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     var wrap = $("chopts");
     if (!wrap) return;
     wrap.innerHTML = "";
-  }
-  /* Shown wherever Canwell can actually appear on the card -- which includes a
-     parish card carrying a Canwell service, not just a Canwell-only card. */
-  function canwellShowing(){
-    if (church === "cw") return true;
-    if (tpl !== "sunday") return false;
-    return services.some(function(sv){ return sv.ch === "cw"; });
-  }
-  function canwellOpt(wrap){
-    if (!canwellShowing()) return;
-    opt(wrap, "Canwell in full", "cwFull",
-        "Sets Canwell as \u201c" + CW_FULL + "\u201d. Off by default \u2014 the short form fits better.");
+    if (church !== "cw") return;
+    /* One setting for every post type, kept with the church choice. */
+    var l = document.createElement("label");
+    l.className = "chk";
+    var b = document.createElement("input");
+    b.type = "checkbox"; b.id = "opt-cwFull"; b.checked = cwFull;
+    b.addEventListener("change", function(){ cwFull = b.checked; draw(); });
+    l.appendChild(b);
+    l.appendChild(document.createTextNode(" Canwell in full"));
+    wrap.appendChild(l);
+    var h = document.createElement("p");
+    h.className = "hint";
+    h.textContent = "Sets Canwell as \u201c" + CW_FULL + "\u201d. Off by default \u2014 the short form fits better.";
+    wrap.appendChild(h);
   }
 
   /* Wash and ground share one vocabulary: Heritage, Bright, Ink, or a colour
@@ -1871,6 +1917,63 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   function toneField(wrap, key, hexKey, label, hint){
     sel(wrap, label, key, TONES, hint);
     if (data[key] === "custom") colourField(wrap, hexKey, "Pick a colour");
+    opacityField(wrap);
+  }
+
+  /* Wash strength, 10-100%. 70% matches the old fixed wash. */
+  function opacityField(wrap){
+    if (data.washOpacity === undefined) data.washOpacity = 70;
+    var l = document.createElement("label");
+    l.setAttribute("for", "opt-washOpacity");
+    l.textContent = "Wash strength";
+    wrap.appendChild(l);
+    var row = document.createElement("div");
+    row.className = "colrow";
+    var r = document.createElement("input");
+    r.type = "range"; r.id = "opt-washOpacity";
+    r.min = "10"; r.max = "100"; r.step = "5";
+    r.value = String(data.washOpacity);
+    r.style.flex = "1";
+    var out = document.createElement("span");
+    out.style.minWidth = "3.2em"; out.style.textAlign = "right"; out.style.fontSize = ".85rem";
+    out.textContent = data.washOpacity + "%";
+    r.addEventListener("input", function(){
+      data.washOpacity = +r.value; out.textContent = r.value + "%"; touched(); draw();
+    });
+    row.appendChild(r); row.appendChild(out);
+    wrap.appendChild(row);
+    var h = document.createElement("p");
+    h.className = "hint";
+    h.textContent = "Lower lets more of the photo through. Keep it high enough that the words read easily.";
+    wrap.appendChild(h);
+  }
+
+  /* Paints the wash over the photo. A thin ink layer sits under a coloured
+     wash so the words stay readable; with Ink chosen it is all ink. Strength
+     scales both. "Lower half" fades in from the middle. */
+  function paintWash(W, H, c){
+    if (data.washOn === false) return;
+    var o = (data.washOpacity === undefined ? 70 : data.washOpacity) / 100;
+    var full = (data.washSize === "full");
+    var hex = toneHex(data.wash, c, "washHex");
+    var isInk = (hex.toUpperCase() === INK);
+    function layer(col, peak){
+      if (peak <= 0) return;
+      if (full){ ctx.fillStyle = hexRgba(col, Math.min(1, peak)); }
+      else {
+        var g = ctx.createLinearGradient(0, H*0.30, 0, H);
+        g.addColorStop(0, hexRgba(col, 0));
+        g.addColorStop(0.55, hexRgba(col, Math.min(1, peak*0.70)));
+        g.addColorStop(1, hexRgba(col, Math.min(1, peak)));
+        ctx.fillStyle = g;
+      }
+      ctx.fillRect(0, 0, W, H);
+    }
+    if (isInk){ layer(INK, (full ? 0.88 : 1.14) * o); }
+    else {
+      layer(INK, (full ? 0.30 : 0.40) * o);
+      layer(hex, (full ? 0.75 : 0.85) * o);
+    }
   }
 
   /* ---------- pickers ---------- */
@@ -1916,15 +2019,17 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     toast("Cleared this card");
   });
 
-  function toast(m){
+  var toastTimer = null;
+  function toast(m, ms){
     var el = $("toast"); el.textContent = m; el.classList.add("on");
-    setTimeout(function(){ el.classList.remove("on"); }, 1800);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove("on"); }, ms || 1800);
   }
 
   loadEvent();
   data.date = nextSunday();
-  rotaFill();
   buildFields();
+  liveFill();
   if (document.fonts && document.fonts.ready){
     document.fonts.ready.then(draw);
     setTimeout(draw, 700);
