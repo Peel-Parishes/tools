@@ -133,7 +133,7 @@ ol.brief strong{color:var(--ink)}
 .tabs button{font-family:var(--bod);font-weight:600;font-size:.67rem;letter-spacing:.13em;text-transform:uppercase;
   border:1px solid var(--stone);background:var(--paper);padding:8px 12px;cursor:pointer;color:var(--ink)}
 .tabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.tabs .sp{margin-left:auto}
+.tabs .sp{margin-left:auto;display:flex;gap:5px;flex-wrap:nowrap}
 .stage{background:var(--stone);padding:16px;overflow-x:auto;overflow-y:visible;max-height:calc(100vh - 260px);display:flex;justify-content:center;box-sizing:border-box}
 .stage-inner{width:100%;max-width:700px;transition:max-width .15s}
 .stage.phone .stage-inner{max-width:375px}
@@ -240,19 +240,12 @@ pre.plain{background:#fff;color:var(--ink);border:1px solid var(--stone);font-fa
       <button id="t-prev" aria-pressed="true">Preview</button>
       <button id="t-plain" aria-pressed="false">Plain text</button>
       <button id="t-code" aria-pressed="false">Code</button>
-      <span class="sp"></span>
-      <button id="t-wide" aria-pressed="true">Desktop</button>
-      <button id="t-phone" aria-pressed="false">Phone</button>
+      <span class="sp"><button id="t-wide" aria-pressed="true">Desktop</button><button id="t-phone" aria-pressed="false">Phone</button></span>
     </div>
     <div id="v-prev"><div class="stage" id="stage"><div class="stage-inner"><iframe id="previewFrame" title="Email preview" scrolling="no"></iframe></div></div></div>
     <div id="v-plain" hidden><pre class="plain" id="plain"></pre></div>
     <div id="v-code" hidden><pre id="code"></pre></div>
 
-    <div class="row">
-      <button class="btn" id="copy">Copy the whole email</button>
-      <button class="btn ghost" id="copyplain">Copy plain text</button>
-      <button class="btn ghost" id="dl">Download</button>
-    </div>
 
     <p class="meter">Email weight: <b id="kb">0 KB</b> of the <b>102 KB</b> Gmail shows before it hides the rest behind &ldquo;Message clipped&rdquo;. <span id="verdict"></span></p>
   </section>
@@ -289,11 +282,22 @@ var CH=[
 ];
 var CW_FULL="St Mary, St Giles & All Saints, Canwell";
 var BY={}; CH.forEach(function(c){ BY[c.k]=c; });
-var SECTIONS=["This week","Coming up","Please pray","Help needed","Every week"];
+var NEWS="News and updates";  /* the general-notices section: rename here only */
+var SECTIONS=["This week","Coming up",NEWS,"Please pray","Help needed","Every week"];
 var DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 var SHORT=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 var CTAS=["Sign up","Book a place","Read more","Find out more","Visit their website","Give"];
 var SITE="https://peelparishes.church/whats-on/";
+var ROOT="https://peelparishes.church/";
+var CHURCH_PAGE={db:"churches/stpeters",fz:"churches/stpauls",mo:"churches/stbarnabas",cw:"churches/canwell"};
+/* Events use the month of the event (first session for a series); general
+   notices use the month they were written. No date yet -> this month. */
+function mmyy(d){ var t=d||new Date(); return pad2(t.getMonth()+1)+pad2(t.getFullYear()%100); }
+function noticeUrl(title,mode,ch,when){
+  if(mode==="ongoing") return CHURCH_PAGE[ch]? ROOT+CHURCH_PAGE[ch] : ROOT;
+  if(mode==="none") return ROOT+"notices/"+mmyy()+"-"+slug(title);
+  return SITE+mmyy(D(mode==="series"?when.start:when.date))+"-"+slug(title);
+}
 var KEY="peel:newsletter:v2", PREV="peel:newsletter:v2:prev";
 
 var ROTA={
@@ -321,7 +325,7 @@ var S={
   sunday:"", season:"", preheader:"Going deeper with God, each other and the local community. Coming up this Sunday and next week.", logo:"https://mcusercontent.com/6735b6d743f7accf05ed7b09c/images/10c92d33-1ddb-0b97-767b-9f392eaf2242.png",
   services:[], theme:{title:"",body:"",image:""},
   cwFullSvc:false,
-  notices:[], dio:[], readings:[], video:{label:"WATCH THIS WEEK",caption:"",url:"",thumb:""}
+  notices:[], dio:[], readings:[], prayer:"", video:{label:"WATCH THIS WEEK",caption:"",url:"",thumb:""}
 };
 var step=0, church="ink", whenMode="once", editIndex=-1, dioIndex=-1, prev=null;
 var $=function(id){ return document.getElementById(id); };
@@ -916,6 +920,68 @@ function groupedServices(){
   });
   return g;
 }
+/* ---- Live service times from ChurchSuite: same calendars and rules as the
+   Sunday cards on the homepage (Service category, confirmed, timed events,
+   "Name (Tag)" -> tag). Any church whose calendar fails falls back to the
+   published pattern, and the toast says which. ---- */
+var FEED_HOST="https://peelparishes.churchsuite.com/-/calendar/";
+var FEEDS={db:"c33fc748-c022-47fe-9410-c40c51dfb0cf",fz:"05aaaf61-4faa-4267-bb25-86fab056c47f",
+           mo:"527630ba-b8bc-467c-8506-2e6480bdf205",cw:"b2eb6e2f-1e12-47e1-ae25-f52f2cddc518"};
+var SERVICE_CATEGORIES=[2], FEED_TIMEOUT=8000, FEED_MAXPAGES=10;
+var HOME_PLACE={db:/drayton|st peter/i,fz:/fazeley|st paul/i,mo:/mile oak|st barnabas/i,cw:/canwell/i};
+var LDN=null;
+try{ LDN=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/London",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}); }catch(e){}
+function ldn(isoStr){ var d=new Date(isoStr),p={}; if(!LDN||isNaN(d.getTime())) return null;
+  LDN.formatToParts(d).forEach(function(x){ p[x.type]=x.value; });
+  return {key:p.year+"-"+p.month+"-"+p.day, hm:pad2((+p.hour)%24)+":"+p.minute}; }
+function feedTidy(name){ var s=String(name||"").replace(/\s+/g," ").trim(),tag="",m;
+  s=s.replace(/^\d{1,2}([.:]\d{2})?\s*(am|pm)\s*[-–—:]?\s*/i,"");
+  m=/^(.*\S)\s*\(([^()]+)\)$/.exec(s); if(m){ s=m[1]; tag=m[2].trim(); }
+  return [s,tag]; }
+function feedPlace(ev){ var l=ev&&ev.location; if(!l) return "";
+  return String(typeof l==="string"?l:(l.name||"")).trim(); }
+function feedJSON(url){ return new Promise(function(ok,no){ var done=false;
+  var tm=setTimeout(function(){ if(!done){ done=true; no(new Error("timed out")); } },FEED_TIMEOUT);
+  fetch(url,{credentials:"omit"}).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+   .then(function(j){ if(!done){ done=true; clearTimeout(tm); ok(j); } },function(e){ if(!done){ done=true; clearTimeout(tm); no(e); } }); }); }
+function feedFor(k,dayKey){
+  var out=[],page=1;
+  function step(){ return feedJSON(FEED_HOST+encodeURIComponent(FEEDS[k])+"/json"+(page>1?"?page="+page:"")).then(function(j){
+    if(!j||!Array.isArray(j.events)) throw new Error("unexpected data");
+    var past=false;
+    j.events.forEach(function(ev){
+      if(!ev||ev.all_day||ev.status!=="confirmed") return;
+      if(SERVICE_CATEGORIES.indexOf(ev.category_id)<0) return;
+      var st=ldn(ev.starts_at); if(!st) return;
+      if(st.key>dayKey) past=true;
+      if(st.key!==dayKey) return;
+      var nm=feedTidy(ev.name); if(!nm[0]) return;
+      var en=ev.ends_at?ldn(ev.ends_at):null, place=feedPlace(ev), note=nm[1];
+      if(place&&!HOME_PLACE[k].test(place)) note=(note?note+" · ":"")+"at "+place;
+      out.push({church:k,title:nm[0],time:st.hm,endTime:"",note:note});
+    });
+    var np=j.pagination&&+j.pagination.next_page;
+    if(!past&&np&&np>page&&np<=FEED_MAXPAGES){ page=np; return step(); }
+  }); }
+  return step().then(function(){ return out; });
+}
+function liveFill(){
+  var d=D(S.sunday); if(!d){ toast("Set the Sunday date first"); return; }
+  var btn=$("s-rota"); if(btn){ btn.disabled=true; btn.textContent="Loading from ChurchSuite…"; }
+  var keys=Object.keys(FEEDS), n=ordinal(d), failed=[], got=[];
+  Promise.all(keys.map(function(k){
+    return feedFor(k,S.sunday).then(function(list){ got=got.concat(list); },
+      function(){ failed.push(k); (ROTA[n]||[]).forEach(function(x){ if(x.c===k) got.push({church:k,title:x.s,time:x.t,endTime:"",note:x.n||""}); }); });
+  })).then(function(){
+    S.services=got; save(); renderStep(); renderOut();
+    if(failed.length===keys.length){ rotaFill(); toast("ChurchSuite didn’t load — filled from the usual pattern instead. Check every time."); return; }
+    var none=keys.filter(function(k){ return failed.indexOf(k)<0&&!got.some(function(s){ return s.church===k; }); });
+    var msg="Filled from ChurchSuite — "+got.length+" service"+(got.length===1?"":"s");
+    if(failed.length) msg+=". Couldn’t reach "+failed.map(function(k){ return BY[k].pick; }).join(", ")+" — used the usual pattern there";
+    if(none.length) msg+=". No service listed at "+none.map(function(k){ return BY[k].pick; }).join(", ");
+    toast(msg);
+  });
+}
 function rotaFill(){
   var d=D(S.sunday); if(!d){ toast("Set the Sunday date first"); return; }
   var n=ordinal(d), list=ROTA[n]||[];
@@ -1022,7 +1088,7 @@ function noticeCard(n){
   }
   if(meta.length) inner.push('<div class="'+(off?"t-mut":"t-ink")+'" style="font:'+F.meta+' '+SS+';color:'+(off?"#5C6660":"#16211F")+';'+(off?"text-decoration:line-through;":"")+'">'+meta.join(' &nbsp;&middot;&nbsp; ')+'</div>');
   if(showSu) inner.push('<div class="k-'+kk+'" style="font:'+F.meta+' '+SS+';color:'+c+';padding-top:3px;">Sign up by '+esc(longDate(su))+'</div>');
-  /* Line breaks typed into "Anything else" are kept. */
+  /* Line breaks typed into "Notice information" are kept. */
   if(n.body) inner.push('<div class="t-mut" style="font:'+F.body+' '+SS+';color:#5C6660;padding-top:3px;">'+esc(n.body).replace(/\r?\n/g,"<br>")+'</div>');
   /* The call to action is a real anchor with the underline on it, instead of
      the whole card being wrapped in a link and the underline faked on a span.
@@ -1132,6 +1198,13 @@ function dioBlock(){
     h+='</div>';
   });
   return h+'</td></tr></table>';
+}
+/* A short prayer, some weeks. Its own titled section; gone when empty.
+   Line breaks are kept, as prayers are set out line by line. */
+function prayerBlock(){
+  var t=(S.prayer||"").trim(); if(!t) return "";
+  return heading("Let\u2019s pray")
+    +'<div class="t-ink" style="font:400 17px/1.65 '+SS+';color:#16211F;">'+esc(t).replace(/\n/g,"<br>")+'</div>';
 }
 function videoBlock(){
   var v=S.video;
@@ -1320,25 +1393,24 @@ function buildEmail(){
      themeHTML, svc,
 '  </td></tr>',
 '  <tr><td class="pad" style="padding:6px 40px 0 40px;">'+notices+'</td></tr>',
+ (prayerBlock()?'  <tr><td class="pad" style="padding:6px 40px 0 40px;">'+prayerBlock()+'</td></tr>':''),
 '  <tr><td class="pad" style="padding:26px 40px 0 40px;">'+readingsBlock()+'</td></tr>',
  (v?'  <tr><td class="pad" style="padding:24px 40px 0 40px;">'+v+'</td></tr>':''),
-'  <tr><td class="pad" style="padding:26px 40px 26px 40px;">',
-'    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;background-color:#EFF1EF;"><tr><td class="card-grey" style="padding:18px 20px;">',
-'      <div class="t-mut" style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#5C6660;padding-bottom:6px;">PARISH OFFICE</div>',
-'      <div class="t-ink" style="font:400 16px/1.6 '+SS+';color:#16211F;">St Paul&rsquo;s Church, Coleshill Street, Fazeley, Tamworth B78 3RQ<br>',
-'      <a class="k-fz" href="tel:01827289414" style="color:#1F5F6B;font-weight:600;">01827 289414</a> &nbsp;&middot;&nbsp; <a class="k-fz" href="mailto:admin@peelparishes.church" style="color:#1F5F6B;">admin@peelparishes.church</a></div>',
-'      <div class="t-mut" style="font:'+F.small+' '+SS+';color:#5C6660;padding-top:10px;">Mon, Tue, Thu, Fri <span class="t-ink" style="font-weight:600;color:#16211F;">9.00am&ndash;12noon</span> &nbsp;&middot;&nbsp; Wed <span class="t-ink" style="font-weight:600;color:#16211F;">2.00&ndash;4.00pm</span></div>',
-'    </td></tr></table>',
-'  </td></tr>',
-'  <tr><td class="pad" style="padding:0 40px 28px 40px;">',
-'    <div class="t-mut" style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#5C6660;padding-bottom:6px;">SAFEGUARDING</div>',
-'    <div class="t-mut" style="font:'+F.small+' '+SS+';color:#5C6660;">Drayton Bassett, Fazeley &amp; Mile Oak &mdash; <span class="t-ink" style="color:#16211F;font-weight:600;">Hazel Plant</span><br>',
-'    Canwell &mdash; <span class="t-ink" style="color:#16211F;font-weight:600;">Paul Newbold</span><br>Both via the parish office. If someone is in immediate danger, call 999.</div>',
-'  </td></tr>',
-'  <tr><td align="center" style="background-color:#16211F;padding:24px 40px;">',
-'    <div style="font:400 14px/1.7 '+SS+';color:#B9C0BC;">Peel Parishes &mdash; St Peter&rsquo;s Drayton Bassett, St Paul&rsquo;s Fazeley, St Barnabas Mile Oak and Canwell. Diocese of Lichfield.<br>DFM Parish PCC &nbsp;&middot;&nbsp; Canwell PCC<br><br>',
-'    <a href="*|UNSUB|*" style="color:#B9C0BC;text-decoration:underline;">Unsubscribe</a> &nbsp;&middot;&nbsp; <a href="*|UPDATE_PROFILE|*" style="color:#B9C0BC;text-decoration:underline;">Update your details</a><br><br>',
-'    <span style="color:#8A918D;">*|LIST:ADDRESSLINE|*</span></div>',
+'  <tr><td style="padding:0 0 30px 0;font-size:0;line-height:0;">&nbsp;</td></tr>',
+/* Footer mirrors the website footer: left-aligned, address, phone, then
+   office hours as a two-column list with times right-aligned. Address comes
+   from Mailchimp's ADDRESSLINE merge tag (its legal address requirement). */
+'  <tr><td class="pad" style="background-color:#16211F;padding:32px 40px 28px 40px;">',
+'    <div style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:#B9C0BC;padding-bottom:12px;">PEEL PARISHES OFFICE</div>',
+'    <div style="font:400 16px/1.6 '+SS+';color:#F7F8F6;">*|LIST:ADDRESSLINE|*</div>',
+'    <div style="font:400 16px/1.6 '+SS+';color:#F7F8F6;padding-top:2px;"><a href="tel:01827289414" style="color:#F7F8F6;text-decoration:underline;">01827 289414</a><br><a href="mailto:admin@peelparishes.church" style="color:#F7F8F6;text-decoration:underline;">admin@peelparishes.church</a></div>',
+'    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:22px 0 0 0;max-width:360px;">',
+'      <tr><td style="padding:3px 12px 3px 0;font:400 16px/1.5 '+SS+';color:#F7F8F6;">Mon, Tue, Thu, Fri</td><td align="right" style="padding:3px 0;font:400 16px/1.5 '+SS+';color:#F7F8F6;white-space:nowrap;">09:00 &ndash; 12:00</td></tr>',
+'      <tr><td style="padding:3px 12px 3px 0;font:400 16px/1.5 '+SS+';color:#F7F8F6;">Wed</td><td align="right" style="padding:3px 0;font:400 16px/1.5 '+SS+';color:#F7F8F6;white-space:nowrap;">14:00 &ndash; 16:00</td></tr>',
+'      <tr><td style="padding:3px 12px 3px 0;font:400 16px/1.5 '+SS+';color:#F7F8F6;">Sun</td><td align="right" style="padding:3px 0;font:400 16px/1.5 '+SS+';color:#F7F8F6;white-space:nowrap;">10:30 &ndash; 12:30</td></tr>',
+'    </table>',
+'    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:24px 0 16px 0;"><tr><td style="border-top:1px solid #3A4542;font-size:0;line-height:0;">&nbsp;</td></tr></table>',
+'    <div style="font:400 14px/1.7 '+SS+';color:#B9C0BC;"><a href="*|UNSUB|*" style="color:#B9C0BC;text-decoration:underline;">Unsubscribe from this email</a></div>',
 '  </td></tr>',
 '</table>',
 '<!--[if mso]></td></tr></table><![endif]-->',
@@ -1389,6 +1461,7 @@ function buildPlain(){
     o.push("ACROSS THE DIOCESE"); o.push("------------------"); o.push("");
     S.dio.forEach(function(x){ o.push(x.title); if(x.line) o.push(x.line); if(x.url) o.push(x.url); o.push(""); });
   }
+  if((S.prayer||"").trim()){ o.push("LET\u2019S PRAY"); o.push("-----------"); o.push(""); o.push(S.prayer.trim()); o.push(""); }
   var rr=S.readings.filter(function(r){ return r.psalm||r.ot||r.nt; });
   if(rr.length){
     o.push("READINGS FOR THE WEEK"); o.push("---------------------"); o.push("");
@@ -1397,9 +1470,11 @@ function buildPlain(){
     o.push("");
   }
   if(S.video.url){ o.push((S.video.label||"WATCH THIS WEEK")); if(S.video.caption) o.push(S.video.caption); o.push(S.video.url); o.push(""); }
-  o.push("PARISH OFFICE");
-  o.push("St Paul's Church, Coleshill Street, Fazeley, Tamworth B78 3RQ");
-  o.push("01827 289414 \u00b7 admin@peelparishes.church");
+  o.push("PEEL PARISHES OFFICE");
+  o.push("*|LIST:ADDRESSLINE|*");
+  o.push("01827 289414"); o.push("admin@peelparishes.church"); o.push("");
+  o.push("Mon, Tue, Thu, Fri  09:00 \u2013 12:00"); o.push("Wed  14:00 \u2013 16:00"); o.push("Sun  10:30 \u2013 12:30");
+  o.push(""); o.push("Unsubscribe: *|UNSUB|*");
   return o.join("\n").trim();
 }
 
@@ -1408,6 +1483,7 @@ var STEPS=[
   {n:"Sunday",  sub:"services & theme"},
   {n:"Notices", sub:"the week"},
   {n:"Diocese", sub:"beyond us"},
+  {n:"Prayer",  sub:"optional"},
   {n:"Readings",sub:"& video"},
   {n:"Send",    sub:"check & copy"}
 ];
@@ -1422,8 +1498,9 @@ function renderSteps(){
     if(i===1) count=S.services.length?S.services.length+" services":"not set";
     if(i===2) count=S.notices.length?S.notices.length+" items":"none yet";
     if(i===3) count=S.dio.length?S.dio.length+" items":"none";
-    if(i===4){ var f=S.readings.filter(function(r){return r.psalm||r.ot||r.nt;}).length;
+    if(i===5){ var f=S.readings.filter(function(r){return r.psalm||r.ot||r.nt;}).length;
       count=(f?f+"/6 days":"empty")+(S.video.url?" + video":""); }
+    if(i===4) count=(S.prayer||"").trim()?"added":"none";
     b.innerHTML=s.n+'<span class="dot">'+(count||s.sub)+'</span>';
     b.onclick=function(){
       var same=(i===step);
@@ -1440,19 +1517,21 @@ function renderStep(){
   if(step===1) stepSunday(b);
   if(step===2) stepNotices(b);
   if(step===3) stepDiocese(b);
-  if(step===4) stepReadings(b);
-  if(step===5) stepSend(b);
+  if(step===4) stepPrayer(b);
+  if(step===5) stepReadings(b);
+  if(step===6) stepSend(b);
 }
 
 function stepStart(b){
   b.innerHTML=''
    +'<span class="lab">Start here</span>'
    +'<h3 style="font-size:1.3rem;margin-bottom:10px">How this works</h3>'
-   +'<p>Six tabs along the top. Work through them in order the first time; after that, jump to whichever needs changing. Everything on the right is the actual email, building itself as you go.</p>'
+   +'<p>Seven tabs along the top. Work through them in order the first time; after that, jump to whichever needs changing. Everything on the right is the actual email, building itself as you go.</p>'
    +'<ol class="brief">'
      +'<li><strong>Sunday</strong> \u2014 the date, the services at each church, and the theme.</li>'
      +'<li><strong>Notices</strong> \u2014 what\u2019s happening this week.</li>'
      +'<li><strong>Diocese</strong> \u2014 anything from beyond the parishes.</li>'
+     +'<li><strong>Prayer</strong> \u2014 a short prayer, on the weeks there is one.</li>'
      +'<li><strong>Readings</strong> \u2014 the week\u2019s Bible readings, and the video if there is one.</li>'
      +'<li><strong>Send</strong> \u2014 a final check, then copy the finished email into Mailchimp.</li>'
    +'</ol>'
@@ -1486,7 +1565,7 @@ function stepSunday(b){
    +'<div><label for="s-season">Season <span class="opt">— optional</span></label><input type="text" id="s-season" maxlength="60" value="'+esc(S.season)+'" placeholder="Thirteenth Sunday after Trinity"></div></div>'
    +'<p class="hint" id="s-datehint"></p>'
    +'<fieldset><legend>Services</legend>'
-   +'<div class="row" style="margin-top:12px"><button class="btn ghost sm" id="s-rota">Fill from the published pattern</button></div>'
+   +'<div class="row" style="margin-top:12px"><button class="btn ghost sm" id="s-rota">Fill from ChurchSuite</button></div>'
    +'<div id="svclist" style="margin-top:14px"></div>'
    +'</fieldset>'
    +'<fieldset><legend>The theme</legend>'
@@ -1505,7 +1584,7 @@ function stepSunday(b){
   $("s-th").oninput=function(){ S.theme.title=this.value; cnt("s-th","c-th",60); save(); renderOut(); };
   $("s-tb").oninput=function(){ S.theme.body=this.value; cnt("s-tb","c-tb",700); save(); renderOut(); };
   $("s-ti").oninput=function(){ S.theme.image=this.value; save(); renderOut(); };
-  $("s-rota").onclick=rotaFill;
+  $("s-rota").onclick=liveFill;
   cnt("s-th","c-th",60); cnt("s-tb","c-tb",700); cnt("s-pre","c-pre",120);
   sundayHint(); renderServices();
 }
@@ -1571,9 +1650,9 @@ function renderServices(){
     w.appendChild(sec);
   });
   var n=document.createElement("div"); n.className="note";
-  n.innerHTML='<b>Always check these</b>These are filled from the pattern published on each church\u2019s own page, not a live '
-    +'calendar feed \u2014 the ChurchSuite "What\u2019s on?" embed on those pages does not currently work. A swap, a one-off '
-    +'change, or anything the wardens have since altered will not show up here automatically.';
+  n.innerHTML='<b>Always check these</b>These come from each church\u2019s ChurchSuite calendar, the same source as the Sunday '
+    +'times on the website. If a calendar can\u2019t be reached, that church falls back to its usual pattern and the message says so. '
+    +'A church with nothing in its calendar shows no service \u2014 add one here if that\u2019s wrong.';
   w.appendChild(n);
 }
 
@@ -1581,18 +1660,18 @@ function stepNotices(b){
   b.innerHTML=''
    +'<span class="lab" id="formstep">Add a notice</span>'
    +'<label for="f-title">What\'s happening? <span class="count" id="c-title">0/60</span></label>'
-   +'<input type="text" id="f-title" maxlength="80" placeholder="Kintsugi Hope wellbeing course">'
+   +'<input type="text" id="f-title" maxlength="80">'
    +'<label>Which church?</label><div class="pick" id="pick"></div><div id="extra"></div>'
    +'<fieldset><legend>When</legend><div class="when" id="whenmode">'
    +'<button type="button" data-m="once" aria-pressed="true">One date</button>'
    +'<button type="button" data-m="series">A course or series</button>'
    +'<button type="button" data-m="ongoing">Every week</button>'
-   +'<button type="button" data-m="none">No set time</button></div>'
+   +'<button type="button" data-m="none">General Notice</button></div>'
    +'<div id="whenfields"></div><p class="hint" id="whenhint"></p></fieldset>'
    +'<label for="f-place">Where? <span class="opt">— optional</span></label><input type="text" id="f-place" maxlength="70">'
    +'<fieldset><legend>Where the card takes people</legend>'
    +'<label for="f-url" style="margin-top:10px">Web address</label><input type="url" id="f-url" placeholder="https://peelparishes.church/whats-on/...">'
-   +'<div class="chips"><button type="button" id="suggesturl">Suggest a parish page</button></div>'
+   +'<div class="chips"><button type="button" id="suggesturl">Generate URL</button></div>'
    +'<label for="f-linktext">Words on the link</label><input type="text" id="f-linktext" maxlength="40" placeholder="Sign up">'
    +'<div class="chips" id="ctachips"></div><p class="hint" id="linkhint"></p></fieldset>'
    +'<fieldset><legend>Booking deadline</legend><label for="f-signup" style="margin-top:10px">Sign up by <span class="opt">— optional</span></label>'
@@ -1600,8 +1679,8 @@ function stepNotices(b){
    +'<fieldset><legend>Cancelled</legend>'
    +'<label style="display:flex;gap:9px;align-items:flex-start;font-weight:400;margin-top:10px"><input type="checkbox" id="f-cancelled" style="width:16px;height:16px;margin-top:4px">'
    +'<span>This one is cancelled &mdash; show it, but greyed out</span></label>'
-   +'<p class="hint" id="cancelhint">The card keeps its place in the running order, drops its church colour and its link, and gets a CANCELLED flag. Say in "Anything else?" when it returns.</p></fieldset>'
-   +'<label for="f-body">Anything else? <span class="count" id="c-body">0/220</span></label><textarea id="f-body" maxlength="300"></textarea>'
+   +'<p class="hint" id="cancelhint">The card keeps its place in the running order, drops its church colour and its link, and gets a CANCELLED flag. Say in "Notice information" when it returns.</p></fieldset>'
+   +'<label for="f-body">Notice information <span class="count" id="c-body">0/220</span></label><textarea id="f-body" maxlength="300"></textarea>'
    +'<div class="grid2"><div><label for="f-who">Who to contact</label><input type="text" id="f-who" maxlength="50"></div>'
    +'<div><label for="f-how">Email or phone</label><input type="text" id="f-how" maxlength="120"></div></div>'
    +'<label for="f-sec">Where should it sit?</label><select id="f-sec">'
@@ -1711,7 +1790,7 @@ function wireNotice(){
   ["f-title","f-body"].forEach(function(id){ $(id).addEventListener("input",function(){ cnt("f-title","c-title",60); cnt("f-body","c-body",220); }); });
   $("f-url").addEventListener("input",linkHint); $("f-linktext").addEventListener("input",linkHint);
   $("suggesturl").onclick=function(){ var t=$("f-title").value.trim();
-    if(!t){ toast("Give it a title first"); return; } $("f-url").value=SITE+slug(t); linkHint(); };
+    if(!t&&whenMode!=="ongoing"){ toast("Give it a title first"); return; } $("f-url").value=noticeUrl(t,whenMode,church,readWhen()); linkHint(); };
   [].forEach.call(document.querySelectorAll("#whenmode button"),function(b){ b.onclick=function(){ setWhen(b.dataset.m); }; });
   $("f-signup").addEventListener("change",function(){
     var su=D(this.value), h=$("signuphint");
@@ -1746,7 +1825,7 @@ function renderQueue(){
       var bar=document.createElement("span"); bar.className="bar"; bar.style.background=(BY[n.church]||BY.ink).c;
       var t=document.createElement("div"); t.className="t"; t.title="Click to edit";
       var b2=document.createElement("b"); b2.textContent=n.title;
-      var s2=document.createElement("small"); s2.textContent=whenText(n)||n.place||"no set time";
+      var s2=document.createElement("small"); s2.textContent=whenText(n)||n.place||"general notice";
       t.appendChild(b2); t.appendChild(s2);
       if(n.cancelled){ var cx=document.createElement("span"); cx.className="tag off"; cx.textContent="cancelled"; t.appendChild(cx);
         b2.style.textDecoration="line-through"; bar.style.background="#8A918D"; }
@@ -1885,6 +1964,14 @@ function stepReadings(b){
   });
 }
 
+function stepPrayer(b){
+  b.innerHTML='<span class="lab">Let\u2019s pray</span>'
+   +'<p class="hint">Some weeks have a short prayer, insert below. Leave it blank and the section disappears.</p>'
+   +'<label for="p-text">Prayer <span class="count" id="c-pray"></span></label>'
+   +'<textarea id="p-text" rows="7" maxlength="600">'+esc(S.prayer||"")+'</textarea>';
+  $("p-text").oninput=function(){ S.prayer=this.value; cnt("p-text","c-pray",450); save(); renderSteps(); renderOut(); };
+  cnt("p-text","c-pray",450);
+}
 function stepSend(b){
   var d=D(S.sunday), issues=[];
   if(!S.services.length) issues.push("No services set for this Sunday.");
@@ -1911,10 +1998,115 @@ function stepSend(b){
    +'<p class="hint">In Mailchimp, create a campaign, choose <strong>Code your own \u2192 Paste in code</strong>, and paste. '
    +'Upload the masthead and any pictures to Mailchimp first and paste their addresses into the Sunday step, or they will not show.</p>'
    +'</fieldset>'
+   +'<fieldset><legend>Printed sheet</legend>'
+   +'<div class="row" style="margin-top:10px"><button class="btn ghost" id="send-print">Printable notices card</button></div>'
+   +'<p class="hint">A hand-held card for whoever reads the notices in church: prints on plain A4, cut into strips or folded in half twice, '
+   +'with a box at the end for their own notes. Choose <strong>Save as PDF</strong> in the print window to download it.</p>'
+   +'</fieldset>'
+   +'<fieldset><legend>Handing over</legend>'
+   +'<div class="row" style="margin-top:10px"><button class="btn ghost" id="send-save">Save this week to a file</button></div>'
+   +'<p class="hint">If someone else is doing next week, save this week to a file and pass it on. They open it from the Start step.</p>'
+   +'</fieldset>'
    +'<div class="note"><b>Then check</b>Send yourself a test. Read the plain-text tab. Look at it on a phone.</div>';
   $("send-copy").onclick=function(){ copyText(buildEmail(),"Copied \u2014 paste into Mailchimp"); };
   $("send-copyplain").onclick=function(){ copyText(buildPlain(),"Plain text copied"); };
   $("send-dl").onclick=doDownload;
+  $("send-print").onclick=openPrint;
+  $("send-save").onclick=saveWeekFile;
+}
+
+/* ---- Printable notice card for whoever reads the notices in church.
+   A4 landscape cut into four 74mm strips (or folded in half twice); content
+   flows down strip 1, then 2, 3, 4, then onto a second sheet if it needs to.
+   Heritage register and black-and-white safe: the church is a left rule plus
+   its name in words. Finished and cancelled notices are left out. Ends with a
+   blank box for the reader's own notes. ---- */
+var PRINT_GROUPS=[
+  {h:"This week",   f:function(n){ return n.section==="This week"&&n.mode!=="series"; }},
+  {h:"Coming up",   f:function(n){ return n.section==="Coming up"&&n.mode!=="series"; }},
+  {h:"Courses",     f:function(n){ return (n.section==="This week"||n.section==="Coming up")&&n.mode==="series"; }},
+  {h:NEWS,          f:function(n){ return n.section===NEWS; }},
+  {h:"Please pray", f:function(n){ return n.section==="Please pray"; }},
+  {h:"Help needed", f:function(n){ return n.section==="Help needed"; }}
+];  /* Every week is left off the printed card on purpose (decided 9 Nov). */
+function shortUrl(u){ return String(u||"").trim().replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""); }
+function buildPrint(){
+  var d=D(S.sunday), live=S.notices.filter(function(n){ var st=status(n); return !n.cancelled&&!(st&&st.k==="done"); });
+  var body=PRINT_GROUPS.map(function(g){
+    var list=live.filter(g.f); if(!list.length) return "";
+    return '<h2>'+esc(g.h)+'</h2>'+list.map(function(n){
+      /* Printed card: church, title, date/time, venue, sign-up deadline, notice
+         information and contact. No web addresses (decided 9 Nov). */
+      var c=(BY[n.church]||BY.ink).c, w=whenText(n), m=[w,n.place].filter(Boolean).join(" \u00b7 ");
+      var su=D(n.signUpBy), who=(n.who&&n.how)?n.who+" \u2014 "+n.how:(n.how||n.who||"");
+      return '<article style="border-left-color:'+c+'"><div class="ch" style="color:'+c+'">'+esc(labelFor(n))+'</div>'
+        +'<h3>'+esc(n.title)+'</h3>'+(m?'<div class="meta">'+esc(m)+'</div>':'')
+        +(su&&today()<=su?'<div class="meta">Sign up by '+esc(longDate(su))+'</div>':'')
+        +(n.body?'<p>'+esc(n.body).replace(/\n/g,"<br>")+'</p>':'')
+        +(who?'<div class="who">'+esc(who)+'</div>':'')
+        +'</article>'; }).join("");
+  }).join("");
+  if(!body) body='<p class="empty">No notices yet.</p>';
+  /* Layout is done by a small script in the print window rather than CSS
+     columns: Safari and some print paths ignore landscape @page and
+     multi-column, which collapsed the strips into one portrait page.
+     Each sheet is drawn landscape and, for printing only, turned a quarter
+     turn onto a portrait A4 page, so it comes out right whatever the
+     browser's default orientation. Sized 180x264mm so it fits inside Safari's own print margins (a
+     slightly taller page spilled a blank second sheet, 9 Nov). */
+  return '<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"><title>Peel Parishes notices'+(d?" — "+esc(medDate(d)):"")+'</title>'
+   +'<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">'
+   +'<style>@page{size:A4 portrait;margin:12mm}*{box-sizing:border-box}'
+   +'html,body{margin:0;background:#fff}body{color:#16211F;font:400 10.5pt/1.4 "Source Sans 3",Helvetica,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+   +'#src{display:none}'
+   +'.page{width:264mm;height:180mm;position:relative;overflow:hidden}'
+   +'.sheet{width:264mm;height:180mm;display:flex}'
+   +'.strip{width:25%;height:180mm;padding:4mm 5mm;overflow:hidden;border-left:.5pt dashed #8A918D}.strip:first-child{border-left:0}'
+   +'.mast{border-bottom:1.2pt solid #16211F;padding-bottom:4pt;margin-bottom:2pt}'
+   +'.mast h1{font:400 17pt/1.1 Marcellus,Georgia,serif;margin:0}.mast .d{font-weight:600;font-size:10.5pt;margin-top:2pt}'
+   +'.tag{color:#5C6660;font-size:9.5pt;margin:2pt 0 4pt}'
+   +'h2{font:600 9pt/1.3 "Source Sans 3",Helvetica,Arial,sans-serif;letter-spacing:1pt;text-transform:uppercase;color:#5C6660;margin:8pt 0 4pt;padding-top:3pt;border-top:.5pt solid #B9C0BC}'
+   +'.strip>h2:first-child{margin-top:0}'
+   +'article{border-left:2.5pt solid #16211F;padding:1pt 0 1pt 6pt;margin:0 0 7pt}'
+   +'.ch{font-weight:600;font-size:8pt;letter-spacing:.8pt;text-transform:uppercase;color:#5C6660}'
+   +'h3{font:400 12.5pt/1.2 Marcellus,Georgia,serif;margin:1pt 0 2pt}.meta{font-weight:500;font-size:8.5pt;color:#16211F}'
+   +'p{margin:2pt 0;font-size:8.5pt;line-height:1.4;color:#6B7470}'
+   +'.who{color:#6B7470;font-size:8.5pt}.empty{color:#5C6660}'
+   +'.notes{margin-top:8pt;border:.75pt solid #16211F;padding:3pt 5pt 4pt}'
+   +'.notes span{font-weight:600;font-size:8pt;letter-spacing:.8pt;text-transform:uppercase;color:#5C6660}'
+   +'.notes i{display:block;height:7.5mm;border-bottom:.5pt solid #B9C0BC}'
+   +'.bar{background:#EFF1EF;padding:10px;text-align:center;font:600 14px "Source Sans 3",sans-serif}'
+   +'.bar button{font:inherit;padding:8px 16px;margin-left:8px;cursor:pointer}'
+   +'@media screen{body{background:#C9CEC9}.page{background:#fff;margin:16px auto;box-shadow:0 1px 4px rgba(0,0,0,.2)}}'
+   +'@media print{html,body{height:auto;overflow:visible}.bar{display:none}.page{width:180mm;height:264mm;margin:0}.page+.page{break-before:page;page-break-before:always}'
+   +'.sheet{position:absolute;left:0;top:0;transform-origin:0 0;transform:translate(180mm,0) rotate(90deg)}}'
+   +'</style></head><body>'
+   +'<div class="bar">Prints on plain A4. Cut along the dashed lines, or fold in half twice. Choose “Save as PDF” to download. <button onclick="window.print()">Print or save as PDF</button></div>'
+   +'<div id="src">'
+   +'<div class="mast"><h1>Peel Parishes</h1><div class="d">Notices'+(d?' · '+esc(longDate(d)):'')+'</div></div>'
+   +(S.season?'<p class="tag">'+esc(S.season)+'</p>':'')+body
+   +'<div class="notes"><span>Notes and extra notices</span>'+new Array(8).join('<i></i>')+'</div>'
+   +'</div><div id="out"></div>'
+   +'<script>(function(){'
+   +'function sheet(){var pg=document.createElement("div");pg.className="page";var sh=document.createElement("div");sh.className="sheet";'
+   +'for(var i=0;i<4;i++){var st=document.createElement("div");st.className="strip";sh.appendChild(st);}pg.appendChild(sh);document.getElementById("out").appendChild(pg);return sh.children;}'
+   +'function over(st){return st.scrollHeight>st.clientHeight+1;}'
+   +'function lay(){var src=document.getElementById("src"),blocks=[].slice.call(src.children),strips=sheet(),n=0;'
+   +'blocks.forEach(function(b){var st=strips[n];st.appendChild(b);'
+   +'if(over(st)&&st.children.length>1){st.removeChild(b);var carry=[];'
+   +'while(st.lastElementChild&&st.lastElementChild.tagName==="H2"&&st.children.length>1){carry.unshift(st.lastElementChild);st.removeChild(st.lastElementChild);}'
+   +'n++;if(n>3){strips=sheet();n=0;}carry.forEach(function(c){strips[n].appendChild(c);});strips[n].appendChild(b);}});'
+   +'setTimeout(function(){window.print();},300);}'
+   +'(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(lay,lay);'
+   +'})();<\/script></body></html>';
+}
+function openPrint(){
+  var html=buildPrint(), w=window.open("","_blank");
+  if(w){ w.document.open(); w.document.write(html); w.document.close(); return; }
+  /* Pop-up blocked: download the sheet instead; it prints when opened. */
+  var a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+  a.download="peel-notices-"+(S.sunday||"week")+".html"; document.body.appendChild(a); a.click(); a.remove();
+  toast("Downloaded \u2014 open it to print or save as PDF");
 }
 
 function openReview(){
@@ -1932,7 +2124,7 @@ function openReview(){
     var bar=document.createElement("span"); bar.className="bar"; bar.style.background=(BY[n.church]||BY.ink).c;
     var t=document.createElement("div"); t.className="t";
     var b=document.createElement("b"); b.textContent=n.title;
-    var s=document.createElement("small"); s.textContent=n.section+" \u00b7 "+(whenText(n)||"no set time");
+    var s=document.createElement("small"); s.textContent=n.section+" \u00b7 "+(whenText(n)||"general notice");
     var wy=document.createElement("span"); wy.className="why"+(c.keep?"":" drop"); wy.textContent=c.why;
     t.appendChild(b); t.appendChild(s); t.appendChild(wy);
     row.appendChild(cb); row.appendChild(bar); row.appendChild(t); list.appendChild(row);
@@ -1942,11 +2134,11 @@ function openReview(){
   if(S.dio.length){
     var dh=document.createElement("div");
     dh.innerHTML='<span class="lab" style="margin-top:20px">Across the Diocese</span>'
-      +'<p style="font-size:.85rem;color:var(--muted);margin:-4px 0 8px">Unticked by default \u2014 most run once.</p>';
+      +'<p style="font-size:.85rem;color:var(--muted);margin:-4px 0 8px">Check each notice below is still relevant and required this week, and untick any that aren\u2019t.</p>';
     r.appendChild(dh);
     S.dio.forEach(function(x,i){
       var row=document.createElement("div"); row.className="rv";
-      var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=false; cb.dataset.d=i;
+      var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=true; cb.dataset.d=i;
       var t=document.createElement("div"); t.className="t";
       var b=document.createElement("b"); b.textContent=x.title;
       var s=document.createElement("small"); s.textContent=x.line||"";
@@ -1964,7 +2156,7 @@ function openReview(){
     var keep=[]; [].forEach.call(list.querySelectorAll("input"),function(cb){ if(cb.checked) keep.push(S.notices[+cb.dataset.i]); });
     var dk=[]; [].forEach.call(dlist.querySelectorAll("input"),function(cb){ if(cb.checked) dk.push(S.dio[+cb.dataset.d]); });
     S.sunday=iso(nx); S.season=""; S.services=[]; S.theme={title:"",body:"",image:""};
-    S.notices=keep; S.dio=dk; S.video={label:"WATCH THIS WEEK",caption:"",url:"",thumb:""};
+    S.notices=keep; S.dio=dk; S.video={label:"WATCH THIS WEEK",caption:"",url:"",thumb:""}; S.prayer="";
     buildReadings(); editIndex=-1; dioIndex=-1; save();
     r.hidden=true; step=1; renderSteps(); renderStep(); renderOut();
     toast("New week started \u2014 "+keep.length+" notices carried over");
@@ -1987,7 +2179,7 @@ var PREV_W=700;
 function resizePreview(){
   var f=$("previewFrame"), inner=f.parentNode, phone=$("stage").classList.contains("phone");
   var w = phone ? 375 : PREV_W;
-  var k = phone ? 1 : Math.min(1, inner.clientWidth / PREV_W);
+  var k = Math.min(1, inner.clientWidth / w);   /* phone view also shrinks to fit a narrow screen */
   f.style.width = w+"px";
   f.style.transform = k===1 ? "none" : "scale("+k+")";
   var h;
@@ -2065,8 +2257,6 @@ function fb(t){ var ta=document.createElement("textarea"); ta.value=t; ta.style.
   document.body.appendChild(ta); ta.select();
   try{ document.execCommand("copy"); toast("Copied"); }catch(e){ toast("Select the code and copy it"); }
   document.body.removeChild(ta); }
-$("copy").onclick=function(){ copyText(buildEmail(),"Copied \u2014 paste into Mailchimp"); };
-$("copyplain").onclick=function(){ copyText(buildPlain(),"Plain text copied"); };
 function doDownload(){
   var blob=new Blob([buildEmail()],{type:"text/html"});
   var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
@@ -2074,7 +2264,6 @@ function doDownload(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(a.href); },1000);
 }
-$("dl").onclick=doDownload;
 
 /* ----------------------------------------------------------------
    Week file: save/open the whole working state as a small JSON file.
@@ -2105,7 +2294,7 @@ $("weekFile").addEventListener("change", function(e){
     if(!confirm("Open "+(data.S.sunday||"this week")+"? This replaces what's currently open here.")) return;
     S = Object.assign({sunday:"",season:"",preheader:"Going deeper with God, each other and the local community. Coming up this Sunday and next week.",logo:S.logo,cwFullSvc:false,services:[],
       theme:{title:"",body:"",image:""},notices:[],dio:[],readings:[],
-      video:{label:"WATCH THIS WEEK",caption:"",url:"",thumb:""}}, data.S);
+      prayer:"", video:{label:"WATCH THIS WEEK",caption:"",url:"",thumb:""}}, data.S);
     editIndex=-1; dioIndex=-1; save();
     step=1; renderSteps(); renderStep(); renderOut();
     toast("Opened "+(data.saved ? "a week saved "+new Date(data.saved).toLocaleDateString("en-GB") : "the week file"));
