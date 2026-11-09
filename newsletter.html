@@ -1256,6 +1256,11 @@ function buildEmail(){
 '<style type="text/css">',
 '  @import url(\'https://fonts.googleapis.com/css2?family=Marcellus&display=swap\');',
 '  :root{ color-scheme:light dark; supported-color-schemes:light dark; }',
+/* Apple Mail turns times, dates and places into links and, in dark mode,
+   colours them with its own accent -- which happened to look like St Paul's
+   teal on every church's notice. Keep the links (useful: tap to add to calendar or map) but make them take
+   the surrounding text colour; Apple keeps its own underline. */
+'  a[x-apple-data-detectors], .ad a, u + #body a{ color:inherit !important; font-size:inherit !important; font-family:inherit !important; font-weight:inherit !important; line-height:inherit !important; }',
 /* One media query carries the whole dark rendering. Every colour in the email
    body is an inline style, which a media query cannot reach, so the generator
    tags each coloured element with a class -- .pg, .card, .t-ink, .t-mut,
