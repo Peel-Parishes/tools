@@ -67,6 +67,9 @@
         text-wrap: balance
     }
 
+    label.tick { flex-direction: row; align-items: center; gap: 10px; font-weight: 400;
+        font-size: .9rem; letter-spacing: 0; text-transform: none; margin-top: -4px }
+    label.tick input { width: 20px; height: 20px; min-height: 0; margin: 0; padding: 0; flex: none; accent-color: #573984 }
     /* Ink header, same as the Newsletter Builder and Social Studio (10 Nov).
        Stays ink in dark mode too. */
     header {
@@ -294,10 +297,16 @@ header .home:hover,header .home:focus-visible{color:#F7F8F6;text-decoration:unde
                         <input id="phone" type="tel" autocomplete="tel" value="">
                     </label>
                     <label for="logo">
-                        Logo image URL
-                                  
-                        <input id="logo" type="url" autocapitalize="off" spellcheck="false" value="https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/0e61f343-c2c4-4d0c-9d13-dc04cef6a933/Peel+Parishes+Email+Sig.png?content-type=image%2Fpng">
-                        <span class="hint">Must be a public https link to a PNG.</span>
+                        Logo
+                        <select id="logo">
+                            <option value="parish">Peel Parishes</option>
+                            <option value="church">Church logo</option>
+                        </select>
+                        <span class="hint" id="logoHint">Church logo uses the church chosen above.</span>
+                    </label>
+                    <label for="cwFull" id="cwFullRow" class="tick" hidden>
+                        <input id="cwFull" type="checkbox">
+                        Full Canwell logo (St Mary, St Giles &amp; All Saints)
                     </label>
                 </form>
             </div>
@@ -354,6 +363,21 @@ header .home:hover,header .home:focus-visible{color:#F7F8F6;text-decoration:unde
         mileoak: ["#A4462E", "St Barnabas, Mile Oak"],
         canwell: ["#573984", "St Mary, St Giles & All Saints, Canwell"]
     };
+    /* Logo images, kept in Squarespace's "do not touch" folder, with the size
+       each one shows at in the signature (the images are 3x that, so they are
+       sharp on phones) and the page the logo links to. Each church logo is
+       trimmed to its lettering with an even white margin, so sizes differ.
+       To change a logo: upload the PNG to Squarespace, paste its image address
+       into src, and set w and h to the new size if it changed. A church whose
+       src is empty ("") falls back to the Peel Parishes logo. */
+    const LOGOS = {
+        parish:      { src: "https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/0e61f343-c2c4-4d0c-9d13-dc04cef6a933/Peel+Parishes+Email+Sig.png?content-type=image%2Fpng", w: 132, h: 47, href: "https://peelparishes.church" },
+        drayton:     { src: "https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/185caee4-50f8-4255-83d8-a25933530fd0/peel-email-drayton.png?content-type=image%2Fpng", w: 104, h: 39, href: "https://peelparishes.church/churches/stpeters" },   /* peel-email-drayton.png */
+        fazeley:     { src: "https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/59ac0ec1-eb5f-4026-aaf8-9b74abe09c6d/peel-email-fazeley.png?content-type=image%2Fpng", w: 91, h: 40, href: "https://peelparishes.church/churches/stpauls" },   /* peel-email-fazeley.png */
+        mileoak:     { src: "https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/8712e4f5-bc8c-4e12-bd14-77c6f7072ad7/peel-email-mileoak.png?content-type=image%2Fpng", w: 129, h: 40, href: "https://peelparishes.church/churches/stbarnabas" },   /* peel-email-mileoak.png */
+        canwell:     { src: "https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/d0281255-a8c2-4baf-acd9-dc6e7e06a623/peel-email-canwell.png?content-type=image%2Fpng", w: 92, h: 40, href: "https://peelparishes.church/churches/canwell" },   /* peel-email-canwell.png */
+        canwellFull: { src: "https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/a1d5705b-4059-4d70-9048-a619fa36faa2/peel-email-canwell-full.png?content-type=image%2Fpng", w: 116, h: 50, href: "https://peelparishes.church/churches/canwell" }    /* peel-email-canwell-full.png */
+    };
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/[&<>"]/g, c => ({
         "&": "&amp;",
@@ -367,7 +391,13 @@ header .home:hover,header .home:focus-visible{color:#F7F8F6;text-decoration:unde
             role = esc($("role").value.trim()),
             email = esc($("email").value.trim()),
             phone = esc($("phone").value.trim()),
-            logo = esc($("logo").value.trim());
+            ch = $("church").value,
+            /* Church logo only for a single church that has one; otherwise the parish logo. */
+            key = (ch === "canwell" && $("cwFull").checked) ? "canwellFull" : ch,
+            useChurch = $("logo").value === "church" && ch !== "parish" && LOGOS[key] && LOGOS[key].src,
+            L = useChurch ? LOGOS[key] : LOGOS.parish,
+            logo = esc(L.src), lw = L.w, lh = L.h, href = esc(L.href),
+            alt = esc(useChurch ? church : "Peel Parishes");
         const f = "font-family:Helvetica,Arial,sans-serif;";
         const showChurch = $("church").value !== "parish";
         return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;${f}">
@@ -378,10 +408,25 @@ header .home:hover,header .home:focus-visible{color:#F7F8F6;text-decoration:unde
         <div style="${f}font-size:13px;color:#555555;line-height:18px;padding-top:6px;"><a href="mailto:${email}" style="color:#555555;text-decoration:none;">${email}</a>${phone ? ` &nbsp;|&nbsp; ${phone}` : ""}</div>
         <div style="${f}font-size:13px;line-height:18px;"><a href="https://peelparishes.church" style="color:${col};text-decoration:none;">peelparishes.church</a></div>
         </td></tr>
-        <tr><td style="padding:14px 0 0 0;"><a href="https://peelparishes.church" style="text-decoration:none;"><img src="${logo}" width="132" height="47" alt="Peel Parishes" style="display:block;width:132px;max-width:132px;height:47px;border:0;outline:none;font-family:Georgia,'Times New Roman',serif;font-size:18px;line-height:47px;color:#16211F;"></a></td></tr>
+        <tr><td style="padding:14px 0 0 0;"><a href="${href}" style="text-decoration:none;"><img src="${logo}" width="${lw}" height="${lh}" alt="${alt}" style="display:block;width:${lw}px;max-width:${lw}px;height:${lh}px;border:0;outline:none;font-family:Georgia,'Times New Roman',serif;font-size:18px;line-height:${lh}px;color:#16211F;"></a></td></tr>
         </table>`;
     }
+    /* "Church logo" only makes sense for one church; say when it is not available yet. */
+    function logoState() {
+        const ch = $("church").value, opt = $("logo").options[1];
+        opt.disabled = ch === "parish";
+        if (opt.disabled && $("logo").value === "church") $("logo").value = "parish";
+        /* The full-Canwell tick only shows for Canwell with its church logo. */
+        $("cwFullRow").hidden = !(ch === "canwell" && $("logo").value === "church");
+        const key = (ch === "canwell" && $("cwFull").checked) ? "canwellFull" : ch;
+        $("logoHint").textContent = ch === "parish"
+            ? "Whole benefice: the Peel Parishes logo."
+            : ($("logo").value === "church" && !(LOGOS[key] && LOGOS[key].src))
+                ? "This church\u2019s logo isn\u2019t uploaded yet, so the Peel Parishes logo is used."
+                : "Church logo uses the church chosen above.";
+    }
     function render() {
+        logoState();
         const h = build();
         $("sig").innerHTML = h;
         $("html").value = h;
