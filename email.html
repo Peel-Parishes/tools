@@ -1,5 +1,8 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Signature Logo Test</title>
+<title>Peel Parishes — Email Signature Generator</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="Team Tools">
     <meta name="claude:viewport-fit-sides" content="cover">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;600&display=swap">
     <style>
@@ -64,6 +67,24 @@
         text-wrap: balance
     }
 
+    /* Ink header, same as the Newsletter Builder and Social Studio (10 Nov).
+       Stays ink in dark mode too. */
+    header {
+        background: #16211F; color: #F7F8F6; display: flex; align-items: center; gap: 22px;
+        padding: 18px max(28px, env(safe-area-inset-right, 0px)) 18px max(28px, env(safe-area-inset-left, 0px));
+        box-sizing: border-box; min-height: 133px   /* same height as the other tools' headers */
+    }
+    header svg { width: 46px; height: 46px; flex: none }
+    header .eyebrow { display: block; color: #8A918D; font-weight: 600; font-size: .68rem;
+        letter-spacing: .16em; text-transform: uppercase; margin-bottom: 3px }
+    header h1 { color: #F7F8F6; font-size: 1.45rem; line-height: 1.2; margin: 0 }
+    header p { color: #B9C0BC; margin: 4px 0 0; font-size: .9rem; max-width: 74ch }
+/* Back to the landing page (10 Nov): the Home Screen app has no back button. */
+header .home{margin-left:auto;align-self:flex-start;flex:none;color:#B9C0BC;font-weight:600;font-size:.9rem;
+    text-decoration:none;white-space:nowrap;padding:12px 0 12px 14px;margin-top:-12px}
+header .home:hover,header .home:focus-visible{color:#F7F8F6;text-decoration:underline}
+@media (max-width:600px){ header{flex-wrap:wrap;row-gap:4px} header .home{order:-1;flex-basis:100%;margin:-10px 0 0;padding:10px 0} header>div{flex:1 1 0;min-width:0} }
+
     .lede {
         color: var(--muted);
         margin: 0 0 28px;
@@ -108,7 +129,7 @@
 
     input, select {
         font: inherit;
-        font-size: 15px;
+        font-size: 16px;
         color: var(--fg);
         background: var(--bg);
         border: 1px solid var(--rule);
@@ -225,16 +246,28 @@
     }
     </style>
 
+    <header>
+    <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-label="Peel Parishes woven mark">
+      <rect x="0" y="20" width="90" height="20" fill="#D9392B"/><rect x="0" y="50" width="90" height="20" fill="#9457C4"/>
+      <rect x="20" y="0" width="20" height="50" fill="#D4A24C"/><rect x="20" y="70" width="20" height="20" fill="#D4A24C"/>
+      <rect x="50" y="0" width="20" height="20" fill="#0E8C9E"/><rect x="50" y="40" width="20" height="50" fill="#0E8C9E"/>
+    </svg>
+      <div>
+        <span class="eyebrow">Peel Parishes · Email</span>
+        <h1>Email Signature Generator</h1>
+        <p>Fill in your details, copy the signature, and paste it into your email settings.</p>
+      </div>
+      <a class="home" href="./" aria-label="Back to Team tools">← Team tools</a>
+    </header>
+
     <div class="wrap">
-        <h1>Peel Parishes Email Signature</h1>
-        <p class="lede">Fill in your details, copy the signature, and paste it into your email settings. Every team signature uses the same layout; only your details and church colour change.</p>
 
         <div class="grid">
             <div class="card">
                 <form id="f" onsubmit="return false">
                     <label for="name">
                         Name
-                        <input id="name" value="">
+                        <input id="name" autocomplete="name" value="">
                     </label>
                     <label for="role">
                         Role
@@ -253,17 +286,17 @@
                     </label>
                     <label for="email">
                         Email
-                        <input id="email" value="@peelparishes.church">
+                        <input id="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="@peelparishes.church">
                     </label>
                     <label for="phone">
                         Phone 
                         <span class="hint">optional</span>
-                        <input id="phone" value="">
+                        <input id="phone" type="tel" autocomplete="tel" value="">
                     </label>
                     <label for="logo">
                         Logo image URL
                                   
-                        <input id="logo" value="https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/0e61f343-c2c4-4d0c-9d13-dc04cef6a933/Peel+Parishes+Email+Sig.png?content-type=image%2Fpng">
+                        <input id="logo" type="url" autocapitalize="off" spellcheck="false" value="https://images.squarespace-cdn.com/content/6ab818d8f071e863ac94da7a/0e61f343-c2c4-4d0c-9d13-dc04cef6a933/Peel+Parishes+Email+Sig.png?content-type=image%2Fpng">
                         <span class="hint">Must be a public https link to a PNG.</span>
                     </label>
                 </form>
@@ -319,7 +352,7 @@
         drayton: ["#8A6A2F", "St Peter's, Drayton Bassett"],
         fazeley: ["#1F5F6B", "St Paul's, Fazeley"],
         mileoak: ["#A4462E", "St Barnabas, Mile Oak"],
-        canwell: ["#573984", "St Mary's, St Giles & All Saints, Canwell"]
+        canwell: ["#573984", "St Mary, St Giles & All Saints, Canwell"]
     };
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/[&<>"]/g, c => ({
@@ -382,7 +415,7 @@
             try {
                 ok = document.execCommand("copy");
             } catch (_) {}
-            $("status").textContent = ok ? "Copied. Paste into your signature settings." : "Signature selected. Press Ctrl+C (Cmd+C on Mac) to copy.";
+            $("status").textContent = ok ? "Copied. Paste into your signature settings." : "Signature selected. Press Ctrl+C (Cmd+C on Mac), or tap Copy on a phone or tablet.";
         }
     });
     render();

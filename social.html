@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Peel Parishes — Social Studio</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Team Tools">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
@@ -30,6 +33,11 @@ header svg{width:46px;height:46px;flex:none}
 header .eyebrow{color:#8A918D;margin-bottom:3px}
 header h1{color:var(--paper);font-size:1.45rem}
 header p{color:#B9C0BC;margin:4px 0 0;font-size:.9rem;max-width:74ch}
+/* Back to the landing page (10 Nov): the Home Screen app has no back button. */
+header .home{margin-left:auto;align-self:flex-start;flex:none;color:#B9C0BC;font-weight:600;font-size:.9rem;
+  text-decoration:none;white-space:nowrap;padding:12px 0 12px 14px;margin-top:-12px}
+header .home:hover,header .home:focus-visible{color:#F7F8F6;text-decoration:underline}
+@media (max-width:600px){ header{flex-wrap:wrap;row-gap:4px} header .home{order:-1;flex-basis:100%;margin:-10px 0 0;padding:10px 0} header>div{flex:1 1 0;min-width:0} }
 
 .shell{display:grid;grid-template-columns:minmax(330px,400px) 1fr;flex:1}
 .pane{padding:24px 26px}
@@ -110,6 +118,21 @@ canvas{display:block;max-width:100%;height:auto;box-shadow:0 2px 14px rgba(0,0,0
 input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;padding:8px 10px;
   border:1px solid var(--stone);background:#fff;color:var(--ink);width:100%}
 .f{display:none}
+/* Phones and tablets (10 Nov): 16px form text stops iPhone zooming in on every
+   field you tap, and a tapped button no longer stays stuck in its hover colours. */
+@media (pointer:coarse){ input,select,textarea{font-size:16px !important} }
+/* Finger-sized controls on touch screens (10 Nov): 44px remove button, bigger tick boxes. */
+@media (pointer:coarse){
+  .svc{grid-template-columns:1fr 1fr 88px 44px}
+  .svc .svc-x{min-height:44px}
+  .chk input,input[type=checkbox]{width:22px;height:22px}
+}
+@media (hover:none){
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn.ghost:hover{background:transparent;color:var(--ink)}
+  .svc .svc-x:hover{background:#fff;color:var(--muted);border-color:var(--stone)}
+  .imp:hover{background:#fff}
+}
 @media (max-width:940px){ .shell{grid-template-columns:1fr} .left{border-right:0;border-bottom:1px solid var(--stone)} }
 
 /* Wide view only: the two columns fill the window and scroll inside themselves,
@@ -144,6 +167,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     <h1>Social Studio</h1>
     <p>Makes a finished square post in about a minute.<br>Four of the five templates need no photograph at all.</p>
   </div>
+  <a class="home" href="./" aria-label="Back to Team tools">← Team tools</a>
 </header>
 
 <div class="shell">
@@ -288,7 +312,8 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   }
   function nextSunday(){
     var d = new Date(); d.setDate(d.getDate() + ((7 - d.getDay()) % 7));
-    return d.toISOString().slice(0,10);
+    /* Local date: toISOString() is UTC and gave Saturday just after midnight in summer time. */
+    return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate());
   }
   function svcKey(k){ return (k==="ink") ? "all" : k; }
   var INK="#16211F", PAPER="#F7F8F6", LIME="#EFF1EF", MUTED="#5C6660";
@@ -1035,9 +1060,11 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     r.onload = function(ev){
       var im = new Image();
       im.onload = function(){ photo = im; draw(); toast("Photo added"); };
+      im.onerror = function(){ toast("That photo couldn\u2019t be opened \u2014 try a JPEG or PNG", 3500); };
       im.src = ev.target.result;
     };
     r.readAsDataURL(f);
+    e.target.value = "";   /* so choosing the same photo again still works */
   });
 
   /* ---------- canvas helpers ---------- */
@@ -2001,12 +2028,44 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   picker("ch", function(d){ church = d.k; buildChurchOpts(); buildFields(); draw(); });
   $("size").addEventListener("change", draw);
 
-  $("dl").addEventListener("click", function(){
-    var a = document.createElement("a");
-    a.download = "peel-" + tpl + "-" + $("size").value + ".png";
-    a.href = cv.toDataURL("image/png");
+  /* Built synchronously inside the tap: iPhone and iPad only open the share
+     sheet straight from a tap, not after waiting for an async toBlob(). */
+  function pngBlob(){
+    var u = cv.toDataURL("image/png"), bin = atob(u.slice(u.indexOf(",") + 1)),
+        n = bin.length, b = new Uint8Array(n);
+    for (var i = 0; i < n; i++) b[i] = bin.charCodeAt(i);
+    return new Blob([b], {type: "image/png"});
+  }
+
+  /* ---- Saving files on iPhone, iPad and Android (10 Nov) ----
+     A download link does nothing useful there: Safari asks to allow downloads,
+     drops the file that triggered the question, and in the Home Screen app
+     downloads don't work at all. So on those devices the file goes to the share
+     sheet instead -- Save Image, Save to Files, Print, AirDrop, Mail. iPadOS
+     calls itself a Mac, so it is spotted by its touch screen. Computers keep
+     the ordinary download. */
+  function touchOS(){ var ua=navigator.userAgent||"";
+    return /iPad|iPhone|iPod|Android/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1); }
+  function downloadBlob(blob,name){
+    var u=URL.createObjectURL(blob), a=document.createElement("a");
+    a.href=u; a.download=name; a.rel="noopener"; a.style.display="none";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    toast("Saved to your downloads");
+    /* Safari can still be asking "Download?" when a short timer fires, which loses the file. */
+    setTimeout(function(){ URL.revokeObjectURL(u); },60000);
+  }
+  function saveFile(blob,name,sharedMsg,savedMsg){
+    var file=null; try{ file=new File([blob],name,{type:blob.type}); }catch(e){}
+    if(touchOS()&&file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file]}).then(function(){ if(sharedMsg) toast(sharedMsg); },function(err){
+        if(err&&err.name==="AbortError") return;   /* they closed the share sheet */
+        downloadBlob(blob,name); if(savedMsg) toast(savedMsg); });
+      return;
+    }
+    downloadBlob(blob,name); if(savedMsg) toast(savedMsg);
+  }
+  $("dl").addEventListener("click", function(){
+    saveFile(pngBlob(), "peel-" + tpl + "-" + $("size").value + ".png",
+      "Done", touchOS() ? "Saved \u2014 look in the Files app, under Downloads" : "Saved to your downloads");
   });
 
   $("reset").addEventListener("click", function(){

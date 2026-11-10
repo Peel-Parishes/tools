@@ -4,9 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Peel Parishes — Newsletter Builder</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Team Tools">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --db:#8A6A2F; --fz:#1F5F6B; --mo:#A4462E; --cw:#573984;
@@ -25,6 +28,11 @@ header svg{width:46px;height:46px;flex:none}
 header .lab{color:#8A918D;margin-bottom:3px}
 header h1{color:var(--paper);font-size:1.45rem}
 header p{color:#B9C0BC;margin:4px 0 0;font-size:.9rem;max-width:74ch}
+/* Back to the landing page (10 Nov): the Home Screen app has no back button. */
+header .home{margin-left:auto;align-self:flex-start;flex:none;color:#B9C0BC;font-weight:600;font-size:.9rem;
+  text-decoration:none;white-space:nowrap;padding:12px 0 12px 14px;margin-top:-12px}
+header .home:hover,header .home:focus-visible{color:#F7F8F6;text-decoration:underline}
+@media (max-width:600px){ header{flex-wrap:wrap;row-gap:4px} header .home{order:-1;flex-basis:100%;margin:-10px 0 0;padding:10px 0} header>div{flex:1 1 0;min-width:0} }
 
 .shell{display:grid;grid-template-columns:minmax(360px,470px) minmax(0,1fr);min-height:calc(100vh - 92px)}
 .pane{padding:0;position:relative;min-width:0}
@@ -174,6 +182,26 @@ pre.plain{background:#fff;color:var(--ink);border:1px solid var(--stone);font-fa
 .rv .why{font-weight:600;font-size:.71rem;color:var(--fz)}
 .rv .why.drop{color:var(--mo)}
 .f{display:none}
+/* Phones and tablets (10 Nov): 16px form text stops iPhone zooming in on every
+   field you tap, and a tapped button no longer stays stuck in its hover colours. */
+@media (pointer:coarse){ input,select,textarea{font-size:16px !important} }
+/* Finger-sized controls on touch screens (10 Nov): 44px buttons, bigger tick boxes. */
+@media (pointer:coarse){
+  .svc .x,.qitem .acts button{width:44px;height:44px;font-size:1.05rem}
+  .qitem .acts{gap:4px}
+  input[type=checkbox]{width:22px !important;height:22px !important}
+}
+@media (hover:none){
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn.ghost:hover{background:transparent;color:var(--ink)}
+  .chips button:hover{background:var(--paper);color:var(--ink);border-color:var(--stone)}
+  .svc .x:hover,.qitem .acts button:hover{background:#fff;color:var(--muted);border-color:var(--stone)}
+}
+/* The page runs edge to edge (viewport-fit=cover), so keep the masthead and
+   form clear of the iPhone notch in landscape. */
+header{padding-left:max(28px,env(safe-area-inset-left));padding-right:max(28px,env(safe-area-inset-right))}
+.body{padding-left:max(28px,env(safe-area-inset-left))}
+.right{padding-right:max(26px,env(safe-area-inset-right))}
 @media (max-width:1000px){
   .shell{grid-template-columns:1fr}
   .left{border-right:0;border-bottom:1px solid var(--stone)}
@@ -226,6 +254,7 @@ pre.plain{background:#fff;color:var(--ink);border:1px solid var(--stone);font-fa
     <h1>Newsletter Builder</h1>
     <p>Work through the steps. The finished email builds itself.<br>Copy it into Mailchimp when you're done.</p>
   </div>
+  <a class="home" href="./" aria-label="Back to Team tools">← Team tools</a>
 </header>
 
 <div class="shell">
@@ -2009,7 +2038,9 @@ function stepSend(b){
    +'<fieldset><legend>Printed sheet</legend>'
    +'<div class="row" style="margin-top:10px"><button class="btn ghost" id="send-print">Printable notices card</button></div>'
    +'<p class="hint">A hand-held card for whoever reads the notices in church: prints on plain A4, cut into strips or folded in half twice, '
-   +'with a box at the end for their own notes. Choose <strong>Save as PDF</strong> in the print window to download it.</p>'
+   +'with a box at the end for their own notes. It makes a PDF: '+(touchOS()
+     ? 'tap the button, then choose <strong>Print</strong> or <strong>Save to Files</strong>.</p>'
+     : 'it opens in a new tab, ready to print or download.</p>')
    +'</fieldset>'
    +'<fieldset><legend>Handing over</legend>'
    +'<div class="row" style="margin-top:10px"><button class="btn ghost" id="send-save">Save this week to a file</button></div>'
@@ -2021,6 +2052,7 @@ function stepSend(b){
   $("send-dl").onclick=doDownload;
   $("send-print").onclick=openPrint;
   $("send-save").onclick=saveWeekFile;
+  prepCard();   /* ready before the click, so the tab or share sheet can open straight from it */
 }
 
 /* ---- Printable notice card for whoever reads the notices in church.
@@ -2038,87 +2070,213 @@ var PRINT_GROUPS=[
   {h:"Help needed", f:function(n){ return n.section==="Help needed"; }}
 ];  /* Every week is left off the printed card on purpose (decided 9 Nov). */
 function shortUrl(u){ return String(u||"").trim().replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""); }
-function buildPrint(){
-  var d=D(S.sunday), live=S.notices.filter(function(n){ var st=status(n); return !n.cancelled&&!(st&&st.k==="done"); });
-  var body=PRINT_GROUPS.map(function(g){
-    var list=live.filter(g.f); if(!list.length) return "";
-    return '<h2>'+esc(g.h)+'</h2>'+list.map(function(n){
-      /* Printed card: church, title, date/time, venue, sign-up deadline, notice
-         information and contact. No web addresses (decided 9 Nov). */
-      var c=(BY[n.church]||BY.ink).c, w=whenText(n), m=[w,n.place].filter(Boolean).join(" \u00b7 ");
-      var su=D(n.signUpBy), who=(n.who&&n.how)?n.who+" \u2014 "+n.how:(n.how||n.who||"");
-      return '<article style="border-left-color:'+c+'"><div class="ch" style="color:'+c+'">'+esc(labelFor(n))+'</div>'
-        +'<h3>'+esc(n.title)+'</h3>'+(m?'<div class="meta">'+esc(m)+'</div>':'')
-        +(su&&today()<=su?'<div class="meta">Sign up by '+esc(longDate(su))+'</div>':'')
-        +(n.body?'<p>'+esc(n.body).replace(/\n/g,"<br>")+'</p>':'')
-        +(who?'<div class="who">'+esc(who)+'</div>':'')
-        +'</article>'; }).join("");
-  }).join("");
-  if(!body) body='<p class="empty">No notices yet.</p>';
-  /* Layout is done by a small script in the print window rather than CSS
-     columns: Safari and some print paths ignore landscape @page and
-     multi-column, which collapsed the strips into one portrait page.
-     Each sheet is drawn landscape and, for printing only, turned a quarter
-     turn onto a portrait A4 page, so it comes out right whatever the
-     browser's default orientation. Sized 180x264mm so it fits inside Safari's own print margins (a
-     slightly taller page spilled a blank second sheet, 9 Nov). */
-  return '<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"><title>Peel Parishes notices'+(d?" — "+esc(medDate(d)):"")+'</title>'
-   +'<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">'
-   +'<style>@page{size:A4 portrait;margin:12mm}*{box-sizing:border-box}'
-   +'html,body{margin:0;background:#fff}body{color:#16211F;font:400 10.5pt/1.4 "Source Sans 3",Helvetica,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
-   +'#src{display:none}'
-   +'.page{width:264mm;height:180mm;position:relative;overflow:hidden}'
-   +'.sheet{width:264mm;height:180mm;display:flex}'
-   +'.strip{width:25%;height:180mm;padding:4mm 5mm;overflow:hidden;position:relative;border-left:.5pt dashed #8A918D}.strip:first-child{border-left:0}'
-   +'.mast{border-bottom:1.2pt solid #16211F;padding-bottom:4pt;margin-bottom:2pt}'
-   +'.mast h1{font:400 17pt/1.1 Marcellus,Georgia,serif;margin:0}.mast .d{font-weight:600;font-size:10.5pt;margin-top:2pt}'
-   +'.tag{color:#5C6660;font-size:9.5pt;margin:2pt 0 4pt}'
-   +'h2{font:600 9pt/1.3 "Source Sans 3",Helvetica,Arial,sans-serif;letter-spacing:1pt;text-transform:uppercase;color:#16211F;margin:8pt 0 4pt;padding-top:3pt;border-top:.5pt solid #B9C0BC}'
-   +'.strip>h2:first-child{margin-top:0}'
-   +'article{border-left:2.5pt solid #16211F;padding:1pt 0 1pt 6pt;margin:0 0 7pt}'
-   +'.ch{font-weight:600;font-size:8pt;letter-spacing:.8pt;text-transform:uppercase;color:#5C6660}'
-   +'h3{font:400 12.5pt/1.2 Marcellus,Georgia,serif;margin:1pt 0 2pt}.meta{font-weight:500;font-size:8.5pt;color:#16211F}'
-   +'p{margin:2pt 0;font-size:8.5pt;line-height:1.4;color:#525C58}'
-   +'.who{color:#525C58;font-size:8.5pt}.empty{color:#5C6660}'
-   +'.notes{margin-top:8pt;border:.75pt solid #16211F;padding:3pt 5pt 4pt}'
-   +'.notes span{font-weight:600;font-size:8pt;letter-spacing:.8pt;text-transform:uppercase;color:#5C6660}'
-   +'.notes i{display:block;height:7.5mm;border-bottom:.5pt solid #B9C0BC}'
-   +'.bar{background:#EFF1EF;padding:10px;text-align:center;font:600 14px "Source Sans 3",sans-serif}'
-   +'.bar button{font:inherit;padding:8px 16px;margin-left:8px;cursor:pointer}'
-   +'@media screen{body{background:#C9CEC9}.page{background:#fff;margin:16px auto;box-shadow:0 1px 4px rgba(0,0,0,.2)}}'
-   +'@media print{html,body{height:auto;overflow:visible}.bar{display:none}.page{width:180mm;height:264mm;margin:0}.page+.page{break-before:page;page-break-before:always}'
-   +'.sheet{position:absolute;left:0;top:0;transform-origin:0 0;transform:translate(180mm,0) rotate(90deg)}}'
-   +'</style></head><body>'
-   +'<div class="bar">Prints on plain A4. Cut along the dashed lines, or fold in half twice. Choose “Save as PDF” to download. <button onclick="window.print()">Print or save as PDF</button></div>'
-   +'<div id="src">'
-   +'<div class="mast"><h1>Peel Parishes</h1><div class="d">Notices'+(d?' · '+esc(longDate(d)):'')+'</div></div>'
-   +(S.season?'<p class="tag">'+esc(S.season)+'</p>':'')+body
-   +'<div class="notes"><span>Notes and extra notices</span>'+new Array(8).join('<i></i>')+'</div>'
-   +'</div><div id="out"></div>'
-   +'<script>(function(){'
-   +'function sheet(){var pg=document.createElement("div");pg.className="page";var sh=document.createElement("div");sh.className="sheet";'
-   +'for(var i=0;i<4;i++){var st=document.createElement("div");st.className="strip";sh.appendChild(st);}pg.appendChild(sh);document.getElementById("out").appendChild(pg);return sh.children;}'
-   +'function over(st){return st.scrollHeight>st.clientHeight+1;}'
-   +'function lay(){var src=document.getElementById("src"),blocks=[].slice.call(src.children),strips=sheet(),n=0;'
-   +'blocks.forEach(function(b){var st=strips[n];st.appendChild(b);'
-   +'if(over(st)&&st.children.length>1){st.removeChild(b);var carry=[];'
-   +'while(st.lastElementChild&&st.lastElementChild.tagName==="H2"&&st.children.length>1){carry.unshift(st.lastElementChild);st.removeChild(st.lastElementChild);}'
-   +'n++;if(n>3){strips=sheet();n=0;}carry.forEach(function(c){strips[n].appendChild(c);});strips[n].appendChild(b);}});'
-   +'fill();setTimeout(function(){window.print();},300);}'
-   /* Notes box keeps its 7 lines as a minimum, then stretches to the foot of its strip and gains lines to match. */
-   +'function fill(){var nb=document.querySelector(".strip .notes");if(!nb)return;var st=nb.parentNode,pb=parseFloat(getComputedStyle(st).paddingBottom)||0;'
-   +'var h=st.clientHeight-pb-nb.offsetTop;if(h>nb.offsetHeight)nb.style.height=h+"px";nb.style.overflow="hidden";'
-   +'for(var k=0;k<80;k++){var li=document.createElement("i");nb.appendChild(li);if(nb.scrollHeight>nb.clientHeight){nb.removeChild(li);break;}}}'
-   +'(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(lay,lay);'
-   +'})();<\/script></body></html>';
+/* What goes on the notices card (the PDF). Printed card: church, title, date/time, venue, sign-up
+   deadline, notice information and contact. No web addresses (decided 9 Nov). */
+function cardGroups(){
+  var live=S.notices.filter(function(n){ var st=status(n); return !n.cancelled&&!(st&&st.k==="done"); });
+  return PRINT_GROUPS.map(function(g){
+    return {h:g.h, items:live.filter(g.f).map(function(n){
+      var su=D(n.signUpBy);
+      return {c:(BY[n.church]||BY.ink).c, label:labelFor(n), title:n.title||"",
+        meta:[whenText(n),n.place].filter(Boolean).join(" \u00b7 "),
+        signup:(su&&today()<=su)?"Sign up by "+longDate(su):"", body:n.body||"",
+        who:(n.who&&n.how)?n.who+" \u2014 "+n.how:(n.how||n.who||"")};
+    })};
+  }).filter(function(g){ return g.items.length; });
+}
+/* ---- The notices card as a PDF, on every device (10 Nov) ----
+   Browsers print a web page with their own header/footer (web address, date,
+   page number): always on iPhone and iPad, and on Chrome/Edge unless it is
+   unticked. On iPad that shrank the page and pushed the card onto a blank
+   second page. A PDF prints with none of that, so the card is drawn straight
+   onto a canvas and wrapped as a one-page-per-sheet A4 PDF: phones and tablets
+   get the share sheet (Print, Save to Files), computers get it in a new tab. Same content, order, fonts and sizes as the
+   print window; laid out as four 74mm strips on landscape A4 so the dashed
+   lines and the folds (in half twice) land in the same place. */
+var CARD_DPI=240, CMM=CARD_DPI/25.4, CPT=CARD_DPI/72;
+var CF_DISP='Marcellus, Georgia, serif', CF_BOD='"Source Sans 3", Helvetica, Arial, sans-serif';
+var cardJob=null;   /* {key, blob, promise} */
+function cardKey(){ return JSON.stringify([S.sunday,S.season,cardGroups()]); }
+function cardFontsReady(){
+  if(!document.fonts||!document.fonts.load) return Promise.resolve();
+  var want=['400 40px Marcellus','400 40px "Source Sans 3"','500 40px "Source Sans 3"','600 40px "Source Sans 3"'];
+  return Promise.race([
+    Promise.all(want.map(function(f){ return document.fonts.load(f).catch(function(){}); })),
+    new Promise(function(r){ setTimeout(r,3000); })]);
+}
+function prepCard(){
+  var k=cardKey();
+  if(cardJob&&cardJob.key===k) return cardJob.promise;
+  var job={key:k, blob:null};
+  job.promise=buildCardPdf().then(function(b){ job.blob=b; relabelCard(); return b; });
+  cardJob=job; return job.promise;
+}
+function relabelCard(){ var b=$("send-print"); if(b&&cardJob&&cardJob.blob) b.textContent="Printable notices card (PDF)"; }
+function shareCard(){
+  var name="peel-notices-"+(S.sunday||"week")+".pdf";
+  if(cardJob&&cardJob.key===cardKey()&&cardJob.blob){
+    saveFile(cardJob.blob,name,"","Saved — look in the Files app, under Downloads"); return;
+  }
+  /* Not ready yet: finish it, then the next tap opens the share sheet. */
+  toast("Getting the card ready — tap again in a moment");
+  prepCard().then(function(){ toast("Card ready — tap the button again"); },
+    function(){ toast("The card couldn’t be made on this device"); });
+}
+function buildCardPdf(){
+  return cardFontsReady().then(function(){
+    var W=Math.round(297*CMM), H=Math.round(210*CMM), STRIP=W/4;
+    var PADX=6.5*CMM, PADT=10*CMM, PADB=10*CMM,   /* clear of printers' unprintable edge */
+        INNER=STRIP-2*PADX, AVAIL=H-PADT-PADB;
+    var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); x.textBaseline="middle";
+    function font(w,pt,fam){ x.font=w+" "+(pt*CPT).toFixed(2)+"px "+fam; }
+    function tw(s,ls){ return x.measureText(s).width+(ls?ls*s.length:0); }
+    /* Word-wrap one style of text into lines; a single long word is broken by letters. */
+    function wrap(s,maxW,ls){
+      var out=[];
+      String(s||"").split(/\r?\n/).forEach(function(para){
+        var words=para.split(/\s+/).filter(Boolean), line="";
+        if(!words.length){ out.push(""); return; }
+        words.forEach(function(wd){
+          var t=line?line+" "+wd:wd;
+          if(tw(t,ls)<=maxW){ line=t; return; }
+          if(line) out.push(line);
+          while(tw(wd,ls)>maxW&&wd.length>1){
+            var k=wd.length; while(k>1&&tw(wd.slice(0,k),ls)>maxW) k--;
+            out.push(wd.slice(0,k)); wd=wd.slice(k);
+          }
+          line=wd;
+        });
+        out.push(line);
+      });
+      return out;
+    }
+    function put(s,px,py,ls){
+      if(!ls){ x.fillText(s,px,py); return; }
+      for(var i=0;i<s.length;i++){ x.fillText(s[i],px,py); px+=x.measureText(s[i]).width+ls; }
+    }
+    function rule(x0,y0,w,pt,col){ x.fillStyle=col; x.fillRect(x0,y0,w,Math.max(1,pt*CPT)); }
+    /* A run of lines in one style: measured now, drawn later at any x/y. */
+    function run(txt,w,pt,fam,lh,col,maxW,opt){
+      opt=opt||{}; font(w,pt,fam);
+      var ls=opt.ls?opt.ls*CPT:0, s=opt.upper?String(txt).toUpperCase():txt;
+      var lines=wrap(s,maxW,ls), L=pt*lh*CPT;
+      return {h:lines.length*L, draw:function(px,py){ font(w,pt,fam); x.fillStyle=col;
+        lines.forEach(function(ln,i){ put(ln,px,py+L*i+L/2,ls); }); }};
+    }
+    var P=CPT, blocks=[];
+    /* Masthead */
+    (function(){
+      var d=D(S.sunday);
+      var a=run("Peel Parishes","400",17,CF_DISP,1.1,"#16211F",INNER),
+          b=run("Notices"+(d?" · "+longDate(d):""),"600",10.5,CF_BOD,1.4,"#16211F",INNER);
+      var h=a.h+2*P+b.h+4*P+1.2*P+2*P;
+      blocks.push({h:function(){ return h; }, draw:function(L,T){
+        a.draw(L,T); b.draw(L,T+a.h+2*P); rule(L,T+a.h+2*P+b.h+4*P,INNER,1.2,"#16211F"); }});
+    })();
+    if(S.season){ (function(){
+      var r=run(S.season,"400",9.5,CF_BOD,1.4,"#5C6660",INNER);
+      blocks.push({h:function(){ return 2*P+r.h+4*P; }, draw:function(L,T){ r.draw(L,T+2*P); }});
+    })(); }
+    cardGroups().forEach(function(g){
+      var r=run(g.h,"600",9,CF_BOD,1.3,"#16211F",INNER,{upper:true,ls:1});
+      blocks.push({head:true, h:function(first){ return (first?0:8*P)+0.5*P+3*P+r.h+4*P; },
+        draw:function(L,T,first){ var y=T+(first?0:8*P); rule(L,y,INNER,0.5,"#B9C0BC"); r.draw(L,y+0.5*P+3*P); }});
+      g.items.forEach(function(it){
+        var IW=INNER-2.5*P-6*P, parts=[];
+        parts.push([0, run(it.label,"600",8,CF_BOD,1.4,it.c,IW,{upper:true,ls:0.8})]);
+        parts.push([1*P, run(it.title,"400",12.5,CF_DISP,1.2,"#16211F",IW), 2*P]);
+        if(it.meta) parts.push([0, run(it.meta,"500",8.5,CF_BOD,1.4,"#16211F",IW)]);
+        if(it.signup) parts.push([0, run(it.signup,"500",8.5,CF_BOD,1.4,"#16211F",IW)]);
+        if(it.body) parts.push([2*P, run(it.body,"400",8.5,CF_BOD,1.4,"#525C58",IW), 2*P]);
+        if(it.who) parts.push([0, run(it.who,"400",8.5,CF_BOD,1.4,"#525C58",IW)]);
+        var inner=parts.reduce(function(s,p){ return s+p[0]+p[1].h+(p[2]||0); },0), box=1*P+inner+1*P;
+        blocks.push({h:function(){ return box+7*P; }, draw:function(L,T){
+          x.fillStyle=it.c; x.fillRect(L,T,2.5*P,box);
+          var y=T+1*P; parts.forEach(function(p){ y+=p[0]; p[1].draw(L+2.5*P+6*P,y); y+=p[1].h+(p[2]||0); }); }});
+      });
+    });
+    if(!blocks.some(function(b){ return b.head; })){
+      var none=run("No notices yet.","400",10.5,CF_BOD,1.4,"#5C6660",INNER);
+      blocks.push({h:function(){ return 6*P+none.h; }, draw:function(L,T){ none.draw(L,T+6*P); }});
+    }
+    /* Notes box: at least seven lines, then stretches to the foot of its strip. */
+    var nLab=run("Notes and extra notices","600",8,CF_BOD,1.4,"#5C6660",INNER-10*P,{upper:true,ls:0.8}),
+        LINE=7.5*CMM, nFix=8*P+3*P+nLab.h+4*P, notes={notes:true, lines:7,
+        h:function(){ return nFix+notes.lines*LINE; },
+        draw:function(L,T){ var y=T+8*P, hh=notes.lines*LINE+3*P+nLab.h+4*P;
+          x.strokeStyle="#16211F"; x.lineWidth=0.75*P; x.setLineDash([]); x.strokeRect(L,y,INNER,hh);
+          nLab.draw(L+5*P,y+3*P);
+          for(var i=1;i<=notes.lines;i++) rule(L+5*P,y+3*P+nLab.h+i*LINE-0.5*P,INNER-10*P,0.5,"#B9C0BC"); }};
+    /* Flow: down strip 1, then 2, 3, 4, then a new sheet. A heading never sits
+       alone at the foot of a strip -- it moves on with the notice under it. */
+    var strips=[], cur;
+    function newStrip(){ cur={items:[],y:0}; strips.push(cur); }
+    function place(b){ var first=!cur.items.length, h=b.h(first); cur.items.push({b:b,y:cur.y,first:first,h:h}); cur.y+=h; }
+    newStrip();
+    blocks.forEach(function(b){
+      if(cur.items.length&&cur.y+b.h(false)>AVAIL){
+        var carry=[];
+        while(cur.items.length>1&&cur.items[cur.items.length-1].b.head){ var it=cur.items.pop(); cur.y-=it.h; carry.unshift(it.b); }
+        newStrip(); carry.forEach(place);
+      }
+      place(b);
+    });
+    if(cur.items.length&&cur.y+notes.h(false)>AVAIL) newStrip();
+    notes.lines=Math.max(7,7+Math.floor((AVAIL-cur.y-notes.h(!cur.items.length))/LINE));
+    place(notes);
+    /* Draw each sheet and keep it as a JPEG. */
+    var jpgs=[];
+    for(var s0=0;s0<strips.length;s0+=4){
+      x.setLineDash([]); x.fillStyle="#fff"; x.fillRect(0,0,W,H);
+      x.strokeStyle="#8A918D"; x.lineWidth=0.5*P; x.setLineDash([1.6*CMM,1.2*CMM]);
+      for(var c=1;c<4;c++){ x.beginPath(); x.moveTo(c*STRIP,0); x.lineTo(c*STRIP,H); x.stroke(); }
+      x.setLineDash([]);
+      for(var j=0;j<4&&s0+j<strips.length;j++){
+        var L=(j*STRIP)+PADX;
+        x.save(); x.beginPath(); x.rect(j*STRIP+1,0,STRIP-2,H); x.clip();
+        strips[s0+j].items.forEach(function(it){ it.b.draw(L,PADT+it.y,it.first); });
+        x.restore();
+      }
+      var u=cv.toDataURL("image/jpeg",0.9), bin=atob(u.slice(u.indexOf(",")+1)), a=new Uint8Array(bin.length);
+      for(var q=0;q<bin.length;q++) a[q]=bin.charCodeAt(q);
+      jpgs.push(a);
+    }
+    cv.width=cv.height=1;   /* hand the memory back -- iPhone canvases are tight */
+    return pdfFromJpegs(jpgs,W,H);
+  });
+}
+/* Smallest possible PDF: one A4 landscape page per sheet, each a full-page JPEG. */
+function pdfFromJpegs(jpgs,iw,ih){
+  var enc=new TextEncoder(), parts=[], len=0, offs=[], n=jpgs.length, total=3+3*n;
+  function push(v){ var b=typeof v==="string"?enc.encode(v):v; parts.push(b); len+=b.length; }
+  function obj(i,f){ offs[i]=len; push(i+" 0 obj\n"); f(); push("\nendobj\n"); }
+  push("%PDF-1.4\n%âãÏÓ\n");
+  obj(1,function(){ push("<< /Type /Catalog /Pages 2 0 R >>"); });
+  obj(2,function(){ push("<< /Type /Pages /Count "+n+" /Kids ["+jpgs.map(function(_,i){ return (3+3*i)+" 0 R"; }).join(" ")+"] >>"); });
+  jpgs.forEach(function(j,i){
+    var p=3+3*i, cs="q 841.89 0 0 595.28 0 0 cm /Im"+i+" Do Q";
+    obj(p,function(){ push("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 841.89 595.28] /Resources << /XObject << /Im"+i+" "+(p+2)+" 0 R >> >> /Contents "+(p+1)+" 0 R >>"); });
+    obj(p+1,function(){ push("<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream"); });
+    obj(p+2,function(){ push("<< /Type /XObject /Subtype /Image /Width "+iw+" /Height "+ih+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+j.length+" >>\nstream\n"); push(j); push("\nendstream"); });
+  });
+  var xref=len, rows="xref\n0 "+total+"\n0000000000 65535 f \n";
+  for(var i=1;i<total;i++) rows+=String(offs[i]).padStart(10,"0")+" 00000 n \n";
+  push(rows+"trailer\n<< /Size "+total+" /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF\n");
+  return new Blob(parts,{type:"application/pdf"});
 }
 function openPrint(){
-  var html=buildPrint(), w=window.open("","_blank");
-  if(w){ w.document.open(); w.document.write(html); w.document.close(); return; }
-  /* Pop-up blocked: download the sheet instead; it prints when opened. */
-  var a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));
-  a.download="peel-notices-"+(S.sunday||"week")+".html"; document.body.appendChild(a); a.click(); a.remove();
-  toast("Downloaded \u2014 open it to print or save as PDF");
+  if(touchOS()){ shareCard(); return; }
+  var name="peel-notices-"+(S.sunday||"week")+".pdf";
+  if(cardJob&&cardJob.key===cardKey()&&cardJob.blob){
+    /* Opened straight from the click, so the browser doesn't block the new tab. */
+    var w=window.open(URL.createObjectURL(cardJob.blob),"_blank");
+    if(!w){ downloadBlob(cardJob.blob,name); toast("Downloaded \u2014 open it to print"); }
+    return;
+  }
+  toast("Getting the card ready\u2026");
+  prepCard().then(function(b){ downloadBlob(b,name); toast("Downloaded \u2014 open it to print"); },
+    function(){ toast("The card couldn\u2019t be made on this computer"); });
 }
 
 function openReview(){
@@ -2205,7 +2363,8 @@ function renderOut(){
   var html=buildEmail();
   var f=$("previewFrame");
   f.srcdoc=html;
-  f.onload=resizePreview;
+  f.onload=function(){ resizePreview();
+    try{ f.contentWindow.document.fonts.ready.then(resizePreview); }catch(e){} };
   $("code").textContent=html;
   $("plain").textContent=buildPlain();
   var bytes=new Blob([html]).size, kb=bytes/1024, pct=Math.min(100,(kb/102)*100);
@@ -2269,12 +2428,35 @@ function fb(t){ var ta=document.createElement("textarea"); ta.value=t; ta.style.
   document.body.appendChild(ta); ta.select();
   try{ document.execCommand("copy"); toast("Copied"); }catch(e){ toast("Select the code and copy it"); }
   document.body.removeChild(ta); }
-function doDownload(){
-  var blob=new Blob([buildEmail()],{type:"text/html"});
-  var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="peel-newsletter-"+(S.sunday||"week")+".html";
+/* ---- Saving files on iPhone, iPad and Android (10 Nov) ----
+   A download link does nothing useful there: Safari asks to allow downloads,
+   drops the file that triggered the question, and in the Home Screen app
+   downloads don't work at all. So on those devices the file goes to the share
+   sheet instead -- Save Image, Save to Files, Print, AirDrop, Mail. iPadOS
+   calls itself a Mac, so it is spotted by its touch screen. Computers keep
+   the ordinary download. */
+function touchOS(){ var ua=navigator.userAgent||"";
+  return /iPad|iPhone|iPod|Android/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1); }
+function downloadBlob(blob,name){
+  var u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download=name; a.rel="noopener"; a.style.display="none";
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(function(){ URL.revokeObjectURL(a.href); },1000);
+  /* Safari can still be asking "Download?" when a short timer fires, which loses the file. */
+  setTimeout(function(){ URL.revokeObjectURL(u); },60000);
+}
+function saveFile(blob,name,sharedMsg,savedMsg){
+  var file=null; try{ file=new File([blob],name,{type:blob.type}); }catch(e){}
+  if(touchOS()&&file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file]}).then(function(){ if(sharedMsg) toast(sharedMsg); },function(err){
+      if(err&&err.name==="AbortError") return;   /* they closed the share sheet */
+      downloadBlob(blob,name); if(savedMsg) toast(savedMsg); });
+    return;
+  }
+  downloadBlob(blob,name); if(savedMsg) toast(savedMsg);
+}
+function doDownload(){
+  saveFile(new Blob([buildEmail()],{type:"text/html"}),"peel-newsletter-"+(S.sunday||"week")+".html",
+    "Done", touchOS()?"Saved \u2014 look in the Files app, under Downloads":"");
 }
 
 /* ----------------------------------------------------------------
@@ -2287,12 +2469,9 @@ function doDownload(){
 ---------------------------------------------------------------- */
 function saveWeekFile(){
   var payload = JSON.stringify({peelWeekFile:1, saved:new Date().toISOString(), S:S}, null, 1);
-  var blob = new Blob([payload], {type:"application/json"});
-  var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-  a.download = "peel-week-"+(S.sunday||"draft")+".json";
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(function(){ URL.revokeObjectURL(a.href); },1000);
-  toast("Saved \u2014 hand this file to whoever's building next");
+  saveFile(new Blob([payload], {type:"application/json"}), "peel-week-"+(S.sunday||"draft")+".json",
+    "Saved \u2014 hand this file to whoever's building next",
+    "Saved \u2014 hand this file to whoever's building next");
 }
 function openWeekFile(){ $("weekFile").click(); }
 $("weekFile").addEventListener("change", function(e){
