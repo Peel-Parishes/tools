@@ -729,7 +729,8 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
 
   var EVENT_SCHEMA = [
     {sec: "The event"},
-    {k:"title",    t:"What is it?",              type:"text"},
+    {k:"title",    t:"What is it?",              type:"area", rows:2,
+     hint:"Press Return to start a new line where you want the title to break."},
 
     {sec: "When"},
     {k:"mode",     t:"How often",                type:"select", opts: MODES},
@@ -830,7 +831,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
 
     var e = document.createElement(f.type === "area" ? "textarea" : "input");
     e.id = "ev-" + f.k;
-    if (f.type === "area") e.rows = 3; else e.type = f.type || "text";
+    if (f.type === "area") e.rows = f.rows || 3; else e.type = f.type || "text";
     /* An event that has not been filled in comes out empty. */
     e.value = (data[f.k] === undefined || data[f.k] === null) ? "" : data[f.k];
     wrap.appendChild(e);
@@ -1100,7 +1101,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   function fitFont(text, family, maxSize, minSize, maxW, maxLines){
     for (var s = maxSize; s >= minSize; s -= 2){
       var f = "400 "+s+"px "+family;
-      if (wrap(text, f, maxW).length <= maxLines) return s;
+      if (wrapML(text, f, maxW).length <= maxLines) return s;
     }
     return minSize;
   }
@@ -1276,7 +1277,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     var title = (data.title || "").trim();
     var tsize = fitFont(title, "Marcellus, Georgia, serif", Math.round(u*0.100), Math.round(u*0.050), innerW, 3);
     var tf = "400 " + tsize + "px Marcellus, Georgia, serif";
-    var tl = wrap(title, tf, innerW);
+    var tl = wrapML(title, tf, innerW);
 
     /* Measure the whole block first so a tall card can centre it rather than
        hanging everything off the top edge. */
@@ -1790,7 +1791,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
       var title = data.title || "";
       var tsize = fitFont(title, "Marcellus, Georgia, serif", Math.round(W*0.115), Math.round(W*0.055), innerW, 3);
       var tf = "400 "+tsize+"px Marcellus, Georgia, serif";
-      var tl = wrap(title, tf, innerW);
+      var tl = wrapML(title, tf, innerW);
 
       /* Over a photograph the words hang off the bottom of the frame; on a
          plain card they start at the top. */

@@ -68,6 +68,7 @@ textarea{resize:vertical;min-height:64px}
 .btn.ghost{background:transparent;color:var(--ink)}
 .btn.ghost:hover{background:var(--ink);color:var(--paper)}
 .btn.sm{padding:7px 12px;font-size:.83rem}
+a.btn{text-decoration:none}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;align-items:center}
 
 fieldset{border:1px solid var(--stone);background:#fff;padding:2px 15px 16px;margin:16px 0 0}
@@ -181,6 +182,10 @@ pre.plain{background:#fff;color:var(--ink);border:1px solid var(--stone);font-fa
 .rv .t small{display:block;color:var(--muted);font-size:.78rem}
 .rv .why{font-weight:600;font-size:.71rem;color:var(--fz)}
 .rv .why.drop{color:var(--mo)}
+.seg{display:flex;gap:5px;margin-top:7px}
+.seg button{font-family:var(--bod);font-size:.82rem;padding:6px 12px;min-width:68px;cursor:pointer;border:1px solid var(--stone);background:#fff;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+@media (pointer:coarse){ .seg button{min-height:44px;min-width:76px} }
 .f{display:none}
 /* Phones and tablets (10 Nov): 16px form text stops iPhone zooming in on every
    field you tap, and a tapped button no longer stays stuck in its hover colours. */
@@ -1111,9 +1116,9 @@ function noticeCard(n){
   inner.push('<div class="k-'+kk+'" style="font:'+F.eyebrow+' '+SS+';letter-spacing:'+F.track+';text-transform:uppercase;color:'+key+';">'+esc(lab)+'</div>');
   if(off){
     inner.push('<div style="font:600 12px/1.4 '+SS+';letter-spacing:1.2px;text-transform:uppercase;color:#FFFFFF;background:#8A918D;padding:3px 8px;display:inline-block;margin:6px 0 2px 0;">Cancelled</div>');
-    inner.push('<div class="t-mut" style="font:'+F.title+' '+M+';color:#5C6660;text-decoration:line-through;padding:2px 0 3px 0;">'+esc(n.title)+'</div>');
+    inner.push('<div class="t-mut" style="font:'+F.title+' '+M+';color:#5C6660;text-decoration:line-through;padding:2px 0 3px 0;">'+esc(n.title).replace(/\r?\n/g,"<br>")+'</div>');
   } else {
-    inner.push('<div class="t-ink" style="font:'+F.title+' '+M+';color:#16211F;padding:4px 0 3px 0;">'+esc(n.title)+'</div>');
+    inner.push('<div class="t-ink" style="font:'+F.title+' '+M+';color:#16211F;padding:4px 0 3px 0;">'+esc(n.title).replace(/\r?\n/g,"<br>")+'</div>');
   }
   if(meta.length) inner.push('<div class="'+(off?"t-mut":"t-ink")+'" style="font:'+F.meta+' '+SS+';color:'+(off?"#5C6660":"#16211F")+';'+(off?"text-decoration:line-through;":"")+'">'+meta.join(' &nbsp;&middot;&nbsp; ')+'</div>');
   if(showSu) inner.push('<div class="k-'+kk+'" style="font:'+F.meta+' '+SS+';color:'+c+';padding-top:3px;">Sign up by '+esc(longDate(su))+'</div>');
@@ -1697,7 +1702,8 @@ function stepNotices(b){
   b.innerHTML=''
    +'<span class="lab" id="formstep">Add a notice</span>'
    +'<label for="f-title">What\'s happening? <span class="count" id="c-title">0/60</span></label>'
-   +'<input type="text" id="f-title" maxlength="80">'
+   +'<textarea id="f-title" rows="2" maxlength="80" style="min-height:0"></textarea>'
+   +'<p class="hint">Press Return to start a new line where you want the title to break.</p>'
    +'<label>Which church?</label><div class="pick" id="pick"></div><div id="extra"></div>'
    +'<fieldset><legend>When</legend><div class="when" id="whenmode">'
    +'<button type="button" data-m="once" aria-pressed="true">One date</button>'
@@ -1845,7 +1851,6 @@ function wireNotice(){
   };
   $("clear").onclick=function(){ editIndex=-1; $("add").textContent="Add notice"; $("formstep").textContent="Add a notice";
     $("editnote").innerHTML=""; clearNotice(); renderQueue(); };
-  $("f-title").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); $("add").click(); } });
   linkHint();
 }
 function renderQueue(){
@@ -1984,7 +1989,7 @@ function stepReadings(b){
     +'<label for="v-label">Section heading</label><input type="text" id="v-label" maxlength="40" value="'+esc(v.label)+'">'
     +'<label for="v-url">Link to the video</label><input type="url" id="v-url" value="'+esc(v.url)+'" placeholder="https://www.youtube.com/watch?v=...">'
     +'<label for="v-thumb">Still image address <span class="opt">— optional</span></label><input type="url" id="v-thumb" value="'+esc(v.thumb)+'">'
-    +'<label for="v-cap">Caption</label><input type="text" id="v-cap" maxlength="140" value="'+esc(v.caption)+'" placeholder="An overview of 2 Samuel, the book we\u2019re reading this week.">'
+    +'<label for="v-cap">Caption</label><input type="text" id="v-cap" maxlength="140" value="'+esc(v.caption)+'">'
     +'<div class="note warn"><b>Before you use someone else\u2019s thumbnail</b>Check the publisher allows it. If in doubt, '
     +'take a plain frame or make a simple card with the book name on it. Email cannot play video, so this is only ever a still that links out.</div>'
     +'</fieldset>';
@@ -2002,8 +2007,15 @@ function stepReadings(b){
 }
 
 function stepPrayer(b){
+  /* The prayer is the Additional Collect for the Sunday, copied from the
+     almanac (15 Nov). The almanac can't be read from this page, so the button
+     just opens it, with the steps to find the right prayer. */
+  var sd=D(S.sunday);
   b.innerHTML='<span class="lab">Let\u2019s pray</span>'
-   +'<p class="hint">Some weeks have a short prayer, insert below. Leave it blank and the section disappears.</p>'
+   +'<p class="hint">Copy in the Additional Collect for '+(sd?'<strong>'+esc(longDate(sd))+'</strong>':'this Sunday')+' from the almanac: '
+   +'<strong>View \u203a select '+(sd?esc(longDate(sd)):'the Sunday')+' \u203a Additional Collect</strong>. '
+   +'Leave the box blank and the section disappears.</p>'
+   +'<div class="row" style="margin-top:10px"><a class="btn ghost sm" href="https://almanac.oremus.org/" target="_blank" rel="noopener">Open the almanac</a></div>'
    +'<label for="p-text">Prayer <span class="count" id="c-pray"></span></label>'
    +'<textarea id="p-text" rows="7" maxlength="600">'+esc(S.prayer||"")+'</textarea>';
   $("p-text").oninput=function(){ S.prayer=this.value; cnt("p-text","c-pray",450); save(); renderSteps(); renderOut(); };
@@ -2015,7 +2027,7 @@ function stepSend(b){
   if(!S.theme.title) issues.push("No theme title.");
   if(!S.notices.length) issues.push("No notices.");
   if(!S.preheader) issues.push("No preview line \u2014 the inbox will show the first words of the email instead.");
-  var noLink=S.notices.filter(function(n){ return !(n.url||"").trim(); }).length;
+  var noLink=S.notices.filter(function(n){ return n.section!=="Every week"&&!(n.url||"").trim(); }).length;   /* every-week notices rarely have one */
   if(noLink) issues.push(noLink+" notice"+(noLink===1?"":"s")+" without a link.");
   var rr=S.readings.filter(function(r){ return r.psalm||r.ot||r.nt; }).length;
   if(!rr) issues.push("No readings.");
@@ -2028,7 +2040,7 @@ function stepSend(b){
      : '<div class="note"><b>All present</b>Everything the email needs is filled in.</div>')
    +'<fieldset><legend>Into Mailchimp</legend>'
    +'<div class="row" style="margin-top:10px">'
-   +'<button class="btn" id="send-copy">Copy the whole email</button>'
+   +'<button class="btn ghost" id="send-copy">Copy the whole email</button>'
    +'<button class="btn ghost" id="send-copyplain">Copy plain text</button>'
    +'<button class="btn ghost" id="send-dl">Download</button>'
    +'</div>'
@@ -2042,6 +2054,13 @@ function stepSend(b){
      ? 'tap the button, then choose <strong>Print</strong> or <strong>Save to Files</strong>.</p>'
      : 'it opens in a new tab, ready to print or download.</p>')
    +'</fieldset>'
+   +'<fieldset><legend>Screen in church</legend>'
+   +'<div class="row" style="margin-top:10px"><button class="btn ghost" id="send-slides">Notice slides (16:9)</button></div>'
+   +'<p class="hint">One picture per notice for the welcome slideshow before services, with a QR code for its link. '
+   +'Every notice except cancelled and finished ones. Choose Light, Ink or Colour for each, then '+(touchOS()
+     ? 'save them to Photos or Files.</p>'
+     : 'download them as a zip to drag into PowerPoint.</p>')
+   +'</fieldset>'
    +'<fieldset><legend>Handing over</legend>'
    +'<div class="row" style="margin-top:10px"><button class="btn ghost" id="send-save">Save this week to a file</button></div>'
    +'<p class="hint">If someone else is doing next week, save this week to a file and pass it on. They open it from the Start step.</p>'
@@ -2051,6 +2070,7 @@ function stepSend(b){
   $("send-copyplain").onclick=function(){ copyText(buildPlain(),"Plain text copied"); };
   $("send-dl").onclick=doDownload;
   $("send-print").onclick=openPrint;
+  $("send-slides").onclick=openSlides;
   $("send-save").onclick=saveWeekFile;
   prepCard();   /* ready before the click, so the tab or share sheet can open straight from it */
 }
@@ -2072,12 +2092,12 @@ var PRINT_GROUPS=[
 function shortUrl(u){ return String(u||"").trim().replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,""); }
 /* What goes on the notices card (the PDF). Printed card: church, title, date/time, venue, sign-up
    deadline, notice information and contact. No web addresses (decided 9 Nov). */
-function cardGroups(){
+function cardGroups(groups){
   var live=S.notices.filter(function(n){ var st=status(n); return !n.cancelled&&!(st&&st.k==="done"); });
-  return PRINT_GROUPS.map(function(g){
+  return (groups||PRINT_GROUPS).map(function(g){
     return {h:g.h, items:live.filter(g.f).map(function(n){
       var su=D(n.signUpBy);
-      return {c:(BY[n.church]||BY.ink).c, label:labelFor(n), title:n.title||"",
+      return {n:n, c:(BY[n.church]||BY.ink).c, label:labelFor(n), title:n.title||"",
         meta:[whenText(n),n.place].filter(Boolean).join(" \u00b7 "),
         signup:(su&&today()<=su)?"Sign up by "+longDate(su):"", body:n.body||"",
         who:(n.who&&n.how)?n.who+" \u2014 "+n.how:(n.how||n.who||"")};
@@ -2277,6 +2297,331 @@ function openPrint(){
   toast("Getting the card ready\u2026");
   prepCard().then(function(b){ downloadBlob(b,name); toast("Downloaded \u2014 open it to print"); },
     function(){ toast("The card couldn\u2019t be made on this computer"); });
+}
+
+/* ---- QR code (15 Nov) ----
+   A small QR encoder so the notice slides can carry a scannable link with no
+   outside library or service. Byte mode, error correction level M (about 15%
+   of the code can be scratched or glared out and it still scans), versions
+   1-25, the best of the eight masks. Returns rows of true (dark) / false. */
+function qrMatrix(text){
+  var data=Array.prototype.slice.call(new TextEncoder().encode(String(text)));
+  var ECC=[0,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28];
+  var BLK=[0,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21];
+  function rawModules(v){ var r=(16*v+128)*v+64;
+    if(v>=2){ var na=Math.floor(v/7)+2; r-=(25*na-10)*na-55; if(v>=7) r-=36; } return r; }
+  function dataCw(v){ return Math.floor(rawModules(v)/8)-ECC[v]*BLK[v]; }
+  var ver=0;
+  for(var v=1;v<=25;v++){ if(4+(v<10?8:16)+data.length*8<=dataCw(v)*8){ ver=v; break; } }
+  if(!ver) return null;   /* too long for a slide-sized code */
+  /* Bit stream: mode, length, bytes, terminator, padding. */
+  var bits=[];
+  function put(val,n){ for(var i=n-1;i>=0;i--) bits.push((val>>>i)&1); }
+  put(4,4); put(data.length,ver<10?8:16); data.forEach(function(b){ put(b,8); });
+  var cap=dataCw(ver)*8;
+  put(0,Math.min(4,cap-bits.length)); while(bits.length%8) bits.push(0);
+  for(var pad=0xEC;bits.length<cap;pad^=0xEC^0x11) put(pad,8);
+  var cw=[]; for(var i=0;i<bits.length;i+=8){ var b=0; for(var j=0;j<8;j++) b=(b<<1)|bits[i+j]; cw.push(b); }
+  /* Reed-Solomon over GF(256). */
+  function mul(x,y){ var z=0; for(var i=7;i>=0;i--){ z=(z<<1)^((z>>>7)*0x11D); z^=((y>>>i)&1)*x; } return z; }
+  var deg=ECC[ver], gen=[]; for(i=0;i<deg-1;i++) gen.push(0); gen.push(1);
+  var root=1;
+  for(i=0;i<deg;i++){
+    for(j=0;j<gen.length;j++){ gen[j]=mul(gen[j],root); if(j+1<gen.length) gen[j]^=gen[j+1]; }
+    root=mul(root,2);
+  }
+  function rem(d){ var r=gen.map(function(){ return 0; });
+    d.forEach(function(b){ var f=b^r.shift(); r.push(0); gen.forEach(function(g,k){ r[k]^=mul(g,f); }); }); return r; }
+  var nb=BLK[ver], raw=Math.floor(rawModules(ver)/8), nShort=nb-raw%nb, shortLen=Math.floor(raw/nb), blocks=[], k=0;
+  for(i=0;i<nb;i++){
+    var dat=cw.slice(k,k+shortLen-deg+(i<nShort?0:1)); k+=dat.length;
+    var e=rem(dat); if(i<nShort) dat.push(0); blocks.push(dat.concat(e));
+  }
+  var all=[];
+  for(i=0;i<blocks[0].length;i++) blocks.forEach(function(bl,bi){ if(i!==shortLen-deg||bi>=nShort) all.push(bl[i]); });
+  /* The grid: function patterns first, marked so masking leaves them alone. */
+  var size=ver*4+17, m=[], fn=[];
+  for(i=0;i<size;i++){ m.push(new Array(size).fill(false)); fn.push(new Array(size).fill(false)); }
+  function set(x,y,d){ m[y][x]=!!d; fn[y][x]=true; }
+  for(i=0;i<size;i++){ set(6,i,i%2===0); set(i,6,i%2===0); }
+  [[3,3],[size-4,3],[3,size-4]].forEach(function(c){
+    for(var dy=-4;dy<=4;dy++) for(var dx=-4;dx<=4;dx++){
+      var d=Math.max(Math.abs(dx),Math.abs(dy)), x=c[0]+dx, y=c[1]+dy;
+      if(x>=0&&x<size&&y>=0&&y<size) set(x,y,d!==2&&d!==4);
+    }
+  });
+  var al=[];
+  if(ver>1){ var na=Math.floor(ver/7)+2, step=Math.ceil((ver*4+4)/(na*2-2))*2; al=[6];
+    for(var p=size-7;al.length<na;p-=step) al.splice(1,0,p); }
+  al.forEach(function(ay,ai){ al.forEach(function(ax,aj){
+    if((ai===0&&aj===0)||(ai===0&&aj===al.length-1)||(ai===al.length-1&&aj===0)) return;
+    for(var dy=-2;dy<=2;dy++) for(var dx=-2;dx<=2;dx++) set(ax+dx,ay+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);
+  }); });
+  function format(mask){
+    var d=mask, r=d; for(var i=0;i<10;i++) r=(r<<1)^((r>>>9)*0x537);   /* level M = 00 */
+    var b=((d<<10)|r)^0x5412, bit=function(i){ return (b>>>i)&1; };
+    for(i=0;i<=5;i++) set(8,i,bit(i));
+    set(8,7,bit(6)); set(8,8,bit(7)); set(7,8,bit(8));
+    for(i=9;i<15;i++) set(14-i,8,bit(i));
+    for(i=0;i<8;i++) set(size-1-i,8,bit(i));
+    for(i=8;i<15;i++) set(8,size-15+i,bit(i));
+    set(8,size-8,1);
+  }
+  format(0);
+  if(ver>=7){ var r=ver; for(i=0;i<12;i++) r=(r<<1)^((r>>>11)*0x1F25);
+    var vb=(ver<<12)|r;
+    for(i=0;i<18;i++){ var bt=(vb>>>i)&1, a=size-11+i%3, c=Math.floor(i/3); set(a,c,bt); set(c,a,bt); } }
+  /* Data, in the zig-zag. */
+  var n=0;
+  for(var right=size-1;right>=1;right-=2){
+    if(right===6) right=5;
+    for(var vert=0;vert<size;vert++) for(j=0;j<2;j++){
+      var x=right-j, up=((right+1)&2)===0, y=up?size-1-vert:vert;
+      if(!fn[y][x]&&n<all.length*8){ m[y][x]=((all[n>>>3]>>>(7-(n&7)))&1)===1; n++; }
+    }
+  }
+  var MASKS=[function(x,y){return (x+y)%2===0;},function(x,y){return y%2===0;},function(x){return x%3===0;},
+    function(x,y){return (x+y)%3===0;},function(x,y){return (Math.floor(x/3)+Math.floor(y/2))%2===0;},
+    function(x,y){return x*y%2+x*y%3===0;},function(x,y){return (x*y%2+x*y%3)%2===0;},
+    function(x,y){return ((x+y)%2+x*y%3)%2===0;}];
+  function apply(k){ for(var y=0;y<size;y++) for(var x=0;x<size;x++) if(!fn[y][x]&&MASKS[k](x,y)) m[y][x]=!m[y][x]; }
+  function penalty(){
+    var s=0, dark=0, x, y, run, pat=[1,0,1,1,1,0,1];
+    function lines(get){
+      for(var a=0;a<size;a++){
+        run=1;
+        for(var b=1;b<=size;b++){
+          if(b<size&&get(a,b)===get(a,b-1)) run++;
+          else { if(run>=5) s+=run-2; run=1; }
+        }
+        for(b=0;b+7<=size;b++){
+          var ok=true; for(var q=0;q<7;q++) if(get(a,b+q)!==!!pat[q]){ ok=false; break; }
+          if(!ok) continue;
+          var lo=true, hi=true;
+          for(q=1;q<=4;q++){ if(b-q>=0&&get(a,b-q)) lo=false; if(b+6+q<size&&get(a,b+6+q)) hi=false; }
+          if(lo||hi) s+=40;
+        }
+      }
+    }
+    lines(function(a,b){ return m[a][b]; });
+    lines(function(a,b){ return m[b][a]; });
+    for(y=0;y<size-1;y++) for(x=0;x<size-1;x++){ var c=m[y][x]; if(c===m[y][x+1]&&c===m[y+1][x]&&c===m[y+1][x+1]) s+=3; }
+    for(y=0;y<size;y++) for(x=0;x<size;x++) if(m[y][x]) dark++;
+    var t=size*size; s+=Math.floor(Math.abs(dark*20-t*10)/t)*10;
+    return s;
+  }
+  var best=0, bestS=Infinity;
+  for(k=0;k<8;k++){ apply(k); format(k); var sc=penalty(); if(sc<bestS){ bestS=sc; best=k; } apply(k); }
+  apply(best); format(best);
+  return m;
+}
+/* ---- Notice slides for the screen in church (15 Nov) ----
+   One 16:9 picture (1920x1080 PNG) per notice, for the welcome slideshow that
+   runs before services: drop them into the PowerPoint. Every notice except
+   cancelled and finished ones (Every week included -- unlike the printed card),
+   with everything the email shows, and a QR code in the bottom right for the
+   notice's link so people can "tap" it from their seat. Nothing is ever cut
+   short: notice information is capped at 300 characters when it's typed, and
+   the slide shrinks its type until it all fits.
+   Three looks, picked per notice before the slides are made (remembered on
+   the notice as slideStyle):
+     light  -- paper ground, Heritage church colour for the bar and label
+     ink    -- ink ground, white text; bar and label in the church's Bright
+               colour (Bright is the register for dark grounds)
+     colour -- the church's Heritage colour as the ground, white text
+   The QR code always sits on white, dark on light, so phones read it. */
+var SL_W=1920, SL_H=1080;
+var SLIDE_GROUPS=PRINT_GROUPS.concat([{h:"Every week", f:function(n){ return n.section==="Every week"; }}]);
+var BRIGHT={db:"#D4A24C",fz:"#0E8C9E",mo:"#D9392B",cw:"#9457C4"};
+function slideNotices(){
+  var out=[];
+  cardGroups(SLIDE_GROUPS).forEach(function(g){ g.items.forEach(function(it){ out.push({sec:g.h, n:it.n, it:it}); }); });
+  return out;
+}
+function slideStyle(n){ var s=n.slideStyle;
+  if(s==="colour"&&(!BY[n.church]||n.church==="ink")) s="ink";   /* Peel Parishes has no church colour */
+  return s==="ink"||s==="colour"?s:"light"; }
+function slideLook(n){
+  var k=BY[n.church]?n.church:"ink", heritage=(BY[k]||BY.ink).c, st=slideStyle(n);
+  if(st==="ink") return {bg:"#16211F", bar:k==="ink"?null:BRIGHT[k], key:k==="ink"?"#FFFFFF":BRIGHT[k], text:"#FFFFFF", soft:"#C9CFCB", rule:"rgba(255,255,255,.28)"};
+  if(st==="colour") return {bg:heritage, bar:null, key:"#FFFFFF", text:"#FFFFFF", soft:"rgba(255,255,255,.86)", rule:"rgba(255,255,255,.4)"};
+  return {bg:"#F7F8F6", bar:heritage, key:heritage, text:"#16211F", soft:"#5C6660", rule:"#D5D8D3"};
+}
+function drawSlide(cv,s){
+  var x=cv.getContext("2d"), n=s.n, it=s.it, look=slideLook(n), url=(n.url||"").trim();
+  cv.width=SL_W; cv.height=SL_H; x.textBaseline="alphabetic";
+  x.fillStyle=look.bg; x.fillRect(0,0,SL_W,SL_H);
+  if(look.bar){ x.fillStyle=look.bar; x.fillRect(0,0,36,SL_H); }   /* church mark: full-height bar */
+  var qr=url?qrMatrix(url):null;
+  var L=150, TOP=104, FOOT=SL_H-92;
+  var maxW=SL_W-L-(qr?520:150);
+  function font(w,px,fam){ x.font=w+" "+px+"px "+fam; }
+  function tw(t,ls){ return x.measureText(t).width+(ls?ls*t.length:0); }
+  function wrap(t,mw,ls){
+    var out=[];
+    String(t||"").split(/\r?\n/).forEach(function(para){
+      var words=para.split(/\s+/).filter(Boolean), line="";
+      if(!words.length){ out.push(""); return; }
+      words.forEach(function(wd){
+        var tt=line?line+" "+wd:wd;
+        if(tw(tt,ls)<=mw){ line=tt; return; }
+        if(line) out.push(line);
+        while(tw(wd,ls)>mw&&wd.length>1){ var k=wd.length; while(k>1&&tw(wd.slice(0,k),ls)>mw) k--; out.push(wd.slice(0,k)); wd=wd.slice(k); }
+        line=wd;
+      });
+      out.push(line);
+    });
+    return out;
+  }
+  function put(t,px,py,ls){ if(!ls){ x.fillText(t,px,py); return; }
+    for(var i=0;i<t.length;i++){ x.fillText(t[i],px,py); px+=x.measureText(t[i]).width+ls; } }
+  /* A block of one style: lines measured at a given size, drawn later. */
+  function block(t,w,px,fam,lh,c,opt){
+    opt=opt||{}; font(w,px,fam); var ls=opt.ls?opt.ls*px:0, str=opt.upper?String(t).toUpperCase():t;
+    var lines=wrap(str,maxW,ls), LH=px*lh;
+    return {h:lines.length*LH, gap:opt.gap||0, draw:function(px0,py){ font(w,px,fam); x.fillStyle=c;
+      lines.forEach(function(ln,i){ put(ln,px0,py+LH*i+px*0.78+(LH-px)/2,ls); }); }};
+  }
+  /* Shrink until it all fits: first the title, then the notice information,
+     then everything together. Nothing is cut short. */
+  var room=FOOT-70-TOP, parts;
+  function lay(tp,bp,f){
+    function z(v){ return Math.round(v*f); }
+    parts=[];
+    parts.push(block(labelFor(n),"600",z(34),CF_BOD,1.3,look.key,{upper:true,ls:0.12}));
+    parts.push(block(n.title||"","400",z(tp),CF_DISP,1.12,look.text,{gap:z(22)}));
+    if(it.meta) parts.push(block(it.meta,"600",z(46),CF_BOD,1.3,look.text,{gap:z(26)}));
+    if(it.signup) parts.push(block(it.signup,"600",z(42),CF_BOD,1.3,look.key,{gap:z(8)}));
+    if(n.body) parts.push(block(n.body,"400",z(bp),CF_BOD,1.4,look.soft,{gap:z(24)}));
+    if(it.who) parts.push(block(it.who,"400",z(38),CF_BOD,1.4,look.soft,{gap:z(22)}));
+    if(url) parts.push(block(shortUrl(url),"600",z(36),CF_BOD,1.35,look.key,{gap:z(22)}));
+    return parts.reduce(function(a,p){ return a+p.gap+p.h; },0)<=room;
+  }
+  var SIZES=[[100,42],[92,42],[84,42],[76,42],[76,38],[68,38],[68,34],[60,34],[60,32]], done=false;
+  for(var si=0;si<SIZES.length&&!done;si++) done=lay(SIZES[si][0],SIZES[si][1],1);
+  for(var f=0.95;!done&&f>=0.3;f-=0.05) done=lay(60,32,f);
+  var y=TOP; parts.forEach(function(p){ y+=p.gap; p.draw(L,y); y+=p.h; });
+  /* Footer: hairline, then the section name. */
+  x.fillStyle=look.rule; x.fillRect(L,FOOT-40,maxW,2);
+  font("600",28,CF_BOD); x.fillStyle=look.soft; put(s.sec.toUpperCase(),L,FOOT+10,0.14*28);
+  /* QR code: bottom right, on white with its quiet zone; the caption above is
+     sized and spaced to run exactly the width of the white square. */
+  if(qr){
+    var nm=qr.length, mod=Math.floor(320/(nm+8)), side=mod*(nm+8), qx=SL_W-110-side, qy=FOOT-38-side;   /* bottom on the hairline */
+    x.fillStyle="#FFFFFF"; x.fillRect(qx,qy,side,side);
+    if(slideStyle(n)==="light"){ x.strokeStyle="#D5D8D3"; x.lineWidth=2; x.strokeRect(qx+1,qy+1,side-2,side-2); }
+    x.fillStyle="#16211F";
+    for(var r=0;r<nm;r++) for(var c=0;c<nm;c++) if(qr[r][c]) x.fillRect(qx+(c+4)*mod,qy+(r+4)*mod,mod,mod);
+    var cap="SCAN FOR DETAILS", TR=0.14;
+    font("600",100,CF_BOD); var nat=x.measureText(cap).width/100;           /* width per px of type, untracked */
+    var cpx=side/(nat+TR*(cap.length-1));
+    font("600",cpx,CF_BOD);
+    var gapEach=(side-x.measureText(cap).width)/(cap.length-1), cxp=qx;
+    x.fillStyle=look.soft;
+    for(var ci=0;ci<cap.length;ci++){ x.fillText(cap[ci],cxp,qy-24); cxp+=x.measureText(cap[ci]).width+gapEach; }
+  }
+}
+function slideName(s,i){ return pad2(i+1)+"-"+(slug(s.n.title)||"notice")+".png"; }
+function buildSlides(list){
+  return cardFontsReady().then(function(){
+    var cv=document.createElement("canvas"), out=[];
+    return list.reduce(function(p,s,i){
+      return p.then(function(){ drawSlide(cv,s);
+        return new Promise(function(res){ cv.toBlob(function(b){ out.push({name:slideName(s,i),blob:b}); res(); },"image/png"); }); });
+    },Promise.resolve()).then(function(){ cv.width=cv.height=1; return out; });
+  });
+}
+/* Stored (uncompressed) ZIP: PNGs don't shrink further, and it keeps this tiny. */
+function zipFiles(files){
+  var T=[]; for(var n=0;n<256;n++){ var c=n; for(var k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; T[n]=c>>>0; }
+  function crc(a){ var c=0xFFFFFFFF; for(var i=0;i<a.length;i++) c=T[(c^a[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+  var enc=new TextEncoder(), parts=[], cen=[], off=0, now=new Date();
+  var dt=((now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1)), dd=(((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate());
+  function hdr(len){ return new DataView(new ArrayBuffer(len)); }
+  files.forEach(function(f){
+    var name=enc.encode(f.name), data=f.data, c=crc(data), h=hdr(30);
+    h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(8,0,true);
+    h.setUint16(10,dt,true); h.setUint16(12,dd,true); h.setUint32(14,c,true); h.setUint32(18,data.length,true);
+    h.setUint32(22,data.length,true); h.setUint16(26,name.length,true); h.setUint16(28,0,true);
+    var ch=hdr(46);
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true); ch.setUint16(8,0x0800,true);
+    ch.setUint16(10,0,true); ch.setUint16(12,dt,true); ch.setUint16(14,dd,true); ch.setUint32(16,c,true);
+    ch.setUint32(20,data.length,true); ch.setUint32(24,data.length,true); ch.setUint16(28,name.length,true);
+    ch.setUint32(42,off,true);
+    cen.push(new Uint8Array(ch.buffer),name);
+    parts.push(new Uint8Array(h.buffer),name,data); off+=30+name.length+data.length;
+  });
+  var csz=cen.reduce(function(a,b){ return a+b.length; },0), e=hdr(22);
+  e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true); e.setUint16(10,files.length,true);
+  e.setUint32(12,csz,true); e.setUint32(16,off,true);
+  return new Blob(parts.concat(cen,[new Uint8Array(e.buffer)]),{type:"application/zip"});
+}
+/* The picker: one row per notice with Light / Ink / Colour, in the same
+   panel the "Start from last week" review uses. The choice is kept on the
+   notice, so a weekly notice keeps its look week to week. */
+function openSlides(){
+  var list=slideNotices();
+  if(!list.length){ toast("No notices to make slides from"); return; }
+  var r=$("review"); r.hidden=false; r.innerHTML="";
+  var head=document.createElement("div");
+  head.innerHTML='<span class="lab">Notice slides</span><h3 style="font-size:1.25rem;margin-bottom:8px">'
+    +list.length+' slide'+(list.length===1?'':'s')+'</h3><p style="font-size:.9rem;color:var(--muted)">'
+    +'Choose a look for each one. <b>Light</b> is the usual. <b>Ink</b> is dark with white text. '
+    +'<b>Colour</b> fills the slide with the church’s colour (Peel Parishes notices use Ink).</p>';
+  r.appendChild(head);
+  var box=document.createElement("div"); box.style.marginTop="12px";
+  list.forEach(function(s){
+    var n=s.n, row=document.createElement("div"); row.className="rv";
+    var bar=document.createElement("span"); bar.className="bar"; bar.style.background=(BY[n.church]||BY.ink).c;
+    var t=document.createElement("div"); t.className="t";
+    var b=document.createElement("b"); b.textContent=n.title||"(no title)";
+    var sm=document.createElement("small"); sm.textContent=s.sec;
+    var seg=document.createElement("div"); seg.className="seg"; seg.setAttribute("role","group"); seg.setAttribute("aria-label","Look for "+(n.title||"this notice"));
+    var opts=[["light","Light"],["ink","Ink"]]; if(BY[n.church]&&n.church!=="ink") opts.push(["colour","Colour"]);
+    opts.forEach(function(o){
+      var bt=document.createElement("button"); bt.type="button"; bt.textContent=o[1];
+      bt.setAttribute("aria-pressed",slideStyle(n)===o[0]?"true":"false");
+      bt.onclick=function(){ n.slideStyle=o[0]; save();
+        [].forEach.call(seg.children,function(c){ c.setAttribute("aria-pressed",c===bt?"true":"false"); }); reset(); };
+      seg.appendChild(bt);
+    });
+    t.appendChild(b); t.appendChild(sm); t.appendChild(seg);
+    row.appendChild(bar); row.appendChild(t); box.appendChild(row);
+  });
+  r.appendChild(box);
+  var foot=document.createElement("div"); foot.className="row";
+  var go=document.createElement("button"); go.className="btn";
+  var no=document.createElement("button"); no.className="btn ghost"; no.textContent="Close";
+  var hint=document.createElement("p"); hint.className="hint";
+  var ready=null;   /* phones/tablets: the made files, waiting for the second tap */
+  function reset(){ ready=null; go.disabled=false;
+    go.textContent=touchOS()?"Make the slides":"Download the slides";
+    hint.textContent=touchOS()?"Then tap Save the slides and choose Save Images or Save to Files."
+      :"They download as a zip: open it, then drag the pictures into PowerPoint."; }
+  reset();
+  go.onclick=function(){
+    var base="peel-notice-slides-"+(S.sunday||"week");
+    /* The share sheet only opens straight from a tap, so on phones and
+       tablets the slides are made first and shared on the next tap. */
+    if(ready){ var files=ready;
+      navigator.share({files:files}).catch(function(err){ if(err&&err.name!=="AbortError") toast("Couldn’t share the slides"); });
+      return; }
+    go.disabled=true; go.textContent="Making the slides…";
+    buildSlides(list).then(function(made){
+      var files=made.map(function(m){ try{ return new File([m.blob],m.name,{type:"image/png"}); }catch(e){ return null; } });
+      if(touchOS()&&navigator.share&&navigator.canShare&&files.every(Boolean)&&navigator.canShare({files:files})){
+        ready=files; go.disabled=false; go.textContent="Save the slides ("+files.length+")"; return;
+      }
+      return Promise.all(made.map(function(m){ return m.blob.arrayBuffer(); })).then(function(bufs){
+        var z=zipFiles(made.map(function(m,i){ return {name:m.name,data:new Uint8Array(bufs[i])}; }));
+        saveFile(z,base+".zip","",made.length+" slide"+(made.length===1?"":"s")+" downloaded — unzip, then drag them into PowerPoint");
+        reset();
+      });
+    }).catch(function(){ reset(); toast("The slides couldn’t be made on this device"); });
+  };
+  no.onclick=function(){ r.hidden=true; };
+  foot.appendChild(go); foot.appendChild(no); r.appendChild(foot); r.appendChild(hint);
+  r.scrollTop=0;
 }
 
 function openReview(){
