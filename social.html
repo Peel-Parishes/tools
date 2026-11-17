@@ -768,7 +768,7 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
   function blankEvent(keepLook){
     var look = {};
     if (keepLook){
-      ["usePhoto","washOn","washSize","wash","washHex","markStyle","textStyle","darkCard","washOpacity","washBlend"].forEach(function(k){
+      ["usePhoto","washOn","washSize","wash","washHex","markStyle","textStyle","darkCard","washOpacity","washBlend","washShape","washAngle","washFill"].forEach(function(k){
         if (data[k] !== undefined) look[k] = data[k];
       });
     }
@@ -803,7 +803,6 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
       opt(wrap, "Wash over the photo", "washOn",
           "Darkens the picture so the words can be read over it.", true);
       if (data.washOn){
-        sel(wrap, "How much of it", "washSize", [["lower","Lower half"],["full","Whole picture"]]);
         toneField(wrap, "wash", "washHex", "Wash colour",
           "An ink layer sits under whichever you pick, so the words stay readable on a busy photograph.");
       }
@@ -995,6 +994,7 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
     });
 
     if (tpl === "words"){
+      opt(wrap, "Show quotation marks", "quotes", null, true);
       opt(wrap, "Put it over a photograph", "usePhoto",
           "The words sit over the picture, with a dark wash behind them so they stay readable.");
       if (data.usePhoto){
@@ -1012,16 +1012,9 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
         opt(wrap, "Wash over the photo", "washOn",
             "Darkens the picture so the words can be read over it.", true);
         if (data.washOn){
-          sel(wrap, "How much of it", "washSize", [
-            ["lower", "Lower half"],
-            ["full",  "Whole picture"]
-          ]);
           toneField(wrap, "wash", "washHex", "Wash colour",
             "An ink layer sits under whichever you pick, so the words stay readable on a busy photograph.");
         }
-      }
-      if (tpl === "words"){
-        opt(wrap, "Show quotation marks", "quotes", null, true);
       }
         if (!data.usePhoto){
         /* A church card used to be locked to its own Heritage colour. It can
@@ -1969,34 +1962,66 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
     ["luminosity", "Luminosity"]
   ];
 
-  /* Wash strength, 10-100%. 70% matches the old fixed wash. */
-  function opacityField(wrap){
-    sel(wrap, "Overlay style", "washBlend", BLENDS,
-      "How the wash mixes with the photo. Normal lays the colour over it; Multiply and Darken keep more of the photo\u2019s detail.");
-    if (data.washOpacity === undefined) data.washOpacity = 70;
+  /* One slider with its value on the right. */
+  function slider(wrap, key, label, min, max, step, unit, hint){
     var l = document.createElement("label");
-    l.setAttribute("for", "opt-washOpacity");
-    l.textContent = "Wash strength";
+    l.setAttribute("for", "opt-" + key);
+    l.textContent = label;
     wrap.appendChild(l);
     var row = document.createElement("div");
     row.className = "colrow";
     var r = document.createElement("input");
-    r.type = "range"; r.id = "opt-washOpacity";
-    r.min = "10"; r.max = "100"; r.step = "5";
-    r.value = String(data.washOpacity);
+    r.type = "range"; r.id = "opt-" + key;
+    r.min = String(min); r.max = String(max); r.step = String(step);
+    r.value = String(data[key]);
     r.style.flex = "1";
     var out = document.createElement("span");
     out.style.minWidth = "3.2em"; out.style.textAlign = "right"; out.style.fontSize = ".85rem";
-    out.textContent = data.washOpacity + "%";
+    out.textContent = data[key] + unit;
     r.addEventListener("input", function(){
-      data.washOpacity = +r.value; out.textContent = r.value + "%"; touched(); draw();
+      data[key] = +r.value; out.textContent = r.value + unit; touched(); draw();
     });
     row.appendChild(r); row.appendChild(out);
     wrap.appendChild(row);
-    var h = document.createElement("p");
-    h.className = "hint";
-    h.textContent = "Lower lets more of the photo through. Keep it high enough that the words read easily.";
-    wrap.appendChild(h);
+    if (hint){
+      var h = document.createElement("p");
+      h.className = "hint"; h.textContent = hint;
+      wrap.appendChild(h);
+    }
+  }
+
+  /* The wash's shape (17 Nov), replacing "How much of it" (Lower half / Whole
+     picture). None (even) is the default (Seb, 17 Nov). Linear at 0 degrees
+     with 70% fill is the old Lower half. */
+  function washShape(){
+    if (data.washShape === undefined) data.washShape = "even";
+    if (data.washAngle === undefined) data.washAngle = 0;
+    if (data.washFill === undefined) data.washFill = 70;
+    return data.washShape;
+  }
+
+  /* Order under the colour (agreed with Seb, 17 Nov): where the wash goes
+     first -- gradient, angle, fill -- then how it mixes, with strength last as
+     the final readability check. Angle only means something for a linear
+     wash; fill only for a gradient. */
+  function opacityField(wrap){
+    var shape = washShape();
+    sel(wrap, "Gradient", "washShape", [
+      ["even",       "None \u2014 even over the whole picture"],
+      ["linear",     "Linear \u2014 fades across the picture"],
+      ["elliptical", "Elliptical \u2014 darker towards the edges"]
+    ]);
+    if (shape === "linear")
+      slider(wrap, "washAngle", "Angle", 0, 345, 15, "\u00b0",
+        "Where the wash is darkest: 0\u00b0 bottom, 90\u00b0 left, 180\u00b0 top, 270\u00b0 right.");
+    if (shape !== "even")
+      slider(wrap, "washFill", "Fill", 10, 100, 5, "%",
+        "How much of the picture the wash reaches into. 100% reaches right across.");
+    sel(wrap, "Overlay style", "washBlend", BLENDS,
+      "How the wash mixes with the photo. Normal lays the colour over it; Multiply and Darken keep more of the photo\u2019s detail.");
+    if (data.washOpacity === undefined) data.washOpacity = 70;
+    slider(wrap, "washOpacity", "Wash strength", 10, 100, 5, "%",
+      "Lower lets more of the photo through. Keep it high enough that the words read easily.");
   }
 
   /* Paints the wash over the photo. A thin ink layer sits under a coloured
@@ -2005,19 +2030,37 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
   function paintWash(W, H, c){
     if (data.washOn === false) return;
     var o = (data.washOpacity === undefined ? 70 : data.washOpacity) / 100;
-    var full = (data.washSize === "full");
+    var shape = washShape(), full = (shape === "even");
+    var f = Math.max(0.1, Math.min(1, (data.washFill === undefined ? 70 : data.washFill) / 100));
     var hex = toneHex(data.wash, c, "washHex");
     var isInk = (hex.toUpperCase() === INK);
     function layer(col, peak){
       if (peak <= 0) return;
-      if (full){ ctx.fillStyle = hexRgba(col, Math.min(1, peak)); }
-      else {
-        var g = ctx.createLinearGradient(0, H*0.30, 0, H);
+      if (full){ ctx.fillStyle = hexRgba(col, Math.min(1, peak)); ctx.fillRect(0, 0, W, H); return; }
+      function stops(g){
         g.addColorStop(0, hexRgba(col, 0));
         g.addColorStop(0.55, hexRgba(col, Math.min(1, peak*0.70)));
         g.addColorStop(1, hexRgba(col, Math.min(1, peak)));
-        ctx.fillStyle = g;
+        return g;
       }
+      if (shape === "elliptical"){
+        /* Centred ellipse the shape of the card: clear in the middle, darkest
+           at the corners. Fill sets how far in from the edges it reaches. */
+        ctx.save();
+        ctx.translate(W/2, H/2); ctx.scale(W/2, H/2);
+        var R = Math.SQRT2;
+        ctx.fillStyle = stops(ctx.createRadialGradient(0, 0, R*(1-f), 0, 0, R));
+        ctx.fillRect(-1, -1, 2, 2);
+        ctx.restore();
+        return;
+      }
+      /* Linear: darkest at the edge the angle points to (0 = bottom, turning
+         clockwise), clear at Fill's distance back across the picture. The
+         span is measured corner to corner, so any angle covers the card. */
+      var a = (data.washAngle || 0) * Math.PI / 180, dx = -Math.sin(a), dy = Math.cos(a);
+      var L = (Math.abs(dx)*W + Math.abs(dy)*H) / 2, cx = W/2, cy = H/2;
+      ctx.fillStyle = stops(ctx.createLinearGradient(
+        cx + dx*(L - 2*L*f), cy + dy*(L - 2*L*f), cx + dx*L, cy + dy*L));
       ctx.fillRect(0, 0, W, H);
     }
     var mode = BLENDS.some(function(b){ return b[0] === data.washBlend; }) ? data.washBlend : "source-over";
