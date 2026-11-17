@@ -31,21 +31,25 @@ body{margin:0;background:var(--limewash);color:var(--ink);font:17px/1.6 var(--bo
 .lockup .wm{font-family:var(--disp);font-size:29px;line-height:1.03;margin-left:19px}
 .lockup .wm span{display:block}
 .lab{font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);display:block;margin-bottom:8px}
+  color:var(--muted);display:block;margin:28px 0 10px}
 h1{font-family:var(--disp);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 10px}
-.lede{color:var(--muted);margin:0 0 28px}
-.tool{display:flex;background:#fff;border:1px solid var(--stone);text-decoration:none;
-  color:var(--ink);margin-bottom:14px;min-height:112px}
-.tool:active,.tool:hover{border-color:var(--ink)}
-.tool:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.tool .mg{width:10px;flex:none;background:var(--ink)}
-.tool .in{padding:20px 20px 18px}
-.tool .t{font-family:var(--disp);font-size:24px;line-height:1.2;display:block;margin-bottom:4px}
-.tool .d{color:var(--muted);display:block}
-.tool .go{font-weight:600;display:block;margin-top:10px}
+.lede{color:var(--muted);margin:0}
+.list{border-top:1px solid var(--stone)}
+.tool{display:flex;align-items:center;background:#fff;border:1px solid var(--stone);border-top:0;
+  text-decoration:none;color:var(--ink);min-height:76px}
+.tool:active,.tool:hover{background:var(--paper)}
+.tool:focus-visible{outline:3px solid var(--ink);outline-offset:2px;position:relative}
+.tool .mg{width:8px;flex:none;align-self:stretch;background:var(--ink)}
+.tool .in{flex:1;min-width:0;padding:14px 12px 14px 18px}
+.tool .t{font-family:var(--disp);font-size:22px;line-height:1.2;display:block}
+.tool .n{font-family:var(--bod);font-weight:600;font-size:15px;color:var(--muted);
+  display:inline-block;min-width:22px}
+.tool .d{color:var(--muted);display:block;line-height:1.4;margin-top:2px}
+.tool .go{flex:none;font-size:22px;line-height:1;padding:0 18px 0 6px}
 .note{border-top:1px solid var(--stone);margin-top:30px;padding-top:20px;color:var(--muted)}
-.note p{margin:0 0 12px}
+.note p{margin:0}
 .note strong{color:var(--ink)}
+.note a{color:var(--ink);font-weight:600}
 </style>
 </head>
 <body>
@@ -55,40 +59,52 @@ h1{font-family:var(--disp);font-weight:400;font-size:32px;line-height:1.15;margi
     <div class="wm"><span>Peel</span><span>Parishes</span></div>
   </div>
 
-  <span class="lab">Team tools</span>
-  <h1>What would you like to make?</h1>
+  <h1>Team tools</h1>
   <p class="lede">Tap a tool to get started. They all work on phones, tablets and computers.</p>
 
-  <a class="tool" href="newsletter.html">
-    <span class="mg"></span>
-    <span class="in">
-      <span class="t">Newsletter builder</span>
-      <span class="d">Put together the weekly newsletter, notice by notice.</span>
-      <span class="go">Open newsletter builder →</span>
-    </span>
-  </a>
+  <span class="lab">This week’s newsletter</span>
+  <div class="list">
+    <!-- Peel Parishes Notices: the Notice Tracker workbook in Microsoft 365 (needs a parish login). -->
+    <a class="tool" href="https://peelparishes-my.sharepoint.com/:x:/r/personal/jesspascoe_peelparishes_church/_layouts/15/Doc.aspx?sourcedoc=%7B9D82EB41-BB66-4A68-BEE8-CFC503180CD5%7D&amp;file=Peel%20Parishes%20Notice%20Tracker.xlsx&amp;action=default&amp;mobileredirect=true" target="_blank" rel="noopener">
+      <span class="mg"></span>
+      <span class="in">
+        <span class="t"><span class="n">1</span>Peel Parishes Notices</span>
+        <span class="d">Check what’s been sent in</span>
+      </span>
+      <span class="go" aria-hidden="true">↗</span>
+    </a>
+    <a class="tool" href="newsletter.html">
+      <span class="mg"></span>
+      <span class="in">
+        <span class="t"><span class="n">2</span>Newsletter Builder</span>
+        <span class="d">Put the email together</span>
+      </span>
+      <span class="go" aria-hidden="true">→</span>
+    </a>
+  </div>
 
-  <a class="tool" href="social.html">
-    <span class="mg"></span>
-    <span class="in">
-      <span class="t">Social Studio</span>
-      <span class="d">Make social media posts in the Peel Parishes style.</span>
-      <span class="go">Open Social Studio →</span>
-    </span>
-  </a>
-
-  <a class="tool" href="email.html">
-    <span class="mg"></span>
-    <span class="in">
-      <span class="t">Email Signature Generator</span>
-      <span class="d">Create a parish email signature with your name and role.</span>
-      <span class="go">Open Email Signature Generator →</span>
-    </span>
-  </a>
+  <span class="lab">Any time</span>
+  <div class="list">
+    <a class="tool" href="social.html">
+      <span class="mg"></span>
+      <span class="in">
+        <span class="t">Social Studio</span>
+        <span class="d">Create a post or story</span>
+      </span>
+      <span class="go" aria-hidden="true">→</span>
+    </a>
+    <a class="tool" href="email.html">
+      <span class="mg"></span>
+      <span class="in">
+        <span class="t">Email Signature Generator</span>
+        <span class="d">Personalise your emails</span>
+      </span>
+      <span class="go" aria-hidden="true">→</span>
+    </a>
+  </div>
 
   <div class="note">
-    <p><strong>Your work is saved on this device only.</strong> If you start on your phone, finish on your phone.</p>
-    <p><strong>Tip:</strong> add this page to your home screen so it opens like an app. On iPhone, tap Share, then Add to Home Screen.</p>
+    <p><strong>Notice submissions:</strong> <a href="https://notices.peelparishes.church">notices.peelparishes.church</a></p>
   </div>
 </main>
 </body>
