@@ -117,6 +117,13 @@ canvas{display:block;max-width:100%;height:auto;box-shadow:0 2px 14px rgba(0,0,0
 .chk input{width:16px;height:16px;flex:none;margin:0}
 input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;padding:8px 10px;
   border:1px solid var(--stone);background:#fff;color:var(--ink);width:100%}
+/* iPad/iPhone Safari (15 Nov): Safari draws date and time boxes itself, with
+   a minimum width wider than half a column, its own height and centred text,
+   so a date box could spill past its column. Switch off Safari's own
+   look, let the boxes shrink to their column, and match the other boxes. */
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;
+  text-align:left;border-radius:0;height:calc(1.2em + 18px);line-height:1.2}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:left;margin:0}
 .f{display:none}
 /* Phones and tablets (10 Nov): 16px form text stops iPhone zooming in on every
    field you tap, and a tapped button no longer stays stuck in its hover colours. */
@@ -165,7 +172,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   <div>
     <span class="eyebrow">Peel Parishes · Social media</span>
     <h1>Social Studio</h1>
-    <p>Makes a finished square post in about a minute.<br>Four of the five templates need no photograph at all.</p>
+    <p>Makes a finished square post in about a minute.</p>
   </div>
   <a class="home" href="./" aria-label="Back to Team tools">← Team tools</a>
 </header>
@@ -761,7 +768,7 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
   function blankEvent(keepLook){
     var look = {};
     if (keepLook){
-      ["usePhoto","washOn","washSize","wash","washHex","markStyle","textStyle","darkCard","washOpacity"].forEach(function(k){
+      ["usePhoto","washOn","washSize","wash","washHex","markStyle","textStyle","darkCard","washOpacity","washBlend"].forEach(function(k){
         if (data[k] !== undefined) look[k] = data[k];
       });
     }
@@ -1948,8 +1955,24 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
     opacityField(wrap);
   }
 
+  /* How the wash mixes with the photo (17 Nov), just above the strength.
+     Values are the canvas blend modes; Normal is the old wash. */
+  var BLENDS = [
+    ["source-over","Normal"],
+    ["multiply",   "Multiply"],
+    ["darken",     "Darken"],
+    ["color-burn", "Colour burn"],
+    ["overlay",    "Overlay"],
+    ["soft-light", "Soft light"],
+    ["hard-light", "Hard light"],
+    ["color",      "Colour"],
+    ["luminosity", "Luminosity"]
+  ];
+
   /* Wash strength, 10-100%. 70% matches the old fixed wash. */
   function opacityField(wrap){
+    sel(wrap, "Overlay style", "washBlend", BLENDS,
+      "How the wash mixes with the photo. Normal lays the colour over it; Multiply and Darken keep more of the photo\u2019s detail.");
     if (data.washOpacity === undefined) data.washOpacity = 70;
     var l = document.createElement("label");
     l.setAttribute("for", "opt-washOpacity");
@@ -1997,11 +2020,15 @@ input[type=date],input[type=time]{font-family:var(--body);font-size:.9rem;paddin
       }
       ctx.fillRect(0, 0, W, H);
     }
+    var mode = BLENDS.some(function(b){ return b[0] === data.washBlend; }) ? data.washBlend : "source-over";
+    ctx.save();
+    ctx.globalCompositeOperation = mode;
     if (isInk){ layer(INK, (full ? 0.88 : 1.14) * o); }
     else {
       layer(INK, (full ? 0.30 : 0.40) * o);
       layer(hex, (full ? 0.75 : 0.85) * o);
     }
+    ctx.restore();
   }
 
   /* ---------- pickers ---------- */

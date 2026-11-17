@@ -54,6 +54,14 @@ input[type=text],input[type=url],input[type=date],input[type=time],input[type=nu
   width:100%;padding:9px 11px;border:1px solid var(--stone);background:#fff;
   font-family:var(--bod);font-size:.97rem;color:var(--ink);border-radius:0}
 textarea{resize:vertical;min-height:64px}
+/* iPad/iPhone Safari (15 Nov): Safari draws date and time boxes itself, with
+   a minimum width wider than half a column, its own height and centred text,
+   so the Sunday date box spilled over the Season box. Switch off Safari's own
+   look, let the boxes shrink to their column, and match the other boxes. */
+input[type=text],input[type=url],input[type=date],input[type=time],input[type=number]{height:calc(1.2em + 20px);line-height:1.2}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;text-align:left}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:left;margin:0}
+.grid2>*,.grid3>*{min-width:0}
 .hint{font-size:.81rem;color:var(--muted);margin-top:5px}
 .hint.warn{color:var(--mo);font-weight:600}
 .hint.good{color:var(--fz);font-weight:600}
@@ -182,7 +190,7 @@ pre.plain{background:#fff;color:var(--ink);border:1px solid var(--stone);font-fa
 .rv .t small{display:block;color:var(--muted);font-size:.78rem}
 .rv .why{font-weight:600;font-size:.71rem;color:var(--fz)}
 .rv .why.drop{color:var(--mo)}
-.seg{display:flex;gap:5px;margin-top:7px}
+.seg{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
 .seg button{font-family:var(--bod);font-size:.82rem;padding:6px 12px;min-width:68px;cursor:pointer;border:1px solid var(--stone);background:#fff;color:var(--ink)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
 @media (pointer:coarse){ .seg button{min-height:44px;min-width:76px} }
@@ -2057,7 +2065,7 @@ function stepSend(b){
    +'<fieldset><legend>Screen in church</legend>'
    +'<div class="row" style="margin-top:10px"><button class="btn ghost" id="send-slides">Notice slides (16:9)</button></div>'
    +'<p class="hint">One picture per notice for the welcome slideshow before services, with a QR code for its link. '
-   +'Every notice except cancelled and finished ones. Choose Light, Ink or Colour for each, then '+(touchOS()
+   +'Every notice except cancelled and finished ones. Choose Light, Ink, Colour or Transparent for each, then '+(touchOS()
      ? 'save them to Photos or Files.</p>'
      : 'download them as a zip to drag into PowerPoint.</p>')
    +'</fieldset>'
@@ -2429,6 +2437,8 @@ function qrMatrix(text){
      ink    -- ink ground, white text; bar and label in the church's Bright
                colour (Bright is the register for dark grounds)
      colour -- the church's Heritage colour as the ground, white text
+     clear  -- no ground at all (transparent PNG), white text as on Colour,
+               for laying over a photo in PowerPoint (17 Nov)
    The QR code always sits on white, dark on light, so phones read it. */
 var SL_W=1920, SL_H=1080;
 var SLIDE_GROUPS=PRINT_GROUPS.concat([{h:"Every week", f:function(n){ return n.section==="Every week"; }}]);
@@ -2440,17 +2450,18 @@ function slideNotices(){
 }
 function slideStyle(n){ var s=n.slideStyle;
   if(s==="colour"&&(!BY[n.church]||n.church==="ink")) s="ink";   /* Peel Parishes has no church colour */
-  return s==="ink"||s==="colour"?s:"light"; }
+  return s==="ink"||s==="colour"||s==="clear"?s:"light"; }
 function slideLook(n){
   var k=BY[n.church]?n.church:"ink", heritage=(BY[k]||BY.ink).c, st=slideStyle(n);
   if(st==="ink") return {bg:"#16211F", bar:k==="ink"?null:BRIGHT[k], key:k==="ink"?"#FFFFFF":BRIGHT[k], text:"#FFFFFF", soft:"#C9CFCB", rule:"rgba(255,255,255,.28)"};
+  if(st==="clear") return {bg:null, bar:null, key:"#FFFFFF", text:"#FFFFFF", soft:"rgba(255,255,255,.86)", rule:"rgba(255,255,255,.4)"};
   if(st==="colour") return {bg:heritage, bar:null, key:"#FFFFFF", text:"#FFFFFF", soft:"rgba(255,255,255,.86)", rule:"rgba(255,255,255,.4)"};
   return {bg:"#F7F8F6", bar:heritage, key:heritage, text:"#16211F", soft:"#5C6660", rule:"#D5D8D3"};
 }
 function drawSlide(cv,s){
   var x=cv.getContext("2d"), n=s.n, it=s.it, look=slideLook(n), url=(n.url||"").trim();
   cv.width=SL_W; cv.height=SL_H; x.textBaseline="alphabetic";
-  x.fillStyle=look.bg; x.fillRect(0,0,SL_W,SL_H);
+  if(look.bg){ x.fillStyle=look.bg; x.fillRect(0,0,SL_W,SL_H); } else x.clearRect(0,0,SL_W,SL_H);
   if(look.bar){ x.fillStyle=look.bar; x.fillRect(0,0,36,SL_H); }   /* church mark: full-height bar */
   var qr=url?qrMatrix(url):null;
   var L=150, TOP=104, FOOT=SL_H-92;
@@ -2567,7 +2578,8 @@ function openSlides(){
   head.innerHTML='<span class="lab">Notice slides</span><h3 style="font-size:1.25rem;margin-bottom:8px">'
     +list.length+' slide'+(list.length===1?'':'s')+'</h3><p style="font-size:.9rem;color:var(--muted)">'
     +'Choose a look for each one. <b>Light</b> is the usual. <b>Ink</b> is dark with white text. '
-    +'<b>Colour</b> fills the slide with the church’s colour (Peel Parishes notices use Ink).</p>';
+    +'<b>Colour</b> fills the slide with the church’s colour (Peel Parishes notices use Ink). '
+    +'<b>Transparent</b> has no background and white text, to lay over a photo in PowerPoint.</p>';
   r.appendChild(head);
   var box=document.createElement("div"); box.style.marginTop="12px";
   list.forEach(function(s){
@@ -2577,7 +2589,7 @@ function openSlides(){
     var b=document.createElement("b"); b.textContent=n.title||"(no title)";
     var sm=document.createElement("small"); sm.textContent=s.sec;
     var seg=document.createElement("div"); seg.className="seg"; seg.setAttribute("role","group"); seg.setAttribute("aria-label","Look for "+(n.title||"this notice"));
-    var opts=[["light","Light"],["ink","Ink"]]; if(BY[n.church]&&n.church!=="ink") opts.push(["colour","Colour"]);
+    var opts=[["light","Light"],["ink","Ink"]]; if(BY[n.church]&&n.church!=="ink") opts.push(["colour","Colour"]); opts.push(["clear","Transparent"]);
     opts.forEach(function(o){
       var bt=document.createElement("button"); bt.type="button"; bt.textContent=o[1];
       bt.setAttribute("aria-pressed",slideStyle(n)===o[0]?"true":"false");
